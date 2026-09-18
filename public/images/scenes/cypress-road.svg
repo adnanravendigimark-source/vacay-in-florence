@@ -1,0 +1,21 @@
+<svg viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true">
+  <defs>
+    <linearGradient id="skyRoad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#f0d9c8"/>
+      <stop offset="100%" stop-color="#f1e1bd"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="600" fill="url(#skyRoad)"/>
+  <circle cx="620" cy="160" r="50" fill="#c1502e" opacity="0.45"/>
+  <rect y="360" width="800" height="240" fill="#dbe6de"/>
+  <polygon points="330,360 470,360 620,600 180,600" fill="#cabb9f"/>
+  <line x1="400" y1="360" x2="400" y2="600" stroke="#faf5ec" stroke-width="6" stroke-dasharray="24 20"/>
+  <g fill="#33473a">
+    <polygon points="230,600 250,600 240,470 232,470"/>
+    <polygon points="270,600 288,600 279,490 271,490"/>
+    <polygon points="310,600 326,600 318,510 312,510"/>
+    <polygon points="560,600 580,600 570,470 562,470"/>
+    <polygon points="520,600 538,600 529,490 521,490"/>
+    <polygon points="480,600 496,600 488,510 482,510"/>
+  </g>
+</svg>

@@ -1,0 +1,32 @@
+<svg viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true">
+  <defs>
+    <linearGradient id="skyBridge" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#f1e1bd"/>
+      <stop offset="100%" stop-color="#f0d9c8"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="600" fill="url(#skyBridge)"/>
+  <circle cx="640" cy="150" r="55" fill="#b8863b" opacity="0.5"/>
+  <rect x="0" y="380" width="800" height="220" fill="#cabb9f" opacity="0.55"/>
+  <path d="M60,420 Q400,470 740,420 L740,600 L60,600 Z" fill="#33473a" opacity="0.35"/>
+  <g fill="none" stroke="#9c3d21" stroke-width="14">
+    <path d="M100,420 A70,70 0 0 1 240,420"/>
+    <path d="M280,420 A70,70 0 0 1 420,420"/>
+    <path d="M460,420 A70,70 0 0 1 600,420"/>
+  </g>
+  <rect x="80" y="410" width="640" height="20" fill="#9c3d21"/>
+  <g fill="#c1502e">
+    <rect x="110" y="340" width="90" height="70"/>
+    <rect x="220" y="330" width="90" height="80"/>
+    <rect x="340" y="345" width="90" height="65"/>
+    <rect x="460" y="330" width="90" height="80"/>
+    <rect x="580" y="340" width="90" height="70"/>
+  </g>
+  <g fill="#9c3d21">
+    <polygon points="105,340 205,340 155,315"/>
+    <polygon points="215,330 315,330 265,305"/>
+    <polygon points="335,345 435,345 385,322"/>
+    <polygon points="455,330 555,330 505,305"/>
+    <polygon points="575,340 675,340 625,315"/>
+  </g>
+</svg>

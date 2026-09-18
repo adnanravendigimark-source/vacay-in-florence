@@ -1,0 +1,18 @@
+<svg viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true">
+  <defs>
+    <linearGradient id="skyHills" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#f1e1bd"/>
+      <stop offset="100%" stop-color="#faf5ec"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="600" fill="url(#skyHills)"/>
+  <circle cx="640" cy="140" r="60" fill="#b8863b" opacity="0.55"/>
+  <path d="M0,360 C150,300 300,420 480,340 C620,280 720,360 800,320 L800,600 L0,600 Z" fill="#dbe6de"/>
+  <path d="M0,440 C180,380 340,460 520,410 C650,375 730,430 800,400 L800,600 L0,600 Z" fill="#33473a" opacity="0.85"/>
+  <g fill="#241d18">
+    <polygon points="140,410 152,410 146,378"/>
+    <polygon points="168,412 180,412 174,382"/>
+    <polygon points="540,398 552,398 546,368"/>
+    <polygon points="640,392 652,392 646,360"/>
+  </g>
+</svg>

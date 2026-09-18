@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 60" fill="none">
+  <!-- Florence Duomo Emblem -->
+  <g transform="translate(6, 6)">
+    <!-- Base Platform -->
+    <path d="M4 42H42" stroke="#1e352b" stroke-width="2.5" stroke-linecap="round" />
+    
+    <!-- Arcade -->
+    <path d="M6 42V35H32V42" stroke="#1e352b" stroke-width="2" stroke-linejoin="round" />
+    <path d="M10 42V37C10 35.8954 10.8954 35 12 35C13.1046 35 14 35.8954 14 37V42" stroke="#1e352b" stroke-width="1.8" />
+    <path d="M17 42V36C17 34.8954 17.8954 34 19 34C20.1046 34 21 34.8954 21 36V42" stroke="#1e352b" stroke-width="1.8" />
+    <path d="M24 42V37C24 35.8954 24.8954 35 26 35C27.1046 35 28 35.8954 28 37V42" stroke="#1e352b" stroke-width="1.8" />
+    
+    <!-- Drum of the Duomo -->
+    <path d="M8 35V30H30V35" stroke="#1e352b" stroke-width="2" stroke-linejoin="round" />
+    <circle cx="12" cy="32.5" r="1.2" fill="#c1502e" />
+    <circle cx="19" cy="32.5" r="1.2" fill="#c1502e" />
+    <circle cx="26" cy="32.5" r="1.2" fill="#c1502e" />
+
+    <!-- Grand Terracotta Dome -->
+    <path d="M8 30C8 20.5 15 13.5 19 13.5C23 13.5 30 20.5 30 30Z" fill="#c1502e" fill-opacity="0.15" stroke="#c1502e" stroke-width="2.2" stroke-linejoin="round" />
+    <path d="M19 13.5V30" stroke="#1e352b" stroke-width="1.8" />
+    <path d="M13.5 17C16 21.5 17.2 25.5 17.2 30" stroke="#1e352b" stroke-opacity="0.6" stroke-width="1.2" />
+    <path d="M24.5 17C22 21.5 20.8 25.5 20.8 30" stroke="#1e352b" stroke-opacity="0.6" stroke-width="1.2" />
+
+    <!-- Lantern and Cross -->
+    <path d="M17.5 13.5H20.5V9H17.5V13.5Z" fill="#1e352b" />
+    <path d="M19 9V5" stroke="#1e352b" stroke-width="1.5" stroke-linecap="round" />
+    <path d="M17.5 6.5H20.5" stroke="#1e352b" stroke-width="1.5" stroke-linecap="round" />
+    <circle cx="19" cy="8" r="1" fill="#b8863b" />
+
+    <!-- Giotto's Campanile Bell Tower -->
+    <path d="M34 42V9H39V42" stroke="#1e352b" stroke-width="1.8" stroke-linejoin="round" />
+    <path d="M33 9H40L36.5 5L33 9Z" fill="#1e352b" />
+    <line x1="34" y1="17" x2="39" y2="17" stroke="#1e352b" stroke-width="1.2" />
+    <line x1="34" y1="25" x2="39" y2="25" stroke="#1e352b" stroke-width="1.2" />
+    <line x1="34" y1="33" x2="39" y2="33" stroke="#1e352b" stroke-width="1.2" />
+  </g>
+
+  <!-- Brand Typography -->
+  <text x="60" y="24" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10" font-weight="800" letter-spacing="0.25em" fill="#1e352b">VACAY IN</text>
+  <text x="59" y="46" font-family="'Fraunces', Georgia, serif" font-size="24" font-weight="600" letter-spacing="-0.02em" fill="#1c2d24">Florence</text>
+</svg>

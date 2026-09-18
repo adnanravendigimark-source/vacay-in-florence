@@ -1,0 +1,23 @@
+<svg viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true">
+  <defs>
+    <linearGradient id="skyDuomo" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#f1e1bd"/>
+      <stop offset="100%" stop-color="#faf5ec"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="600" fill="url(#skyDuomo)"/>
+  <circle cx="620" cy="140" r="70" fill="#f0d9c8" opacity="0.7"/>
+  <rect x="150" y="430" width="500" height="170" fill="#e4dac8"/>
+  <rect x="220" y="380" width="360" height="60" fill="#9c3d21"/>
+  <path d="M220,380 A180,230 0 0 1 580,380 Z" fill="#c1502e"/>
+  <path d="M240,380 L400,175" stroke="#b8863b" stroke-width="4" opacity="0.55"/>
+  <path d="M320,380 L400,175" stroke="#b8863b" stroke-width="4" opacity="0.55"/>
+  <path d="M400,380 L400,175" stroke="#b8863b" stroke-width="4" opacity="0.55"/>
+  <path d="M480,380 L400,175" stroke="#b8863b" stroke-width="4" opacity="0.55"/>
+  <path d="M560,380 L400,175" stroke="#b8863b" stroke-width="4" opacity="0.55"/>
+  <rect x="386" y="150" width="28" height="30" fill="#9c3d21"/>
+  <polygon points="400,110 386,150 414,150" fill="#9c3d21"/>
+  <line x1="400" y1="110" x2="400" y2="80" stroke="#9c3d21" stroke-width="5"/>
+  <line x1="390" y1="90" x2="410" y2="90" stroke="#9c3d21" stroke-width="5"/>
+  <rect x="150" y="580" width="500" height="20" fill="#33473a" opacity="0.25"/>
+</svg>

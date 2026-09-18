@@ -1,0 +1,18 @@
+<svg viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true">
+  <defs>
+    <linearGradient id="skyRiver" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#dde6df"/>
+      <stop offset="100%" stop-color="#f1e1bd"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="600" fill="url(#skyRiver)"/>
+  <g fill="#c1502e">
+    <rect x="60" y="360" width="60" height="90"/>
+    <rect x="130" y="330" width="70" height="120"/>
+    <rect x="210" y="350" width="55" height="100"/>
+    <rect x="580" y="345" width="65" height="105"/>
+    <rect x="655" y="325" width="70" height="125"/>
+  </g>
+  <path d="M0,450 C160,430 260,470 400,450 C540,430 640,470 800,445 L800,520 C640,545 540,505 400,525 C260,545 160,505 0,520 Z" fill="#33473a" opacity="0.55"/>
+  <path d="M0,500 C160,485 260,515 400,500 C540,485 640,515 800,495 L800,600 L0,600 Z" fill="#241d18" opacity="0.35"/>
+</svg>
