@@ -18,6 +18,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${siteUrl}/blog`, changeFrequency: "weekly", priority: 0.6 },
     { url: `${siteUrl}/about`, changeFrequency: "monthly", priority: 0.3 },
     { url: `${siteUrl}/contact`, changeFrequency: "monthly", priority: 0.3 },
+    { url: `${siteUrl}/become-a-supplier`, changeFrequency: "monthly", priority: 0.3 },
+    { url: `${siteUrl}/affiliates`, changeFrequency: "monthly", priority: 0.3 },
+    { url: `${siteUrl}/privacy`, changeFrequency: "yearly", priority: 0.1 },
+    { url: `${siteUrl}/terms`, changeFrequency: "yearly", priority: 0.1 },
+    { url: `${siteUrl}/cancellation-policy`, changeFrequency: "yearly", priority: 0.1 },
   ];
 
   const categoryRoutes: MetadataRoute.Sitemap = categories.map((category) => ({

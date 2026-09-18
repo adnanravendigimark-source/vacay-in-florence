@@ -37,6 +37,7 @@ export function FormField({
   required = true,
   defaultValue,
   autoComplete,
+  placeholder,
 }: {
   label: string;
   name: string;
@@ -44,6 +45,7 @@ export function FormField({
   required?: boolean;
   defaultValue?: string;
   autoComplete?: string;
+  placeholder?: string;
 }) {
   return (
     <div>
@@ -57,6 +59,7 @@ export function FormField({
         required={required}
         defaultValue={defaultValue}
         autoComplete={autoComplete}
+        placeholder={placeholder}
         className="mt-1.5 w-full rounded-xl border border-stone-dark px-3.5 py-2.5 text-sm text-ink outline-none focus:border-cypress"
       />
     </div>
@@ -89,5 +92,38 @@ export function SubmitButton({ label }: { label: string }) {
     >
       {label}
     </button>
+  );
+}
+
+export function FormTextArea({
+  label,
+  name,
+  required = true,
+  rows = 5,
+  defaultValue,
+  placeholder,
+}: {
+  label: string;
+  name: string;
+  required?: boolean;
+  rows?: number;
+  defaultValue?: string;
+  placeholder?: string;
+}) {
+  return (
+    <div>
+      <label htmlFor={name} className="text-sm font-medium text-ink">
+        {label}
+      </label>
+      <textarea
+        id={name}
+        name={name}
+        required={required}
+        rows={rows}
+        defaultValue={defaultValue}
+        placeholder={placeholder}
+        className="mt-1.5 w-full resize-y rounded-xl border border-stone-dark px-3.5 py-2.5 text-sm text-ink outline-none focus:border-cypress"
+      />
+    </div>
   );
 }

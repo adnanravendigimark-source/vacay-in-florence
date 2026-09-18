@@ -99,3 +99,27 @@ export interface HomepageContent {
     primaryCta: { label: string; href: string };
   };
 }
+
+// ---------------------------------------------------------------------------
+// About Us + legal pages (CMS-managed, same cms_blocks pattern as
+// HomepageContent — see src/lib/data/site-content.ts)
+// ---------------------------------------------------------------------------
+
+export interface AboutPageContent {
+  hero: {
+    eyebrow: string;
+    headline: string;
+    subheadline: string;
+  };
+  story: { heading: string; paragraphs: string[] };
+  values: { id: string; title: string; description: string }[];
+  stats: { label: string; value: string }[];
+}
+
+/** Shared shape for Privacy Policy, Terms & Conditions, Cancellation & Refund Policy. */
+export interface LegalPageContent {
+  title: string;
+  effectiveDate: string;
+  intro: string;
+  sections: { heading: string; body: string[] }[];
+}

@@ -11,6 +11,13 @@ import {
   cmsBlocks,
 } from "./schema";
 import { sql } from "drizzle-orm";
+import {
+  homepageContent,
+  aboutPageContent,
+  privacyPolicyContent,
+  termsContent,
+  cancellationPolicyContent,
+} from "../data/seed/site-content";
 
 /**
  * Seeds the local SQLite database with realistic demo data — the same
@@ -565,70 +572,18 @@ export async function seedDatabase(targetDb: NodePgDatabase<typeof schema> = db)
     ]);
 
   // ---------------------------------------------------------------------
-  // CMS-managed homepage copy
+  // CMS-managed content: homepage, About Us, and the three legal pages —
+  // one key/value row per page, same pattern, single source of truth
+  // shared with the fallback content each page falls back to if its row
+  // is ever missing (see src/lib/data/site-content.ts).
   // ---------------------------------------------------------------------
-  await targetDb.insert(cmsBlocks).values({
-      key: "homepage",
-      content: {
-        hero: {
-          eyebrow: "Florence, Italy",
-          headline: "Florence, without the guesswork.",
-          subheadline:
-            "Skip-the-line tickets, small-group tours, and day trips — booked in minutes, confirmed instantly, and backed by free cancellation.",
-          primaryCta: { label: "Browse experiences", href: "/experiences" },
-          secondaryCta: { label: "How booking works", href: "/how-it-works" },
-          stats: [
-            { label: "Travelers booked", value: "250,000+" },
-            { label: "Average rating", value: "4.8 / 5" },
-            { label: "Free cancellation", value: "Up to 24h before" },
-          ],
-        },
-        trust: {
-          heading: "Why book with VACAY Florence",
-          subheading:
-            "We vet every listing and every supplier, so what you see here is what you get in Florence.",
-          highlights: [
-            {
-              id: "trust_reviews",
-              title: "Verified reviews only",
-              description: "Every review comes from a completed, confirmed booking — no exceptions.",
-              icon: "star",
-            },
-            {
-              id: "trust_confirmation",
-              title: "Instant confirmation",
-              description: "Most tickets and tours confirm immediately, so you can plan the rest of your day.",
-              icon: "clock",
-            },
-            {
-              id: "trust_curation",
-              title: "Handpicked experiences",
-              description: "Every listing is vetted for quality before it goes live — not just anyone can list.",
-              icon: "shield",
-            },
-            {
-              id: "trust_support",
-              title: "Local support, always on",
-              description: "Real help in English and Italian if a booking needs to change.",
-              icon: "support",
-            },
-            {
-              id: "trust_cancellation",
-              title: "Free cancellation",
-              description: "Most experiences can be cancelled up to 24 hours ahead, no questions asked.",
-              icon: "confirmation",
-            },
-          ],
-        },
-        cta: {
-          heading: "Ready to see Florence properly?",
-          subheading:
-            "Browse skip-the-line tickets and guided experiences curated for first-time visitors and locals alike.",
-          primaryCta: { label: "Explore all experiences", href: "/experiences" },
-        },
-      },
-      updatedBy: "seed",
-    });
+  await targetDb.insert(cmsBlocks).values([
+    { key: "homepage", content: homepageContent, updatedBy: "seed" },
+    { key: "about", content: aboutPageContent, updatedBy: "seed" },
+    { key: "privacy-policy", content: privacyPolicyContent, updatedBy: "seed" },
+    { key: "terms-conditions", content: termsContent, updatedBy: "seed" },
+    { key: "cancellation-policy", content: cancellationPolicyContent, updatedBy: "seed" },
+  ]);
 
   // ::int — Postgres count() is bigint; node-postgres would otherwise
   // return each one as a string.

@@ -75,18 +75,21 @@ export function SiteFooter() {
                 </Link>
               </li>
               <li>
-                <Link href="/faq" className="hover:text-white transition-colors">
-                  FAQ
+                <Link href="/cancellation-policy" className="hover:text-white transition-colors">
+                  Cancellation &amp; Refunds
                 </Link>
               </li>
+              {/* No supplier/affiliate login exists yet (only customer
+                  accounts do) — these point at the public application
+                  pages instead of a login page that doesn't exist. */}
               <li>
-                <Link href="/suppliers/login" className="hover:text-white transition-colors">
-                  Supplier Login
+                <Link href="/become-a-supplier" className="hover:text-white transition-colors">
+                  Become a Supplier
                 </Link>
               </li>
               <li>
                 <Link href="/affiliates" className="hover:text-white transition-colors">
-                  Affiliate Login
+                  Become an Affiliate
                 </Link>
               </li>
             </ul>
