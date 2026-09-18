@@ -44,22 +44,22 @@ export function Hero() {
           {/* Text Block */}
           <div className="max-w-3xl">
             {/* Eyebrow Tagline */}
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3.5 py-1 text-[11px] font-semibold tracking-wider text-white uppercase mb-3 sm:mb-4 border border-white/20 shadow-sm">
+            <div className="inline-flex items-center gap-2 rounded-full bg-black/40 backdrop-blur-md px-3.5 py-1 text-[10.5px] font-semibold tracking-[0.18em] text-amber-300 uppercase mb-3 border border-amber-400/25 shadow-lg">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
               <span>OFFICIAL FLORENCE TICKETS &amp; TOURS</span>
             </div>
 
-            {/* Main Headline */}
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-[54px] font-medium leading-[1.12] tracking-tight text-white drop-shadow-2xl">
+            {/* Main Headline with Luxury Editorial Font */}
+            <h1 className="font-display text-3xl sm:text-4xl md:text-5xl lg:text-[48px] xl:text-[52px] font-normal leading-[1.12] tracking-tight text-white drop-shadow-[0_4px_24px_rgba(0,0,0,0.5)]">
               Unforgettable Experiences in{" "}
-              <span className="font-display italic font-light text-[#faeedd] drop-shadow-2xl">
+              <span className="italic font-light text-transparent bg-clip-text bg-gradient-to-r from-[#ffe4a0] via-[#faeedd] to-[#e5b869] drop-shadow-2xl inline-block">
                 Florence
               </span>
             </h1>
 
-            {/* Subheading */}
-            <p className="mt-3.5 max-w-xl text-xs sm:text-sm md:text-base font-normal leading-relaxed text-white/95 drop-shadow-md">
-              Skip the lines at iconic museums, climb the Duomo, and explore Tuscany with verified local guides. Instant mobile vouchers with 100% free cancellation.
+            {/* Subheading with Key Highlights */}
+            <p className="mt-3 max-w-lg text-xs sm:text-sm md:text-[14.5px] font-normal leading-relaxed text-neutral-100/95 drop-shadow-md">
+              Skip the 2-hour queues at the Duomo and Uffizi. Guaranteed entrance timeslots, expert local guides, and <span className="text-amber-200 font-medium">100% free 24-hour cancellation</span>.
             </p>
           </div>
 
@@ -76,12 +76,12 @@ export function Hero() {
         </div>
 
         {/* Stretched Centered Search Bar Widget */}
-        <div className="relative z-30 w-full mt-4 sm:mt-6 mb-3 sm:mb-4">
+        <div className="relative z-30 w-full mt-6 sm:mt-8 mb-4 sm:mb-6">
           <HeroSearch />
         </div>
 
         {/* Trending Quick Searches */}
-        <div className="relative z-10 flex flex-wrap items-center gap-2 text-xs pt-1 pb-1">
+        <div className="relative z-10 flex flex-wrap items-center gap-2.5 text-xs pt-1 pb-1">
           <span className="text-white/80 font-medium text-[11px] uppercase tracking-wider">Trending:</span>
           {[
             { label: "⚡ Duomo Dome Climb", href: "/experiences/duomo-and-brunelleschis-dome-climb" },
@@ -93,7 +93,7 @@ export function Hero() {
             <a
               key={tag.label}
               href={tag.href}
-              className="rounded-full bg-black/35 backdrop-blur-md px-3.5 py-1 text-white/90 text-xs font-medium hover:bg-white hover:text-neutral-900 transition-all duration-150 border border-white/20 shadow-sm"
+              className="rounded-full bg-black/40 backdrop-blur-md px-3.5 py-1.5 text-white/95 text-xs font-medium hover:bg-white hover:text-neutral-900 transition-all duration-150 border border-white/25 shadow-sm"
             >
               {tag.label}
             </a>
