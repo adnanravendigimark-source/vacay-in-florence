@@ -24,19 +24,17 @@ import { sql } from "drizzle-orm";
  * Run with: npm run db:seed
  */
 
-async function main() {
-  console.log("Seeding…");
-
+export function seedDatabase(targetDb: any = db) {
   // Clear catalog + content tables only (never users/carts/orders — those
   // hold real account data once people start using the site).
-  db.delete(productImages).run();
-  db.delete(productOptions).run();
-  db.delete(availability).run();
-  db.delete(products).run();
-  db.delete(categories).run();
-  db.delete(suppliers).run();
-  db.delete(blogPosts).run();
-  db.delete(cmsBlocks).run();
+  targetDb.delete(productImages).run();
+  targetDb.delete(productOptions).run();
+  targetDb.delete(availability).run();
+  targetDb.delete(products).run();
+  targetDb.delete(categories).run();
+  targetDb.delete(suppliers).run();
+  targetDb.delete(blogPosts).run();
+  targetDb.delete(cmsBlocks).run();
 
   // ---------------------------------------------------------------------
   // Suppliers
@@ -648,12 +646,15 @@ async function main() {
     blogPosts: db.select({ c: sql<number>`count(*)` }).from(blogPosts).get(),
     cmsBlocks: db.select({ c: sql<number>`count(*)` }).from(cmsBlocks).get(),
   };
-  console.log("Seed complete:", counts);
+  return counts;
 }
 
-main()
-  .then(() => process.exit(0))
-  .catch((err) => {
+if (process.argv[1]?.includes("seed")) {
+  try {
+    seedDatabase();
+    process.exit(0);
+  } catch (err) {
     console.error("Seed failed:", err);
     process.exit(1);
-  });
+  }
+}
