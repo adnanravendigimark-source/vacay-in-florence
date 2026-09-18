@@ -23,7 +23,7 @@ const STATUS_LABEL: Record<string, string> = {
 
 export default async function AccountOverviewPage() {
   const sessionUser = await requireUser("/account");
-  const dbUser = db.select().from(users).where(eq(users.id, sessionUser.id)).get();
+  const [dbUser] = await db.select().from(users).where(eq(users.id, sessionUser.id));
   const orders = await getOrdersForUser(sessionUser.id);
   const recent = orders.slice(0, 3);
   const firstName = dbUser?.name?.split(" ")[0];

@@ -37,7 +37,7 @@ export async function getCartSummary(): Promise<CartSummary> {
     return { items: [], totalAmount: 0, totalParticipants: 0, currency: "EUR" };
   }
 
-  const rows = db
+  const rows = await db
     .select({
       id: cartItems.id,
       productId: cartItems.productId,
@@ -51,30 +51,27 @@ export async function getCartSummary(): Promise<CartSummary> {
     .from(cartItems)
     .innerJoin(products, eq(cartItems.productId, products.id))
     .where(eq(cartItems.cartId, cartId))
-    .orderBy(asc(cartItems.createdAt))
-    .all();
+    .orderBy(asc(cartItems.createdAt));
 
   if (rows.length === 0) {
     return { items: [], totalAmount: 0, totalParticipants: 0, currency: "EUR" };
   }
 
   const productIds = Array.from(new Set(rows.map((r) => r.productId)));
-  const images = db
+  const images = await db
     .select({ productId: productImages.productId, url: productImages.url, alt: productImages.alt })
     .from(productImages)
     .where(inArray(productImages.productId, productIds))
-    .orderBy(asc(productImages.sortOrder))
-    .all();
+    .orderBy(asc(productImages.sortOrder));
   const imageByProduct = new Map<string, { url: string; alt: string }>();
   for (const img of images) {
     if (!imageByProduct.has(img.productId)) imageByProduct.set(img.productId, img);
   }
 
-  const options = db
+  const options = await db
     .select({ id: productOptions.id, productId: productOptions.productId, name: productOptions.name, priceAmount: productOptions.priceAmount })
     .from(productOptions)
-    .where(and(inArray(productOptions.productId, productIds), eq(productOptions.isActive, true)))
-    .all();
+    .where(and(inArray(productOptions.productId, productIds), eq(productOptions.isActive, true)));
   const optionsByProduct = new Map<string, { id: string; name: string; priceAmount: number }[]>();
   for (const opt of options) {
     const list = optionsByProduct.get(opt.productId) ?? [];

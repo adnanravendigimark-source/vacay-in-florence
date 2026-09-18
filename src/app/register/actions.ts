@@ -24,20 +24,18 @@ export async function registerAction(formData: FormData): Promise<void> {
 
   const { name, email, password } = parsed.data;
 
-  const existing = db.select().from(users).where(eq(users.email, email)).get();
+  const [existing] = await db.select().from(users).where(eq(users.email, email));
   if (existing) {
     redirect(`/register?error=${encodeURIComponent("An account with that email already exists.")}&email=${encodeURIComponent(email)}`);
   }
 
   const passwordHash = await bcrypt.hash(password, 12);
 
-  db.insert(users)
-    .values({
-      email,
-      name,
-      passwordHash,
-    })
-    .run();
+  await db.insert(users).values({
+    email,
+    name,
+    passwordHash,
+  });
 
   // Log the new account in immediately — this project doesn't have an
   // email provider connected (see the note in /forgot-password's

@@ -21,11 +21,10 @@ export async function resetPasswordAction(formData: FormData): Promise<void> {
     redirect(`/reset-password?token=${encodeURIComponent(token)}&error=${encodeURIComponent(message)}`);
   }
 
-  const tokenRow = db
+  const [tokenRow] = await db
     .select()
     .from(verificationTokens)
-    .where(and(eq(verificationTokens.token, parsed.data.token), eq(verificationTokens.type, "password_reset")))
-    .get();
+    .where(and(eq(verificationTokens.token, parsed.data.token), eq(verificationTokens.type, "password_reset")));
 
   if (!tokenRow || tokenRow.expiresAt.getTime() < Date.now()) {
     redirect(
@@ -35,9 +34,9 @@ export async function resetPasswordAction(formData: FormData): Promise<void> {
 
   const passwordHash = await bcrypt.hash(parsed.data.password, 12);
 
-  db.update(users).set({ passwordHash, updatedAt: new Date() }).where(eq(users.id, tokenRow.userId)).run();
+  await db.update(users).set({ passwordHash, updatedAt: new Date() }).where(eq(users.id, tokenRow.userId));
   // Single-use token.
-  db.delete(verificationTokens).where(eq(verificationTokens.id, tokenRow.id)).run();
+  await db.delete(verificationTokens).where(eq(verificationTokens.id, tokenRow.id));
 
   redirect("/login?reset=1");
 }

@@ -12,7 +12,7 @@ import { homepageContent as fallbackHomepageContent } from "@/lib/data/seed/site
  * copy, never a broken homepage.
  */
 export async function getHomepageContent(): Promise<HomepageContent> {
-  const row = db.select().from(cmsBlocks).where(eq(cmsBlocks.key, "homepage")).get();
+  const [row] = await db.select().from(cmsBlocks).where(eq(cmsBlocks.key, "homepage"));
   if (!row) return fallbackHomepageContent;
   return row.content as HomepageContent;
 }

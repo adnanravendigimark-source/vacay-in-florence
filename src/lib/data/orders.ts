@@ -47,10 +47,10 @@ function toItemView(row: {
 
 /** Scoped to `userId` — an order id alone is never enough to view someone else's booking. */
 export async function getOrderForUser(orderId: string, userId: string): Promise<OrderView | null> {
-  const order = db.select().from(orders).where(and(eq(orders.id, orderId), eq(orders.userId, userId))).get();
+  const [order] = await db.select().from(orders).where(and(eq(orders.id, orderId), eq(orders.userId, userId)));
   if (!order) return null;
 
-  const items = db.select().from(orderItems).where(eq(orderItems.orderId, order.id)).all();
+  const items = await db.select().from(orderItems).where(eq(orderItems.orderId, order.id));
 
   return {
     id: order.id,
@@ -67,13 +67,13 @@ export async function getOrderForUser(orderId: string, userId: string): Promise<
 }
 
 export async function getOrdersForUser(userId: string): Promise<OrderView[]> {
-  const rows = db.select().from(orders).where(eq(orders.userId, userId)).orderBy(desc(orders.createdAt)).all();
+  const rows = await db.select().from(orders).where(eq(orders.userId, userId)).orderBy(desc(orders.createdAt));
   if (rows.length === 0) return [];
 
   // One batched WHERE-IN for every order's items — never N+1, never the
   // whole order_items table.
   const orderIds = rows.map((r) => r.id);
-  const items = db.select().from(orderItems).where(inArray(orderItems.orderId, orderIds)).all();
+  const items = await db.select().from(orderItems).where(inArray(orderItems.orderId, orderIds));
   const itemsByOrder = new Map<string, OrderItemView[]>();
   for (const item of items) {
     const list = itemsByOrder.get(item.orderId) ?? [];

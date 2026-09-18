@@ -41,24 +41,23 @@ export async function getOrCreateCart(userId?: string) {
   const existingId = await getCartId();
 
   if (existingId) {
-    const existing = db.select().from(carts).where(eq(carts.id, existingId)).get();
+    const [existing] = await db.select().from(carts).where(eq(carts.id, existingId));
     if (existing) {
       // If the visitor is now signed in but the cookie still points at a
       // guest cart, claim it rather than orphaning it.
       if (userId && !existing.userId) {
-        const [claimed] = db
+        const [claimed] = await db
           .update(carts)
           .set({ userId, updatedAt: new Date() })
           .where(eq(carts.id, existing.id))
-          .returning()
-          .all();
+          .returning();
         return claimed;
       }
       return existing;
     }
   }
 
-  const [created] = db.insert(carts).values({ userId: userId ?? null }).returning().all();
+  const [created] = await db.insert(carts).values({ userId: userId ?? null }).returning();
   await setCartCookie(created.id);
   return created;
 }
@@ -74,38 +73,36 @@ export async function mergeGuestCartIntoUser(userId: string) {
     const guestCartId = await getCartId();
     if (!guestCartId) return;
 
-    const guestCart = db.select().from(carts).where(eq(carts.id, guestCartId)).get();
+    const [guestCart] = await db.select().from(carts).where(eq(carts.id, guestCartId));
     if (!guestCart || guestCart.userId === userId) return;
 
     if (!guestCart.userId) {
       // Guest cart with no owner yet — just claim it.
-      db.update(carts).set({ userId, updatedAt: new Date() }).where(eq(carts.id, guestCart.id)).run();
+      await db.update(carts).set({ userId, updatedAt: new Date() }).where(eq(carts.id, guestCart.id));
       return;
     }
 
     // Guest cart already belongs to a different user (shared device) —
     // move this cart's items onto the current user's cart instead of
     // reassigning ownership of someone else's cart.
-    const items = db.select().from(cartItems).where(eq(cartItems.cartId, guestCart.id)).all();
+    const items = await db.select().from(cartItems).where(eq(cartItems.cartId, guestCart.id));
     if (items.length === 0) return;
 
-    let targetCart = db.select().from(carts).where(eq(carts.userId, userId)).get();
+    let [targetCart] = await db.select().from(carts).where(eq(carts.userId, userId));
     if (!targetCart) {
-      [targetCart] = db.insert(carts).values({ userId }).returning().all();
+      [targetCart] = await db.insert(carts).values({ userId }).returning();
     }
 
     for (const item of items) {
-      db.insert(cartItems)
-        .values({
-          cartId: targetCart.id,
-          productId: item.productId,
-          productOptionId: item.productOptionId,
-          date: item.date,
-          participants: item.participants,
-          currency: item.currency,
-          subtotalAmount: item.subtotalAmount,
-        })
-        .run();
+      await db.insert(cartItems).values({
+        cartId: targetCart.id,
+        productId: item.productId,
+        productOptionId: item.productOptionId,
+        date: item.date,
+        participants: item.participants,
+        currency: item.currency,
+        subtotalAmount: item.subtotalAmount,
+      });
     }
     await setCartCookie(targetCart.id);
   } catch (error) {
@@ -116,7 +113,7 @@ export async function mergeGuestCartIntoUser(userId: string) {
 export async function getCartItemCount(): Promise<number> {
   const cartId = await getCartId();
   if (!cartId) return 0;
-  const items = db.select().from(cartItems).where(eq(cartItems.cartId, cartId)).all();
+  const items = await db.select().from(cartItems).where(eq(cartItems.cartId, cartId));
   return items.reduce((sum, item) => {
     const participants = item.participants as { quantity: number }[];
     return sum + participants.reduce((s, p) => s + p.quantity, 0);

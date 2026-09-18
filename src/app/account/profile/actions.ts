@@ -19,19 +19,17 @@ export async function updateProfileAction(formData: FormData): Promise<void> {
     redirect(`/account/profile?error=${encodeURIComponent(message)}`);
   }
 
-  const emailTaken = db
+  const [emailTaken] = await db
     .select()
     .from(users)
-    .where(and(eq(users.email, parsed.data.email), ne(users.id, user.id)))
-    .get();
+    .where(and(eq(users.email, parsed.data.email), ne(users.id, user.id)));
   if (emailTaken) {
     redirect(`/account/profile?error=${encodeURIComponent("That email is already in use.")}`);
   }
 
-  db.update(users)
+  await db.update(users)
     .set({ name: parsed.data.name, email: parsed.data.email, updatedAt: new Date() })
-    .where(eq(users.id, user.id))
-    .run();
+    .where(eq(users.id, user.id));
 
   // Note: the active session's JWT still carries the old name/email until
   // the next sign-in refreshes it — acceptable for now since nothing

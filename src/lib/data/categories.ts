@@ -4,11 +4,10 @@ import { categories, products } from "@/lib/db/schema";
 import type { CategoryIcon, CategorySummary } from "@/lib/types";
 
 /**
- * Real repository layer, backed by src/lib/db (Drizzle + local SQLite
- * today, Neon Postgres later — see the dialect note in
- * src/lib/db/schema.ts). Every function still takes a `limit`/pagination
- * argument and nothing here fetches the full catalog, matching the
- * original TODO(db) contract this file replaces.
+ * Real repository layer, backed by src/lib/db (Drizzle + Neon Postgres).
+ * Every function still takes a `limit`/pagination argument and nothing
+ * here fetches the full catalog, matching the original TODO(db) contract
+ * this file replaces.
  */
 
 type CategoryRow = {
@@ -52,27 +51,28 @@ const withProductCount = () =>
       imageAlt: categories.imageAlt,
       featured: categories.featured,
       sortOrder: categories.sortOrder,
-      productCount: sql<number>`count(${products.id})`.as("productCount"),
+            // ::int — Postgres count() is bigint, which node-postgres returns
+      // as a string by default; cast so productCount stays a JS number.
+      productCount: sql<number>`count(${products.id})::int`.as("productCount"),
     })
     .from(categories)
     .leftJoin(products, and(eq(products.categoryId, categories.id), eq(products.status, "live")))
     .groupBy(categories.id);
 
 export async function getFeaturedCategories(limit = 6): Promise<CategorySummary[]> {
-  const rows = withProductCount()
+  const rows = await withProductCount()
     .where(eq(categories.featured, true))
     .orderBy(categories.sortOrder)
-    .limit(limit)
-    .all();
+    .limit(limit);
   return rows.map(toSummary);
 }
 
 export async function getAllCategories(): Promise<CategorySummary[]> {
-  const rows = withProductCount().orderBy(categories.sortOrder).all();
+  const rows = await withProductCount().orderBy(categories.sortOrder);
   return rows.map(toSummary);
 }
 
 export async function getCategoryBySlug(slug: string): Promise<CategorySummary | null> {
-  const row = withProductCount().where(eq(categories.slug, slug)).get();
+  const [row] = await withProductCount().where(eq(categories.slug, slug));
   return row ? toSummary(row) : null;
 }

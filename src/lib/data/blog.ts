@@ -27,13 +27,12 @@ function toSummary(row: {
 const published = () => and(sql`${blogPosts.publishedAt} IS NOT NULL`, lte(blogPosts.publishedAt, new Date()));
 
 export async function getLatestBlogPosts(limit = 3): Promise<BlogPostSummary[]> {
-  const rows = db
+  const rows = await db
     .select()
     .from(blogPosts)
     .where(published())
     .orderBy(desc(blogPosts.publishedAt))
-    .limit(limit)
-    .all();
+    .limit(limit);
   return rows.map(toSummary);
 }
 
@@ -49,16 +48,16 @@ export async function getBlogPosts(page = 1, pageSize = 9): Promise<PaginatedBlo
   const safePage = Math.max(1, page);
   const safePageSize = Math.min(24, Math.max(1, pageSize));
 
-  const [{ count }] = db.select({ count: sql<number>`count(*)` }).from(blogPosts).where(published()).all();
+  // ::int — Postgres count() is bigint; node-postgres would otherwise return a string.
+  const [{ count }] = await db.select({ count: sql<number>`count(*)::int` }).from(blogPosts).where(published());
 
-  const rows = db
+  const rows = await db
     .select()
     .from(blogPosts)
     .where(published())
     .orderBy(desc(blogPosts.publishedAt))
     .limit(safePageSize)
-    .offset((safePage - 1) * safePageSize)
-    .all();
+    .offset((safePage - 1) * safePageSize);
 
   return {
     items: rows.map(toSummary),
@@ -75,11 +74,10 @@ export interface BlogPostDetail extends BlogPostSummary {
 }
 
 export async function getBlogPostBySlug(slug: string): Promise<BlogPostDetail | null> {
-  const row = db
+  const [row] = await db
     .select()
     .from(blogPosts)
-    .where(and(eq(blogPosts.slug, slug), published()))
-    .get();
+    .where(and(eq(blogPosts.slug, slug), published()));
   if (!row) return null;
   return {
     ...toSummary(row),
@@ -89,12 +87,11 @@ export async function getBlogPostBySlug(slug: string): Promise<BlogPostDetail | 
 }
 
 export async function getRelatedBlogPosts(currentSlug: string, limit = 3): Promise<BlogPostSummary[]> {
-  const rows = db
+  const rows = await db
     .select()
     .from(blogPosts)
     .where(and(published(), ne(blogPosts.slug, currentSlug)))
     .orderBy(desc(blogPosts.publishedAt))
-    .limit(limit)
-    .all();
+    .limit(limit);
   return rows.map(toSummary);
 }

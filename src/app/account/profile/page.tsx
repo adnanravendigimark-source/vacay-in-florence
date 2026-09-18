@@ -18,7 +18,7 @@ export default async function AccountProfilePage({
 }) {
   const sessionUser = await requireUser("/account/profile");
   const { error, success } = await searchParams;
-  const dbUser = db.select().from(users).where(eq(users.id, sessionUser.id)).get();
+  const [dbUser] = await db.select().from(users).where(eq(users.id, sessionUser.id));
 
   return (
     <div className="rounded-2xl bg-white p-6 shadow-[var(--shadow-card)] ring-1 ring-stone/60">

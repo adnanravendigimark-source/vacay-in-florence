@@ -32,12 +32,11 @@ type ProductJoinRow = {
 async function attachPrimaryImages(rows: ProductJoinRow[]): Promise<ProductCardSummary[]> {
   if (rows.length === 0) return [];
   const ids = rows.map((r) => r.id);
-  const images = db
+  const images = await db
     .select({ productId: productImages.productId, url: productImages.url, alt: productImages.alt, sortOrder: productImages.sortOrder })
     .from(productImages)
     .where(inArray(productImages.productId, ids))
-    .orderBy(asc(productImages.sortOrder))
-    .all();
+    .orderBy(asc(productImages.sortOrder));
 
   const firstImageByProduct = new Map<string, { url: string; alt: string }>();
   for (const img of images) {
@@ -92,16 +91,15 @@ const baseSelect = () =>
     .innerJoin(suppliers, eq(products.supplierId, suppliers.id));
 
 export async function getFeaturedExperiences(limit = 6): Promise<ProductCardSummary[]> {
-  const rows = baseSelect()
+  const rows = await baseSelect()
     .where(and(eq(products.status, "live"), eq(products.featured, true)))
     .orderBy(asc(products.featuredRank))
-    .limit(limit)
-    .all();
+    .limit(limit);
   return attachPrimaryImages(rows);
 }
 
 export async function getPopularAttractions(limit = 4): Promise<ProductCardSummary[]> {
-  const rows = baseSelect()
+  const rows = await baseSelect()
     .where(
       and(
         eq(products.status, "live"),
@@ -109,8 +107,7 @@ export async function getPopularAttractions(limit = 4): Promise<ProductCardSumma
       ),
     )
     .orderBy(asc(products.featuredRank))
-    .limit(limit)
-    .all();
+    .limit(limit);
   return attachPrimaryImages(rows);
 }
 
@@ -164,13 +161,14 @@ export async function searchProducts(params: SearchProductsParams = {}): Promise
   }
   const where = and(...conditions);
 
-  const [{ count }] = db
-    .select({ count: sql<number>`count(*)` })
+  // ::int — Postgres count() is bigint, which node-postgres returns as a
+  // string by default; cast so `count` stays a JS number.
+  const [{ count }] = await db
+    .select({ count: sql<number>`count(*)::int` })
     .from(products)
     .innerJoin(categories, eq(products.categoryId, categories.id))
     .innerJoin(suppliers, eq(products.supplierId, suppliers.id))
-    .where(where)
-    .all();
+    .where(where);
 
   const orderBy =
     params.sort === "price-asc"
@@ -181,12 +179,11 @@ export async function searchProducts(params: SearchProductsParams = {}): Promise
           ? desc(products.ratingAverage)
           : asc(products.featuredRank);
 
-  const rows = baseSelect()
+  const rows = await baseSelect()
     .where(where)
     .orderBy(orderBy)
     .limit(pageSize)
-    .offset((page - 1) * pageSize)
-    .all();
+    .offset((page - 1) * pageSize);
 
   const items = await attachPrimaryImages(rows);
   const totalPages = Math.max(1, Math.ceil(count / pageSize));
@@ -230,7 +227,7 @@ export interface ProductDetail {
 }
 
 export async function getProductBySlug(slug: string): Promise<ProductDetail | null> {
-  const row = db
+  const [row] = await db
     .select({
       id: products.id,
       slug: products.slug,
@@ -255,19 +252,17 @@ export async function getProductBySlug(slug: string): Promise<ProductDetail | nu
     .from(products)
     .innerJoin(categories, eq(products.categoryId, categories.id))
     .innerJoin(suppliers, eq(products.supplierId, suppliers.id))
-    .where(and(eq(products.slug, slug), eq(products.status, "live")))
-    .get();
+    .where(and(eq(products.slug, slug), eq(products.status, "live")));
 
   if (!row) return null;
 
-  const images = db
+  const images = await db
     .select({ url: productImages.url, alt: productImages.alt })
     .from(productImages)
     .where(eq(productImages.productId, row.id))
-    .orderBy(asc(productImages.sortOrder))
-    .all();
+    .orderBy(asc(productImages.sortOrder));
 
-  const options = db
+  const options = await db
     .select({
       id: productOptions.id,
       name: productOptions.name,
@@ -277,8 +272,7 @@ export async function getProductBySlug(slug: string): Promise<ProductDetail | nu
     })
     .from(productOptions)
     .where(and(eq(productOptions.productId, row.id), eq(productOptions.isActive, true)))
-    .orderBy(asc(productOptions.sortOrder))
-    .all();
+    .orderBy(asc(productOptions.sortOrder));
 
   return {
     id: row.id,
@@ -305,7 +299,7 @@ export async function getProductBySlug(slug: string): Promise<ProductDetail | nu
 }
 
 export async function getRelatedProducts(productId: string, categorySlug: string, limit = 4): Promise<ProductCardSummary[]> {
-  const rows = baseSelect()
+  const rows = await baseSelect()
     .where(
       and(
         eq(products.status, "live"),
@@ -314,8 +308,7 @@ export async function getRelatedProducts(productId: string, categorySlug: string
       ),
     )
     .orderBy(asc(products.featuredRank))
-    .limit(limit)
-    .all();
+    .limit(limit);
   return attachPrimaryImages(rows);
 }
 
@@ -340,6 +333,5 @@ export async function getProductAvailability(productId: string, fromDate: string
         sql`${availability.date} <= ${toDate}`,
       ),
     )
-    .orderBy(asc(availability.date))
-    .all();
+    .orderBy(asc(availability.date));
 }

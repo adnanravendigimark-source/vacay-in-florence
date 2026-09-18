@@ -21,7 +21,7 @@ export async function changePasswordAction(formData: FormData): Promise<void> {
     redirect(`/account/security?error=${encodeURIComponent(message)}`);
   }
 
-  const user = db.select().from(users).where(eq(users.id, sessionUser.id)).get();
+  const [user] = await db.select().from(users).where(eq(users.id, sessionUser.id));
   if (!user) redirect("/account/security?error=Account%20not%20found.");
 
   const currentMatches = await bcrypt.compare(parsed.data.currentPassword, user.passwordHash);
@@ -30,7 +30,7 @@ export async function changePasswordAction(formData: FormData): Promise<void> {
   }
 
   const newHash = await bcrypt.hash(parsed.data.newPassword, 12);
-  db.update(users).set({ passwordHash: newHash, updatedAt: new Date() }).where(eq(users.id, user.id)).run();
+  await db.update(users).set({ passwordHash: newHash, updatedAt: new Date() }).where(eq(users.id, user.id));
 
   redirect("/account/security?success=1");
 }

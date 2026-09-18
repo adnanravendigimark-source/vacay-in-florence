@@ -1,35 +1,34 @@
-import { sql } from "drizzle-orm";
 import {
-  sqliteTable,
+  pgTable,
   text,
   integer,
-  real,
+  boolean,
+  doublePrecision,
+  timestamp,
+  jsonb,
   uniqueIndex,
   index,
-} from "drizzle-orm/sqlite-core";
+} from "drizzle-orm/pg-core";
 
 /**
- * VACAY Florence — local dev schema (SQLite via better-sqlite3).
+ * VACAY Florence — production schema (Neon Postgres via node-postgres).
  *
- * DIALECT NOTE: this file targets SQLite for local development, per the
- * approved "real schema now, SQLite locally" strategy. Drizzle does not
- * share one schema file across dialects the way Prisma does — moving to
- * the real Neon Postgres database later means porting this file to
- * `drizzle-orm/pg-core` (same tables/columns, different column-type
- * functions: text -> text/varchar, integer(mode:boolean) -> boolean,
- * integer(mode:timestamp) -> timestamp, real -> numeric). That port is a
- * mechanical, well-scoped task for when DATABASE_URL is actually wired
- * up — not attempted now since it cannot be tested against real Postgres
- * from this environment.
+ * Ported from the original SQLite (better-sqlite3) local-dev schema, per
+ * the approved plan: "SQLite now, real Neon Postgres later." The table
+ * and column shapes are unchanged from the SQLite version; only the
+ * dialect-specific column-type functions changed (text -> text,
+ * integer(mode:boolean) -> boolean, integer(mode:timestamp) -> timestamp,
+ * real -> doublePrecision, text(mode:json) -> jsonb).
  *
  * ID strategy: text UUIDs generated at the application layer
- * (crypto.randomUUID() via $defaultFn), so ids are stable across the
- * later SQLite -> Postgres data migration.
+ * (crypto.randomUUID() via $defaultFn) — unchanged, so no id remapping
+ * was needed when moving off SQLite.
  *
- * Money: stored as `real` (amount) + `text` (currency) pairs mirroring
- * the `Money` type in src/lib/types.ts. Fine for a single-currency (EUR)
- * MVP; would move to integer minor-units if multi-currency rounding ever
- * becomes a real requirement — not needed yet, so not built now.
+ * Money: stored as `doublePrecision` (amount) + `text` (currency) pairs
+ * mirroring the `Money` type in src/lib/types.ts. Fine for a
+ * single-currency (EUR) MVP; would move to integer minor-units if
+ * multi-currency rounding ever becomes a real requirement — not needed
+ * yet, so not built now.
  */
 
 const id = () =>
@@ -38,19 +37,15 @@ const id = () =>
     .$defaultFn(() => crypto.randomUUID());
 
 const timestamps = {
-  createdAt: integer("created_at", { mode: "timestamp" })
-    .notNull()
-    .default(sql`(unixepoch())`),
-  updatedAt: integer("updated_at", { mode: "timestamp" })
-    .notNull()
-    .default(sql`(unixepoch())`),
+  createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { mode: "date" }).notNull().defaultNow(),
 };
 
 // ---------------------------------------------------------------------------
 // Catalog: categories, suppliers, products
 // ---------------------------------------------------------------------------
 
-export const categories = sqliteTable(
+export const categories = pgTable(
   "categories",
   {
     id: id(),
@@ -61,7 +56,7 @@ export const categories = sqliteTable(
     imageUrl: text("image_url").notNull(),
     imageAlt: text("image_alt").notNull(),
     parentId: text("parent_id"),
-    featured: integer("featured", { mode: "boolean" }).notNull().default(false),
+    featured: boolean("featured").notNull().default(false),
     sortOrder: integer("sort_order").notNull().default(0),
     ...timestamps,
   },
@@ -71,21 +66,19 @@ export const categories = sqliteTable(
   ],
 );
 
-export const suppliers = sqliteTable(
+export const suppliers = pgTable(
   "suppliers",
   {
     id: id(),
     name: text("name").notNull(),
     slug: text("slug").notNull(),
-    createdAt: integer("created_at", { mode: "timestamp" })
-      .notNull()
-      .default(sql`(unixepoch())`),
+    createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
   },
   (t) => [uniqueIndex("suppliers_slug_idx").on(t.slug)],
 );
 
 // draft | pending_review | live | paused
-export const products = sqliteTable(
+export const products = pgTable(
   "products",
   {
     id: id(),
@@ -94,9 +87,9 @@ export const products = sqliteTable(
     shortDescription: text("short_description").notNull(),
     description: text("description").notNull(),
     // JSON string[] — bullet lists rendered on the product detail page.
-    highlights: text("highlights", { mode: "json" }).$type<string[]>().notNull().default(sql`'[]'`),
-    inclusions: text("inclusions", { mode: "json" }).$type<string[]>().notNull().default(sql`'[]'`),
-    exclusions: text("exclusions", { mode: "json" }).$type<string[]>().notNull().default(sql`'[]'`),
+    highlights: jsonb("highlights").$type<string[]>().notNull().default([]),
+    inclusions: jsonb("inclusions").$type<string[]>().notNull().default([]),
+    exclusions: jsonb("exclusions").$type<string[]>().notNull().default([]),
     meetingPoint: text("meeting_point"),
     cancellationPolicy: text("cancellation_policy").notNull(),
     categoryId: text("category_id")
@@ -106,18 +99,18 @@ export const products = sqliteTable(
       .notNull()
       .references(() => suppliers.id),
     status: text("status").notNull().default("draft"),
-    featured: integer("featured", { mode: "boolean" }).notNull().default(false),
+    featured: boolean("featured").notNull().default(false),
     featuredRank: integer("featured_rank"),
     durationLabel: text("duration_label").notNull(),
-    priceFromAmount: real("price_from_amount").notNull(),
+    priceFromAmount: doublePrecision("price_from_amount").notNull(),
     priceFromCurrency: text("price_from_currency").notNull().default("EUR"),
-    ratingAverage: real("rating_average"),
+    ratingAverage: doublePrecision("rating_average"),
     reviewCount: integer("review_count").notNull().default(0),
     // Editorial trust badges (admin-curated), e.g. "best-seller",
     // "skip-the-line" — rendered on ProductCardSummary. Kept as a JSON
     // array rather than a join table since these are simple flags, not
     // entities with their own attributes.
-    badges: text("badges", { mode: "json" }).$type<string[]>().notNull().default(sql`'[]'`),
+    badges: jsonb("badges").$type<string[]>().notNull().default([]),
     ...timestamps,
   },
   (t) => [
@@ -128,7 +121,7 @@ export const products = sqliteTable(
   ],
 );
 
-export const productImages = sqliteTable(
+export const productImages = pgTable(
   "product_images",
   {
     id: id(),
@@ -143,7 +136,7 @@ export const productImages = sqliteTable(
 );
 
 // Bookable variants of a product, e.g. "Adult", "Morning slot".
-export const productOptions = sqliteTable(
+export const productOptions = pgTable(
   "product_options",
   {
     id: id(),
@@ -152,10 +145,10 @@ export const productOptions = sqliteTable(
       .references(() => products.id, { onDelete: "cascade" }),
     name: text("name").notNull(),
     description: text("description"),
-    priceAmount: real("price_amount").notNull(),
+    priceAmount: doublePrecision("price_amount").notNull(),
     priceCurrency: text("price_currency").notNull().default("EUR"),
     sortOrder: integer("sort_order").notNull().default(0),
-    isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
+    isActive: boolean("is_active").notNull().default(true),
   },
   (t) => [index("product_options_product_idx").on(t.productId, t.sortOrder)],
 );
@@ -164,7 +157,7 @@ export const productOptions = sqliteTable(
 // atomically inside the order-creation transaction — this is the single
 // source of truth checkout re-validates against before an order is
 // allowed to reach pending_payment.
-export const availability = sqliteTable(
+export const availability = pgTable(
   "availability",
   {
     id: id(),
@@ -186,7 +179,7 @@ export const availability = sqliteTable(
 // Content: blog + CMS-managed homepage copy
 // ---------------------------------------------------------------------------
 
-export const blogPosts = sqliteTable(
+export const blogPosts = pgTable(
   "blog_posts",
   {
     id: id(),
@@ -197,8 +190,8 @@ export const blogPosts = sqliteTable(
     coverImageUrl: text("cover_image_url").notNull(),
     coverImageAlt: text("cover_image_alt").notNull(),
     readingTimeMinutes: integer("reading_time_minutes").notNull().default(4),
-    tags: text("tags", { mode: "json" }).$type<string[]>().notNull().default(sql`'[]'`),
-    publishedAt: integer("published_at", { mode: "timestamp" }),
+    tags: jsonb("tags").$type<string[]>().notNull().default([]),
+    publishedAt: timestamp("published_at", { mode: "date" }),
     ...timestamps,
   },
   (t) => [
@@ -210,13 +203,11 @@ export const blogPosts = sqliteTable(
 // Small typed key/value store the Master Admin uses to edit homepage copy
 // without a page builder. `content` is validated against the matching
 // TypeScript shape in src/lib/types.ts (HomepageContent) at the read edge.
-export const cmsBlocks = sqliteTable("cms_blocks", {
+export const cmsBlocks = pgTable("cms_blocks", {
   id: id(),
   key: text("key").notNull(),
-  content: text("content", { mode: "json" }).notNull(),
-  updatedAt: integer("updated_at", { mode: "timestamp" })
-    .notNull()
-    .default(sql`(unixepoch())`),
+  content: jsonb("content").notNull(),
+  updatedAt: timestamp("updated_at", { mode: "date" }).notNull().defaultNow(),
   updatedBy: text("updated_by"),
 }, (t) => [uniqueIndex("cms_blocks_key_idx").on(t.key)]);
 
@@ -224,21 +215,21 @@ export const cmsBlocks = sqliteTable("cms_blocks", {
 // Auth
 // ---------------------------------------------------------------------------
 
-export const users = sqliteTable(
+export const users = pgTable(
   "users",
   {
     id: id(),
     email: text("email").notNull(),
     passwordHash: text("password_hash").notNull(),
     name: text("name").notNull(),
-    emailVerified: integer("email_verified", { mode: "timestamp" }),
+    emailVerified: timestamp("email_verified", { mode: "date" }),
     ...timestamps,
   },
   (t) => [uniqueIndex("users_email_idx").on(t.email)],
 );
 
 // email_verification | password_reset
-export const verificationTokens = sqliteTable(
+export const verificationTokens = pgTable(
   "verification_tokens",
   {
     id: id(),
@@ -247,10 +238,8 @@ export const verificationTokens = sqliteTable(
       .references(() => users.id, { onDelete: "cascade" }),
     token: text("token").notNull(),
     type: text("type").notNull(),
-    expiresAt: integer("expires_at", { mode: "timestamp" }).notNull(),
-    createdAt: integer("created_at", { mode: "timestamp" })
-      .notNull()
-      .default(sql`(unixepoch())`),
+    expiresAt: timestamp("expires_at", { mode: "date" }).notNull(),
+    createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
   },
   (t) => [
     uniqueIndex("verification_tokens_token_idx").on(t.token),
@@ -262,7 +251,7 @@ export const verificationTokens = sqliteTable(
 // Cart
 // ---------------------------------------------------------------------------
 
-export const carts = sqliteTable("carts", {
+export const carts = pgTable("carts", {
   id: id(),
   // Nullable: guest carts exist before login, referenced by an httpOnly
   // cookie holding the cart id. Merged into the user's cart on login.
@@ -270,7 +259,7 @@ export const carts = sqliteTable("carts", {
   ...timestamps,
 });
 
-export const cartItems = sqliteTable(
+export const cartItems = pgTable(
   "cart_items",
   {
     id: id(),
@@ -284,11 +273,11 @@ export const cartItems = sqliteTable(
     date: text("date").notNull(), // ISO date the experience is booked for
     // JSON snapshot of the selected option breakdown, e.g.
     // [{ optionId, optionName, quantity, unitPriceAmount }]
-    participants: text("participants", { mode: "json" })
+    participants: jsonb("participants")
       .$type<{ optionId: string; optionName: string; quantity: number; unitPriceAmount: number }[]>()
       .notNull(),
     currency: text("currency").notNull().default("EUR"),
-    subtotalAmount: real("subtotal_amount").notNull(),
+    subtotalAmount: doublePrecision("subtotal_amount").notNull(),
     ...timestamps,
   },
   (t) => [index("cart_items_cart_idx").on(t.cartId)],
@@ -299,7 +288,7 @@ export const cartItems = sqliteTable(
 // ---------------------------------------------------------------------------
 
 // pending_payment | confirmed | cancelled | failed
-export const orders = sqliteTable(
+export const orders = pgTable(
   "orders",
   {
     id: id(),
@@ -307,7 +296,7 @@ export const orders = sqliteTable(
       .notNull()
       .references(() => users.id),
     status: text("status").notNull().default("pending_payment"),
-    totalAmount: real("total_amount").notNull(),
+    totalAmount: doublePrecision("total_amount").notNull(),
     currency: text("currency").notNull().default("EUR"),
     customerName: text("customer_name").notNull(),
     customerEmail: text("customer_email").notNull(),
@@ -321,7 +310,7 @@ export const orders = sqliteTable(
   ],
 );
 
-export const orderItems = sqliteTable(
+export const orderItems = pgTable(
   "order_items",
   {
     id: id(),
@@ -333,11 +322,11 @@ export const orderItems = sqliteTable(
       .references(() => products.id),
     productTitle: text("product_title").notNull(), // snapshot at booking time
     date: text("date").notNull(),
-    participants: text("participants", { mode: "json" })
+    participants: jsonb("participants")
       .$type<{ optionId: string; optionName: string; quantity: number; unitPriceAmount: number }[]>()
       .notNull(),
     currency: text("currency").notNull().default("EUR"),
-    subtotalAmount: real("subtotal_amount").notNull(),
+    subtotalAmount: doublePrecision("subtotal_amount").notNull(),
   },
   (t) => [index("order_items_order_idx").on(t.orderId)],
 );
@@ -347,7 +336,7 @@ export const orderItems = sqliteTable(
 // ---------------------------------------------------------------------------
 
 // contact | supplier_application | affiliate_application
-export const leadSubmissions = sqliteTable(
+export const leadSubmissions = pgTable(
   "lead_submissions",
   {
     id: id(),
@@ -360,11 +349,9 @@ export const leadSubmissions = sqliteTable(
     // Extra per-type fields (e.g. website URL, expected volume) that don't
     // deserve their own columns yet — kept as JSON rather than three
     // separate lead tables.
-    payload: text("payload", { mode: "json" }),
+    payload: jsonb("payload"),
     status: text("status").notNull().default("new"),
-    createdAt: integer("created_at", { mode: "timestamp" })
-      .notNull()
-      .default(sql`(unixepoch())`),
+    createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
   },
   (t) => [index("lead_submissions_type_status_idx").on(t.type, t.status)],
 );

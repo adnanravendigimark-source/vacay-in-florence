@@ -24,20 +24,18 @@ export async function forgotPasswordAction(formData: FormData): Promise<void> {
     redirect(`/forgot-password?error=${encodeURIComponent("Enter a valid email address.")}`);
   }
 
-  const user = db.select().from(users).where(eq(users.email, parsed.data.email)).get();
+  const [user] = await db.select().from(users).where(eq(users.email, parsed.data.email));
   if (!user) {
     redirect(`/forgot-password?error=${encodeURIComponent("No account found with that email.")}`);
   }
 
   const token = crypto.randomUUID();
-  db.insert(verificationTokens)
-    .values({
-      userId: user.id,
-      token,
-      type: "password_reset",
-      expiresAt: new Date(Date.now() + RESET_TOKEN_TTL_MS),
-    })
-    .run();
+  await db.insert(verificationTokens).values({
+    userId: user.id,
+    token,
+    type: "password_reset",
+    expiresAt: new Date(Date.now() + RESET_TOKEN_TTL_MS),
+  });
 
   redirect(`/forgot-password?token=${token}`);
 }

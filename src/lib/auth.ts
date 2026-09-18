@@ -35,11 +35,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         if (!parsed.success) return null;
         const { email, password } = parsed.data;
 
-        const user = db
+        const [user] = await db
           .select()
           .from(users)
-          .where(eq(users.email, email.toLowerCase()))
-          .get();
+          .where(eq(users.email, email.toLowerCase()));
         if (!user) return null;
 
         const passwordMatches = await bcrypt.compare(password, user.passwordHash);

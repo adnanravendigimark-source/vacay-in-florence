@@ -33,7 +33,7 @@ export async function addToCartAction(
     }))
     .filter((p) => p.quantity > 0);
 
-  const product = db.select().from(products).where(and(eq(products.slug, productSlug), eq(products.status, "live"))).get();
+  const [product] = await db.select().from(products).where(and(eq(products.slug, productSlug), eq(products.status, "live")));
   if (!product) {
     return { status: "error", message: "This experience is no longer available." };
   }
@@ -56,11 +56,10 @@ export async function addToCartAction(
   }
 
   // Re-validate availability for real, right now — never trust the page.
-  const availabilityRow = db
+  const [availabilityRow] = await db
     .select()
     .from(availability)
-    .where(and(eq(availability.productId, product.id), eq(availability.date, date)))
-    .get();
+    .where(and(eq(availability.productId, product.id), eq(availability.date, date)));
   const remaining = availabilityRow ? availabilityRow.capacityTotal - availabilityRow.capacityBooked : 0;
   if (!availabilityRow || remaining < totalParticipants) {
     return {
@@ -71,11 +70,10 @@ export async function addToCartAction(
     };
   }
 
-  const options = db
+  const options = await db
     .select()
     .from(productOptions)
-    .where(and(eq(productOptions.productId, product.id), eq(productOptions.isActive, true)))
-    .all();
+    .where(and(eq(productOptions.productId, product.id), eq(productOptions.isActive, true)));
   const optionById = new Map(options.map((o) => [o.id, o]));
 
   const participants = participantsInput.map((p) => {
@@ -92,16 +90,14 @@ export async function addToCartAction(
 
   const cart = await getOrCreateCart();
 
-  db.insert(cartItems)
-    .values({
-      cartId: cart.id,
-      productId: product.id,
-      date,
-      participants,
-      currency: "EUR",
-      subtotalAmount,
-    })
-    .run();
+  await db.insert(cartItems).values({
+    cartId: cart.id,
+    productId: product.id,
+    date,
+    participants,
+    currency: "EUR",
+    subtotalAmount,
+  });
 
   revalidatePath("/cart");
   return { status: "success", message: "Added to your cart." };

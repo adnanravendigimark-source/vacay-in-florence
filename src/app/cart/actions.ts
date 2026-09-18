@@ -12,7 +12,7 @@ export async function removeCartItemAction(formData: FormData): Promise<void> {
   const cartId = await getCartId();
   if (!cartId || !itemId) return;
 
-  db.delete(cartItems).where(and(eq(cartItems.id, itemId), eq(cartItems.cartId, cartId))).run();
+  await db.delete(cartItems).where(and(eq(cartItems.id, itemId), eq(cartItems.cartId, cartId)));
   revalidatePath("/cart");
 }
 
@@ -28,7 +28,7 @@ export async function updateCartItemAction(formData: FormData): Promise<void> {
   const cartId = await getCartId();
   if (!cartId || !itemId) return;
 
-  const item = db.select().from(cartItems).where(and(eq(cartItems.id, itemId), eq(cartItems.cartId, cartId))).get();
+  const [item] = await db.select().from(cartItems).where(and(eq(cartItems.id, itemId), eq(cartItems.cartId, cartId)));
   if (!item) return;
 
   const entries = Array.from(formData.entries()).filter(([key]) => key.startsWith("option:"));
@@ -37,13 +37,13 @@ export async function updateCartItemAction(formData: FormData): Promise<void> {
     .filter((p) => p.quantity > 0);
 
   if (requested.length === 0) {
-    db.delete(cartItems).where(eq(cartItems.id, itemId)).run();
+    await db.delete(cartItems).where(eq(cartItems.id, itemId));
     revalidatePath("/cart");
     return;
   }
 
   const optionIds = requested.map((r) => r.optionId);
-  const options = db.select().from(productOptions).where(inArray(productOptions.id, optionIds)).all();
+  const options = await db.select().from(productOptions).where(inArray(productOptions.id, optionIds));
   const optionById = new Map(options.map((o) => [o.id, o]));
 
   const participants = requested
@@ -54,17 +54,16 @@ export async function updateCartItemAction(formData: FormData): Promise<void> {
     });
 
   if (participants.length === 0) {
-    db.delete(cartItems).where(eq(cartItems.id, itemId)).run();
+    await db.delete(cartItems).where(eq(cartItems.id, itemId));
     revalidatePath("/cart");
     return;
   }
 
   const subtotalAmount = participants.reduce((sum, p) => sum + p.unitPriceAmount * p.quantity, 0);
 
-  db.update(cartItems)
+  await db.update(cartItems)
     .set({ participants, subtotalAmount, updatedAt: new Date() })
-    .where(eq(cartItems.id, itemId))
-    .run();
+    .where(eq(cartItems.id, itemId));
 
   revalidatePath("/cart");
 }

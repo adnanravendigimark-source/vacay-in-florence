@@ -18,7 +18,7 @@ export default async function AccountLayout({ children }: { children: React.Reac
   // The session JWT can lag a profile edit until the next sign-in (see
   // the note in account/profile/actions.ts) — re-read the users table
   // here so the sidebar always shows the current name/email.
-  const dbUser = db.select().from(users).where(eq(users.id, sessionUser.id)).get();
+  const [dbUser] = await db.select().from(users).where(eq(users.id, sessionUser.id));
   const displayName = dbUser?.name ?? sessionUser.name ?? sessionUser.email;
 
   return (

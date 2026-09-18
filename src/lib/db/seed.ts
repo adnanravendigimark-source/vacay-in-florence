@@ -25,19 +25,20 @@ import { sql } from "drizzle-orm";
  * Run with: npm run db:seed
  */
 
-import { type BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
+import { type NodePgDatabase } from "drizzle-orm/node-postgres";
+import { type PgTable } from "drizzle-orm/pg-core";
 
-export function seedDatabase(targetDb: BetterSQLite3Database<typeof schema> = db) {
+export async function seedDatabase(targetDb: NodePgDatabase<typeof schema> = db) {
   // Clear catalog + content tables only (never users/carts/orders — those
   // hold real account data once people start using the site).
-  targetDb.delete(productImages).run();
-  targetDb.delete(productOptions).run();
-  targetDb.delete(availability).run();
-  targetDb.delete(products).run();
-  targetDb.delete(categories).run();
-  targetDb.delete(suppliers).run();
-  targetDb.delete(blogPosts).run();
-  targetDb.delete(cmsBlocks).run();
+  await targetDb.delete(productImages);
+  await targetDb.delete(productOptions);
+  await targetDb.delete(availability);
+  await targetDb.delete(products);
+  await targetDb.delete(categories);
+  await targetDb.delete(suppliers);
+  await targetDb.delete(blogPosts);
+  await targetDb.delete(cmsBlocks);
 
   // ---------------------------------------------------------------------
   // Suppliers
@@ -54,7 +55,7 @@ export function seedDatabase(targetDb: BetterSQLite3Database<typeof schema> = db
     { name: "Florence by Bike", slug: "florence-by-bike" },
   ];
 
-  const insertedSuppliers = targetDb.insert(suppliers).values(supplierRows).returning().all();
+  const insertedSuppliers = await targetDb.insert(suppliers).values(supplierRows).returning();
   const supplierBySlug = new Map(insertedSuppliers.map((s) => [s.slug, s]));
 
   // ---------------------------------------------------------------------
@@ -123,7 +124,7 @@ export function seedDatabase(targetDb: BetterSQLite3Database<typeof schema> = db
     },
   ];
 
-  const insertedCategories = targetDb
+  const insertedCategories = await targetDb
     .insert(categories)
     .values(
       categoryRows.map(({ image, imageAlt, ...rest }) => ({
@@ -132,8 +133,7 @@ export function seedDatabase(targetDb: BetterSQLite3Database<typeof schema> = db
         imageAlt,
       })),
     )
-    .returning()
-    .all();
+    .returning();
   const categoryBySlug = new Map(insertedCategories.map((c) => [c.slug, c]));
 
   // ---------------------------------------------------------------------
@@ -436,7 +436,7 @@ export function seedDatabase(targetDb: BetterSQLite3Database<typeof schema> = db
       throw new Error(`Seed data error: missing category/supplier for product ${p.slug}`);
     }
 
-    const [product] = targetDb
+    const [product] = await targetDb
       .insert(products)
       .values({
         slug: p.slug,
@@ -460,35 +460,30 @@ export function seedDatabase(targetDb: BetterSQLite3Database<typeof schema> = db
         reviewCount: p.reviewCount,
         badges: p.badges,
       })
-      .returning()
-      .all();
+      .returning();
 
     if (p.images.length > 0) {
-      targetDb.insert(productImages)
-        .values(
-          p.images.map((url, i) => ({
-            productId: product.id,
-            url,
-            alt: p.title,
-            sortOrder: i,
-          })),
-        )
-        .run();
+      await targetDb.insert(productImages).values(
+        p.images.map((url, i) => ({
+          productId: product.id,
+          url,
+          alt: p.title,
+          sortOrder: i,
+        })),
+      );
     }
 
     if (p.options.length > 0) {
-      targetDb.insert(productOptions)
-        .values(
-          p.options.map((o, i) => ({
-            productId: product.id,
-            name: o.name,
-            description: o.description,
-            priceAmount: o.priceAmount,
-            priceCurrency: "EUR",
-            sortOrder: i,
-          })),
-        )
-        .run();
+      await targetDb.insert(productOptions).values(
+        p.options.map((o, i) => ({
+          productId: product.id,
+          name: o.name,
+          description: o.description,
+          priceAmount: o.priceAmount,
+          priceCurrency: "EUR",
+          sortOrder: i,
+        })),
+      );
     }
 
     // Availability: next 90 days, generous capacity, a small amount of
@@ -511,14 +506,13 @@ export function seedDatabase(targetDb: BetterSQLite3Database<typeof schema> = db
         capacityBooked,
       });
     }
-    targetDb.insert(availability).values(availabilityRows).run();
+    await targetDb.insert(availability).values(availabilityRows);
   }
 
   // ---------------------------------------------------------------------
   // Blog posts
   // ---------------------------------------------------------------------
-  targetDb.insert(blogPosts)
-    .values([
+  await targetDb.insert(blogPosts).values([
       {
         slug: "48-hours-in-florence-perfect-itinerary",
         title: "48 Hours in Florence: The Perfect First-Time Itinerary",
@@ -568,14 +562,12 @@ export function seedDatabase(targetDb: BetterSQLite3Database<typeof schema> = db
         tags: ["day-trips", "tuscany"],
         publishedAt: new Date("2026-08-27"),
       },
-    ])
-    .run();
+    ]);
 
   // ---------------------------------------------------------------------
   // CMS-managed homepage copy
   // ---------------------------------------------------------------------
-  targetDb.insert(cmsBlocks)
-    .values({
+  await targetDb.insert(cmsBlocks).values({
       key: "homepage",
       content: {
         hero: {
@@ -636,28 +628,34 @@ export function seedDatabase(targetDb: BetterSQLite3Database<typeof schema> = db
         },
       },
       updatedBy: "seed",
-    })
-    .run();
+    });
+
+  // ::int — Postgres count() is bigint; node-postgres would otherwise
+  // return each one as a string.
+  const countOf = async (table: PgTable) =>
+    (await targetDb.select({ c: sql<number>`count(*)::int` }).from(table))[0].c;
 
   const counts = {
-    suppliers: targetDb.select({ c: sql<number>`count(*)` }).from(suppliers).get(),
-    categories: targetDb.select({ c: sql<number>`count(*)` }).from(categories).get(),
-    products: targetDb.select({ c: sql<number>`count(*)` }).from(products).get(),
-    productImages: targetDb.select({ c: sql<number>`count(*)` }).from(productImages).get(),
-    productOptions: targetDb.select({ c: sql<number>`count(*)` }).from(productOptions).get(),
-    availability: targetDb.select({ c: sql<number>`count(*)` }).from(availability).get(),
-    blogPosts: targetDb.select({ c: sql<number>`count(*)` }).from(blogPosts).get(),
-    cmsBlocks: targetDb.select({ c: sql<number>`count(*)` }).from(cmsBlocks).get(),
+    suppliers: await countOf(suppliers),
+    categories: await countOf(categories),
+    products: await countOf(products),
+    productImages: await countOf(productImages),
+    productOptions: await countOf(productOptions),
+    availability: await countOf(availability),
+    blogPosts: await countOf(blogPosts),
+    cmsBlocks: await countOf(cmsBlocks),
   };
   return counts;
 }
 
 if (process.argv[1]?.includes("seed")) {
-  try {
-    seedDatabase();
-    process.exit(0);
-  } catch (err) {
-    console.error("Seed failed:", err);
-    process.exit(1);
-  }
+  seedDatabase()
+    .then((counts) => {
+      console.log("[db:seed] Done:", counts);
+      process.exit(0);
+    })
+    .catch((err) => {
+      console.error("Seed failed:", err);
+      process.exit(1);
+    });
 }
