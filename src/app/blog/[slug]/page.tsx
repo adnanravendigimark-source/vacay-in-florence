@@ -5,10 +5,7 @@ import { notFound } from "next/navigation";
 import { getBlogPostBySlug, getRelatedBlogPosts, getBlogPosts } from "@/lib/data/blog";
 import { Container } from "@/components/ui/container";
 
-export async function generateStaticParams() {
-  const { items } = await getBlogPosts(1, 100);
-  return items.map((post) => ({ slug: post.slug }));
-}
+export const dynamic = "force-dynamic";
 
 type Params = { slug: string };
 

@@ -5,12 +5,7 @@ import { searchProducts, type ProductSortOption } from "@/lib/data/products";
 import { ExperienceListing } from "@/components/experiences/experience-listing";
 import { Container } from "@/components/ui/container";
 
-// Only 6 categories today — cheap to pre-render all of them at build time
-// rather than falling back to on-demand rendering for every visit.
-export async function generateStaticParams() {
-  const categories = await getAllCategories();
-  return categories.map((category) => ({ slug: category.slug }));
-}
+export const dynamic = "force-dynamic";
 
 type Params = { slug: string };
 type SearchParams = { sort?: string; page?: string };
