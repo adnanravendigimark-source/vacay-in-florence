@@ -26,20 +26,5 @@ if (process.env.NODE_ENV !== "production") {
 
 export const db = drizzle(sqlite, { schema });
 
-// Auto-initialize schema & seed data if tables are missing
-try {
-  const tableCheck = sqlite
-    .prepare("SELECT count(*) as count FROM sqlite_master WHERE type='table' AND name='categories'")
-    .get() as { count: number } | undefined;
-
-  if (!tableCheck || tableCheck.count === 0) {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { initializeDatabase } = require("./init");
-    initializeDatabase();
-  }
-} catch {
-  // Database initialized by pre-build script
-}
-
 
 
