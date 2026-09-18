@@ -1,4 +1,5 @@
 import { db } from "./index";
+import * as schema from "./schema";
 import {
   categories,
   suppliers,
@@ -24,7 +25,9 @@ import { sql } from "drizzle-orm";
  * Run with: npm run db:seed
  */
 
-export function seedDatabase(targetDb: any = db) {
+import { type BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
+
+export function seedDatabase(targetDb: BetterSQLite3Database<typeof schema> = db) {
   // Clear catalog + content tables only (never users/carts/orders — those
   // hold real account data once people start using the site).
   targetDb.delete(productImages).run();
@@ -51,7 +54,7 @@ export function seedDatabase(targetDb: any = db) {
     { name: "Florence by Bike", slug: "florence-by-bike" },
   ];
 
-  const insertedSuppliers = db.insert(suppliers).values(supplierRows).returning().all();
+  const insertedSuppliers = targetDb.insert(suppliers).values(supplierRows).returning().all();
   const supplierBySlug = new Map(insertedSuppliers.map((s) => [s.slug, s]));
 
   // ---------------------------------------------------------------------
@@ -120,7 +123,7 @@ export function seedDatabase(targetDb: any = db) {
     },
   ];
 
-  const insertedCategories = db
+  const insertedCategories = targetDb
     .insert(categories)
     .values(
       categoryRows.map(({ image, imageAlt, ...rest }) => ({
@@ -433,7 +436,7 @@ export function seedDatabase(targetDb: any = db) {
       throw new Error(`Seed data error: missing category/supplier for product ${p.slug}`);
     }
 
-    const [product] = db
+    const [product] = targetDb
       .insert(products)
       .values({
         slug: p.slug,
@@ -461,7 +464,7 @@ export function seedDatabase(targetDb: any = db) {
       .all();
 
     if (p.images.length > 0) {
-      db.insert(productImages)
+      targetDb.insert(productImages)
         .values(
           p.images.map((url, i) => ({
             productId: product.id,
@@ -474,7 +477,7 @@ export function seedDatabase(targetDb: any = db) {
     }
 
     if (p.options.length > 0) {
-      db.insert(productOptions)
+      targetDb.insert(productOptions)
         .values(
           p.options.map((o, i) => ({
             productId: product.id,
@@ -508,13 +511,13 @@ export function seedDatabase(targetDb: any = db) {
         capacityBooked,
       });
     }
-    db.insert(availability).values(availabilityRows).run();
+    targetDb.insert(availability).values(availabilityRows).run();
   }
 
   // ---------------------------------------------------------------------
   // Blog posts
   // ---------------------------------------------------------------------
-  db.insert(blogPosts)
+  targetDb.insert(blogPosts)
     .values([
       {
         slug: "48-hours-in-florence-perfect-itinerary",
@@ -571,7 +574,7 @@ export function seedDatabase(targetDb: any = db) {
   // ---------------------------------------------------------------------
   // CMS-managed homepage copy
   // ---------------------------------------------------------------------
-  db.insert(cmsBlocks)
+  targetDb.insert(cmsBlocks)
     .values({
       key: "homepage",
       content: {
@@ -637,14 +640,14 @@ export function seedDatabase(targetDb: any = db) {
     .run();
 
   const counts = {
-    suppliers: db.select({ c: sql<number>`count(*)` }).from(suppliers).get(),
-    categories: db.select({ c: sql<number>`count(*)` }).from(categories).get(),
-    products: db.select({ c: sql<number>`count(*)` }).from(products).get(),
-    productImages: db.select({ c: sql<number>`count(*)` }).from(productImages).get(),
-    productOptions: db.select({ c: sql<number>`count(*)` }).from(productOptions).get(),
-    availability: db.select({ c: sql<number>`count(*)` }).from(availability).get(),
-    blogPosts: db.select({ c: sql<number>`count(*)` }).from(blogPosts).get(),
-    cmsBlocks: db.select({ c: sql<number>`count(*)` }).from(cmsBlocks).get(),
+    suppliers: targetDb.select({ c: sql<number>`count(*)` }).from(suppliers).get(),
+    categories: targetDb.select({ c: sql<number>`count(*)` }).from(categories).get(),
+    products: targetDb.select({ c: sql<number>`count(*)` }).from(products).get(),
+    productImages: targetDb.select({ c: sql<number>`count(*)` }).from(productImages).get(),
+    productOptions: targetDb.select({ c: sql<number>`count(*)` }).from(productOptions).get(),
+    availability: targetDb.select({ c: sql<number>`count(*)` }).from(availability).get(),
+    blogPosts: targetDb.select({ c: sql<number>`count(*)` }).from(blogPosts).get(),
+    cmsBlocks: targetDb.select({ c: sql<number>`count(*)` }).from(cmsBlocks).get(),
   };
   return counts;
 }
