@@ -9,7 +9,13 @@ import { ProductBadgePill } from "@/components/ui/badge";
 import { ExperienceCard } from "@/components/ui/experience-card";
 import { BookingWidget } from "@/components/experiences/booking-widget";
 
-export const dynamic = "force-dynamic";
+export async function generateStaticParams() {
+  // Pre-render every live product page at build time — small catalog
+  // today (9 products), cheap to do, and better for SEO/perf than
+  // falling back to on-demand rendering for first-time visitors.
+  const { items } = await searchProducts({ pageSize: 100 });
+  return items.map((p) => ({ slug: p.slug }));
+}
 
 type Params = { slug: string };
 
