@@ -140,7 +140,14 @@ export interface SearchProductsResult {
  */
 export async function searchProducts(params: SearchProductsParams = {}): Promise<SearchProductsResult> {
   const page = Math.max(1, params.page ?? 1);
-  const pageSize = Math.min(24, Math.max(1, params.pageSize ?? 12));
+  // Capped well above the /experiences page's own pageSize=12, since a
+  // few callers deliberately ask for the whole live catalog in one page
+  // (sitemap.ts, generateStaticParams, the homepage sections) rather
+  // than paging through it. 24 was tight enough to silently truncate
+  // those the moment the catalog passed 24 products — bumped to 100 so
+  // "give me everything" callers actually get everything as the catalog
+  // grows, while still bounding worst-case query size.
+  const pageSize = Math.min(100, Math.max(1, params.pageSize ?? 12));
 
   const conditions: SQL[] = [eq(products.status, "live")];
   if (params.categorySlug) {

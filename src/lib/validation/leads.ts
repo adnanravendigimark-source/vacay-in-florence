@@ -23,6 +23,11 @@ export const affiliateApplicationSchema = z.object({
   audienceSize: z.string().trim().max(120).optional().or(z.literal("")),
 });
 
+export const newsletterSubscribeSchema = z.object({
+  email: z.string().trim().toLowerCase().email("Enter a valid email address."),
+});
+
 export type ContactFormInput = z.infer<typeof contactFormSchema>;
 export type SupplierApplicationInput = z.infer<typeof supplierApplicationSchema>;
 export type AffiliateApplicationInput = z.infer<typeof affiliateApplicationSchema>;
+export type NewsletterSubscribeInput = z.infer<typeof newsletterSubscribeSchema>;

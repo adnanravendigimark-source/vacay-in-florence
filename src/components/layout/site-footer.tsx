@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Container } from "@/components/ui/container";
 import { VacayLogo } from "@/components/ui/vacay-logo";
+import { NewsletterForm } from "@/components/layout/newsletter-form";
 
 export function SiteFooter() {
   const year = new Date().getFullYear();
@@ -36,7 +37,7 @@ export function SiteFooter() {
                 </Link>
               </li>
               <li>
-                <Link href="/experiences" className="hover:text-white transition-colors">
+                <Link href="/experiences#categories" className="hover:text-white transition-colors">
                   Categories
                 </Link>
               </li>
@@ -104,23 +105,9 @@ export function SiteFooter() {
               Get travel inspiration, new experiences and exclusive offers.
             </p>
 
-            {/* Newsletter Pill Form */}
-            <form action="/newsletter" method="post" className="relative flex items-center mb-6">
-              <input
-                type="email"
-                name="email"
-                required
-                placeholder="Your email address"
-                className="w-full rounded-full bg-white/10 border border-white/20 px-4 py-2.5 pr-12 text-xs text-white placeholder:text-white/50 focus:border-white/50 focus:outline-none focus:bg-white/15 transition-all"
-              />
-              <button
-                type="submit"
-                aria-label="Subscribe to newsletter"
-                className="absolute right-1 flex h-8 w-8 items-center justify-center rounded-full bg-white text-[#0e241a] transition-transform hover:scale-105"
-              >
-                <span className="text-xs font-bold">&rarr;</span>
-              </button>
-            </form>
+            {/* Newsletter Pill Form — wired to a real server action that
+                saves into lead_submissions (see newsletter-form.tsx) */}
+            <NewsletterForm />
 
             {/* Social Icons */}
             <div className="flex items-center gap-3 text-white/70">

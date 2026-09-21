@@ -39,7 +39,7 @@ export function ExperienceListing({
   return (
     <div>
       {showCategoryFilters && categories.length > 0 ? (
-        <div className="mb-8 flex flex-wrap gap-2">
+        <div id="categories" className="mb-8 flex flex-wrap gap-2 scroll-mt-28">
           {/* Categories are dedicated, indexable pages
               (/experiences/category/[slug]) rather than a ?category=
               query filter on /experiences — one canonical URL per

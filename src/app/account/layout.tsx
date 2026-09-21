@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { headers } from "next/headers";
 import { eq } from "drizzle-orm";
 import { requireUser } from "@/lib/require-user";
 import { db } from "@/lib/db";
@@ -14,7 +15,11 @@ const NAV = [
 ];
 
 export default async function AccountLayout({ children }: { children: React.ReactNode }) {
-  const sessionUser = await requireUser("/account");
+  // Middleware (src/middleware.ts) stamps the real requested path onto
+  // this header so a deep link like /account/bookings redirects back to
+  // itself after login, instead of always landing on /account.
+  const pathname = (await headers()).get("x-pathname") ?? "/account";
+  const sessionUser = await requireUser(pathname);
   // The session JWT can lag a profile edit until the next sign-in (see
   // the note in account/profile/actions.ts) — re-read the users table
   // here so the sidebar always shows the current name/email.

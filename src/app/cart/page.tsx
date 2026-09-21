@@ -4,6 +4,7 @@ import { getCartSummary } from "@/lib/data/cart";
 import { Container } from "@/components/ui/container";
 import { EmptyState } from "@/components/ui/empty-state";
 import { CartItemCard } from "@/components/cart/cart-item-card";
+import { CartBadgeSync } from "@/components/cart/cart-badge-sync";
 
 export const metadata: Metadata = {
   title: "Your Cart",
@@ -17,6 +18,7 @@ export default async function CartPage() {
 
   return (
     <Container className="py-10 sm:py-14">
+      <CartBadgeSync count={cart.totalParticipants} />
       <h1 className="font-display text-3xl font-medium text-ink sm:text-4xl">Your Cart</h1>
 
       {cart.items.length === 0 ? (

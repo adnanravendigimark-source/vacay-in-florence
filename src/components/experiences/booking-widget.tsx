@@ -1,8 +1,9 @@
 "use client";
 
-import { useActionState, useMemo, useState } from "react";
+import { useActionState, useEffect, useMemo, useState } from "react";
 import { addToCartAction, type AddToCartState } from "@/app/experiences/[slug]/actions";
 import type { ProductOptionSummary } from "@/lib/data/products";
+import { notifyCartUpdated } from "@/lib/cart-events";
 
 const priceFormatter = new Intl.NumberFormat("en-IE", { style: "currency", currency: "EUR" });
 
@@ -23,6 +24,14 @@ export function BookingWidget({ productSlug, options }: { productSlug: string; o
 
   const initialState: AddToCartState = { status: "idle" };
   const [state, formAction, isPending] = useActionState(addToCartAction.bind(null, productSlug), initialState);
+
+  // The header's cart badge only refetches on pathname change, which this
+  // same-page form submit never triggers — tell it directly.
+  useEffect(() => {
+    if (state.status === "success") {
+      notifyCartUpdated();
+    }
+  }, [state]);
 
   const total = useMemo(
     () => options.reduce((sum, o) => sum + o.priceAmount * (quantities[o.id] ?? 0), 0),

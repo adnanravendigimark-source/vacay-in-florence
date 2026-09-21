@@ -7,6 +7,7 @@ import { useSession } from "next-auth/react";
 import { Container } from "@/components/ui/container";
 import { VacayLogo } from "@/components/ui/vacay-logo";
 import { StickyHeader } from "@/components/layout/sticky-header";
+import { CART_UPDATED_EVENT } from "@/lib/cart-events";
 
 export function SiteHeader() {
   const { data: session } = useSession();
@@ -16,16 +17,23 @@ export function SiteHeader() {
 
   useEffect(() => {
     let cancelled = false;
-    fetch("/api/cart/count")
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (!cancelled && data) setCartCount(data.count);
-      })
-      .catch(() => {
-        /* cart badge is a convenience, never worth surfacing an error for */
-      });
+    function refreshCartCount() {
+      fetch("/api/cart/count")
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => {
+          if (!cancelled && data) setCartCount(data.count);
+        })
+        .catch(() => {
+          /* cart badge is a convenience, never worth surfacing an error for */
+        });
+    }
+    refreshCartCount();
+    // A same-page "Add to Cart" server action doesn't change the pathname,
+    // so we also listen for an explicit signal from cart mutations.
+    window.addEventListener(CART_UPDATED_EVENT, refreshCartCount);
     return () => {
       cancelled = true;
+      window.removeEventListener(CART_UPDATED_EVENT, refreshCartCount);
     };
   }, [pathname]);
 
@@ -45,7 +53,7 @@ export function SiteHeader() {
           },
           {
             name: "Categories",
-            href: "/experiences",
+            href: "/experiences#categories",
             active: pathname.startsWith("/experiences/category"),
           },
           {

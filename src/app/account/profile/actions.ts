@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import { eq, and, ne } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
@@ -36,5 +37,13 @@ export async function updateProfileAction(formData: FormData): Promise<void> {
   // else in the app reads session.user.name/email as a source of truth
   // (every page re-reads the users table), but worth fixing with a
   // session `update()` call if this becomes user-visible friction.
+  //
+  // The account layout's sidebar name *does* re-read the users table on
+  // every render, but Next's client-side router cache still served the
+  // old cached layout segment after this redirect — the page content
+  // updated, the sidebar next to it didn't. revalidatePath on the shared
+  // layout clears that cached segment so the sidebar picks up the change
+  // too.
+  revalidatePath("/account", "layout");
   redirect("/account/profile?success=1");
 }

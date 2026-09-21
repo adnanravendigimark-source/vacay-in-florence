@@ -46,7 +46,11 @@ export interface PaginatedBlogPosts {
 
 export async function getBlogPosts(page = 1, pageSize = 9): Promise<PaginatedBlogPosts> {
   const safePage = Math.max(1, page);
-  const safePageSize = Math.min(24, Math.max(1, pageSize));
+  // Capped well above /blog's own pageSize=9 — generateStaticParams in
+  // blog/[slug]/page.tsx asks for pageSize=100 to pre-render every post
+  // at build time (see the same fix and reasoning in searchProducts,
+  // src/lib/data/products.ts).
+  const safePageSize = Math.min(100, Math.max(1, pageSize));
 
   // ::int — Postgres count() is bigint; node-postgres would otherwise return a string.
   const [{ count }] = await db.select({ count: sql<number>`count(*)::int` }).from(blogPosts).where(published());

@@ -20,6 +20,22 @@ export function CartItemCard({ item }: { item: CartLineItem }) {
   const [quantities, setQuantities] = useState<Record<string, number>>(initialQuantities);
   const [dirty, setDirty] = useState(false);
 
+  // updateCartItemAction is a fire-and-forget server action (no
+  // useActionState), so nothing told this component when a submitted
+  // update actually landed — the "Update" button just stayed visible
+  // forever after the first edit, even once the save succeeded. Once
+  // revalidatePath brings back fresh server data, item.participants
+  // changes and initialQuantities is recomputed to a new object; noticing
+  // that during render (React's recommended way to reset state when a
+  // prop changes, rather than an effect) is what tells us the in-flight
+  // edit is now reflected, so we can drop back out of the "dirty" state.
+  const [prevInitialQuantities, setPrevInitialQuantities] = useState(initialQuantities);
+  if (initialQuantities !== prevInitialQuantities) {
+    setPrevInitialQuantities(initialQuantities);
+    setQuantities(initialQuantities);
+    setDirty(false);
+  }
+
   const liveTotal = item.availableOptions.reduce((sum, o) => sum + o.priceAmount * (quantities[o.id] ?? 0), 0);
 
   function updateQuantity(optionId: string, delta: number) {
