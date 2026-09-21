@@ -194,33 +194,33 @@ export function HeroSearch() {
       {/* Luxury Transparent Glassmorphic Search Bar */}
       <form
         onSubmit={handleSubmit}
-        className="relative flex flex-col md:flex-row items-stretch md:items-center bg-black/40 backdrop-blur-2xl rounded-3xl md:rounded-full p-2 sm:p-2.5 shadow-[0_20px_60px_rgba(0,0,0,0.5)] border border-white/25 text-white ring-1 ring-white/10"
+        className="relative flex flex-col md:flex-row items-stretch md:items-center bg-white rounded-3xl md:rounded-full p-2 sm:p-2.5 shadow-[0_20px_60px_rgba(0,0,0,0.18)] border border-[#e5e0d8]"
       >
         {/* Destination Field */}
         <div className="relative flex-1 group">
           <button
             type="button"
             onClick={() => setOpenDropdown(openDropdown === "destination" ? null : "destination")}
-            className="w-full flex items-center gap-3 px-3.5 py-2 text-left rounded-2xl md:rounded-full hover:bg-white/10 transition-all cursor-pointer"
+            className="w-full flex items-center gap-3 px-3.5 py-2 text-left rounded-2xl md:rounded-full hover:bg-[#faf9f6] transition-all cursor-pointer"
           >
             {/* Soft Icon Badge */}
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/10 text-white transition-colors group-hover:bg-white group-hover:text-neutral-900">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#f4f3ef] text-neutral-700 transition-colors group-hover:bg-[#183528] group-hover:text-white">
               <svg viewBox="0 0 24 24" className="h-4.5 w-4.5 fill-none stroke-current stroke-[1.85]">
                 <path d="M12 21c-4-4.5-7-8.5-7-12a7 7 0 1 1 14 0c0 3.5-3 7.5-7 12z" />
                 <circle cx="12" cy="9" r="2.5" />
               </svg>
             </div>
             <div className="flex flex-col min-w-0 flex-1 leading-tight">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-white/60">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
                 Destination
               </span>
-              <span className="text-[13.5px] font-semibold text-white truncate mt-0.5">
+              <span className="text-[13.5px] font-semibold text-neutral-900 truncate mt-0.5">
                 {destination}
               </span>
             </div>
             <svg
               viewBox="0 0 20 20"
-              className={`h-4 w-4 text-white/60 shrink-0 transition-transform duration-150 ${openDropdown === "destination" ? "rotate-180 text-white" : ""
+              className={`h-4 w-4 text-neutral-400 shrink-0 transition-transform duration-150 ${openDropdown === "destination" ? "rotate-180 text-neutral-900" : ""
                 }`}
               fill="currentColor"
             >
@@ -275,17 +275,17 @@ export function HeroSearch() {
         </div>
 
         {/* Hairline Divider */}
-        <div className="hidden md:block h-8 w-[1px] bg-white/15 my-auto" />
+        <div className="hidden md:block h-8 w-[1px] bg-[#e5e0d8] my-auto" />
 
         {/* Date Field */}
         <div className="relative flex-1 group">
           <button
             type="button"
             onClick={() => setOpenDropdown(openDropdown === "date" ? null : "date")}
-            className="w-full flex items-center gap-3 px-3.5 py-2 text-left rounded-2xl md:rounded-full hover:bg-white/10 transition-all cursor-pointer"
+            className="w-full flex items-center gap-3 px-3.5 py-2 text-left rounded-2xl md:rounded-full hover:bg-[#faf9f6] transition-all cursor-pointer"
           >
             {/* Soft Icon Badge */}
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/10 text-white transition-colors group-hover:bg-white group-hover:text-neutral-900">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#f4f3ef] text-neutral-700 transition-colors group-hover:bg-[#183528] group-hover:text-white">
               <svg viewBox="0 0 24 24" className="h-4.5 w-4.5 fill-none stroke-current stroke-[1.85]">
                 <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
                 <line x1="16" y1="2" x2="16" y2="6" />
@@ -294,16 +294,16 @@ export function HeroSearch() {
               </svg>
             </div>
             <div className="flex flex-col min-w-0 flex-1 leading-tight">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-white/60">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
                 Date
               </span>
-              <span className={`text-[13.5px] truncate mt-0.5 ${dateDisplay === "Select date" ? "font-normal text-white/80" : "font-semibold text-white"}`}>
+              <span className={`text-[13.5px] truncate mt-0.5 ${dateDisplay === "Select date" ? "font-normal text-neutral-400" : "font-semibold text-neutral-900"}`}>
                 {dateDisplay}
               </span>
             </div>
             <svg
               viewBox="0 0 20 20"
-              className={`h-4 w-4 text-white/60 shrink-0 transition-transform duration-150 ${openDropdown === "date" ? "rotate-180 text-white" : ""
+              className={`h-4 w-4 text-neutral-400 shrink-0 transition-transform duration-150 ${openDropdown === "date" ? "rotate-180 text-neutral-900" : ""
                 }`}
               fill="currentColor"
             >
@@ -331,20 +331,20 @@ export function HeroSearch() {
         </div>
 
         {/* Hairline Divider */}
-        <div className="hidden md:block h-8 w-[1px] bg-white/15 my-auto" />
+        <div className="hidden md:block h-8 w-[1px] bg-[#e5e0d8] my-auto" />
 
         {/* What are you looking for Field */}
         <div className="relative flex-[1.4] group">
-          <div className="flex items-center gap-3 px-3.5 py-2 rounded-2xl md:rounded-full hover:bg-white/10 transition-all">
+          <div className="flex items-center gap-3 px-3.5 py-2 rounded-2xl md:rounded-full hover:bg-[#faf9f6] transition-all">
             {/* Soft Icon Badge */}
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/10 text-white transition-colors group-hover:bg-white group-hover:text-neutral-900">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#f4f3ef] text-neutral-700 transition-colors group-hover:bg-[#183528] group-hover:text-white">
               <svg viewBox="0 0 24 24" className="h-4.5 w-4.5 fill-none stroke-current stroke-[1.85]">
                 <circle cx="11" cy="11" r="7.5" />
                 <line x1="16.5" y1="16.5" x2="21.5" y2="21.5" strokeLinecap="round" />
               </svg>
             </div>
             <div className="flex flex-col min-w-0 flex-1 leading-tight">
-              <label htmlFor="search-input" className="text-[10px] font-bold uppercase tracking-wider text-white/60 cursor-pointer">
+              <label htmlFor="search-input" className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 cursor-pointer">
                 What are you looking for?
               </label>
               <input
@@ -360,18 +360,18 @@ export function HeroSearch() {
                 aria-expanded={openDropdown === "search"}
                 aria-controls="search-suggestions"
                 aria-autocomplete="list"
-                className="w-full bg-transparent text-[13.5px] font-medium text-white placeholder:text-white/60 border-none outline-none focus:outline-none focus:ring-0 focus:border-none ring-0 shadow-none truncate mt-0.5"
+                className="w-full bg-transparent text-[13.5px] font-medium text-neutral-900 placeholder:text-neutral-400 border-none outline-none focus:outline-none focus:ring-0 focus:border-none ring-0 shadow-none truncate mt-0.5"
               />
             </div>
             <button
               type="button"
               onClick={() => setOpenDropdown(openDropdown === "search" ? null : "search")}
               aria-label="Toggle suggestions"
-              className="p-1 text-white/60 hover:text-white cursor-pointer"
+              className="p-1 text-neutral-400 hover:text-neutral-900 cursor-pointer"
             >
               <svg
                 viewBox="0 0 20 20"
-                className={`h-4 w-4 shrink-0 transition-transform duration-150 ${openDropdown === "search" ? "rotate-180 text-white" : ""
+                className={`h-4 w-4 shrink-0 transition-transform duration-150 ${openDropdown === "search" ? "rotate-180 text-neutral-900" : ""
                   }`}
                 fill="currentColor"
               >
@@ -488,10 +488,10 @@ export function HeroSearch() {
         <div className="p-1 md:p-0 md:pr-1">
           <button
             type="submit"
-            className="group flex w-full md:w-auto items-center justify-center gap-2 rounded-2xl md:rounded-full bg-[#faeedd] px-7 py-3 text-[13.5px] font-bold text-neutral-900 shadow-lg transition-all duration-200 hover:bg-white hover:shadow-xl hover:scale-[1.03] active:scale-[0.98] cursor-pointer"
+            className="group flex w-full md:w-auto items-center justify-center gap-2 rounded-2xl md:rounded-full bg-[#183528] px-7 py-3 text-[13.5px] font-bold text-white shadow-lg transition-all duration-200 hover:bg-[#0e241a] hover:shadow-xl hover:scale-[1.03] active:scale-[0.98] cursor-pointer"
           >
             <span>Search</span>
-            <span className="transition-transform duration-200 group-hover:translate-x-1 font-bold text-[#142d22]">&rarr;</span>
+            <span className="transition-transform duration-200 group-hover:translate-x-1 font-bold text-white">&rarr;</span>
           </button>
         </div>
       </form>

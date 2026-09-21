@@ -37,7 +37,7 @@ const LANDMARKS = [
     queueWithUs: "⚡ Timed Fast-Track Entry",
     description: "Gaze up at the 17-foot original marble statue of David, carved by 26-year-old Michelangelo from a single marble block.",
     href: "/experiences/accademia-gallery-michelangelos-david-ticket",
-    image: "/images/uffizi-corridor.jpg",
+    image: "/images/accademia-david.jpg",
     price: "From €24",
     rating: "4.8",
     reviews: "9,210",

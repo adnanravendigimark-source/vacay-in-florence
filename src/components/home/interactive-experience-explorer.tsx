@@ -97,10 +97,9 @@ export function InteractiveExperienceExplorer({
         </div>
 
         {/* Product Cards Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 mt-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-8">
           {filteredExperiences.map((exp, index) => {
             const primaryBadge = exp.badges[0];
-            const secondaryBadge = exp.badges.length > 1 ? exp.badges[1] : null;
 
             return (
               <div
@@ -108,7 +107,7 @@ export function InteractiveExperienceExplorer({
                 className="group flex flex-col rounded-3xl bg-white border border-neutral-200/90 shadow-sm overflow-hidden transition-all duration-300 hover:shadow-2xl hover:border-neutral-300 hover:-translate-y-1.5"
               >
                 {/* Image Section */}
-                <div className="relative aspect-[16/11] w-full overflow-hidden bg-neutral-100">
+                <div className="relative aspect-[4/3] w-full overflow-hidden bg-neutral-100">
                   <Image
                     src={exp.image.src}
                     alt={exp.image.alt}
@@ -119,27 +118,15 @@ export function InteractiveExperienceExplorer({
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 pointer-events-none" />
 
-                  {/* Top Badges */}
-                  <div className="absolute top-3.5 left-3.5 right-3.5 flex items-center justify-between pointer-events-none">
-                    <div className="flex flex-wrap gap-1.5">
-                      {primaryBadge && (
-                        <span
-                          className={`rounded-full px-2.5 py-1 text-[11px] uppercase tracking-wider font-semibold shadow-sm ${BADGE_COLOR[primaryBadge]}`}
-                        >
-                          {BADGE_LABEL[primaryBadge]}
-                        </span>
-                      )}
-                      {secondaryBadge && (
-                        <span className="hidden sm:inline-block rounded-full bg-black/60 backdrop-blur-md px-2.5 py-1 text-[11px] font-medium text-white">
-                          {BADGE_LABEL[secondaryBadge]}
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Instant Mobile Confirmation Pill */}
-                    <span className="rounded-full bg-white/90 backdrop-blur-md px-2 py-0.5 text-[10.5px] font-bold text-[#183528] shadow-sm">
-                      ⚡ Mobile Ticket
-                    </span>
+                  {/* Top Badge (single tag only) */}
+                  <div className="absolute top-3.5 left-3.5 right-3.5 flex items-center pointer-events-none">
+                    {primaryBadge && (
+                      <span
+                        className={`rounded-full px-2.5 py-1 text-[11px] uppercase tracking-wider font-semibold shadow-sm ${BADGE_COLOR[primaryBadge]}`}
+                      >
+                        {BADGE_LABEL[primaryBadge]}
+                      </span>
+                    )}
                   </div>
 
                   {/* Bottom Image Overlay Info */}
@@ -158,7 +145,7 @@ export function InteractiveExperienceExplorer({
                 </div>
 
                 {/* Card Content */}
-                <div className="flex flex-1 flex-col p-5 sm:p-6">
+                <div className="flex flex-1 flex-col p-4 sm:p-5">
                   {/* Reviews & Provider */}
                   <div className="flex items-center justify-between text-xs">
                     {exp.ratingAverage ? (
@@ -167,30 +154,30 @@ export function InteractiveExperienceExplorer({
                           <span className="text-amber-500">★</span>
                           <span>{exp.ratingAverage.toFixed(1)}</span>
                         </span>
-                        <span className="text-neutral-500 font-normal">
+                        <span className="text-neutral-500 font-normal text-[11px] whitespace-nowrap">
                           ({exp.reviewCount.toLocaleString()} reviews)
                         </span>
                       </div>
                     ) : null}
-                    <span className="text-[11px] font-medium text-neutral-400 truncate max-w-[130px]">
+                    <span className="text-[11px] font-medium text-neutral-400 truncate max-w-[90px]">
                       by {exp.supplierName}
                     </span>
                   </div>
 
                   {/* Title */}
                   <Link href={`/experiences/${exp.slug}`}>
-                    <h3 className="mt-3 text-base sm:text-lg font-bold leading-snug text-neutral-900 group-hover:text-[#183528] transition-colors line-clamp-2">
+                    <h3 className="mt-3 text-sm sm:text-base font-bold leading-snug text-neutral-900 group-hover:text-[#183528] transition-colors line-clamp-2">
                       {exp.title}
                     </h3>
                   </Link>
 
                   {/* Short Description */}
-                  <p className="mt-2 text-xs sm:text-sm text-neutral-600 line-clamp-2 leading-relaxed">
+                  <p className="mt-2 text-xs text-neutral-600 line-clamp-2 leading-relaxed">
                     {exp.shortDescription}
                   </p>
 
                   {/* Key Highlights Checklist */}
-                  <div className="mt-4 pt-3 border-t border-neutral-100 flex flex-col gap-1.5 text-xs text-neutral-600">
+                  <div className="mt-3 pt-2.5 border-t border-neutral-100 flex flex-col gap-1.5 text-xs text-neutral-600">
                     <div className="flex items-center gap-2">
                       <span className="text-[#183528] font-bold">✓</span>
                       <span>Instant confirmation & mobile barcode entry</span>
@@ -202,13 +189,13 @@ export function InteractiveExperienceExplorer({
                   </div>
 
                   {/* Price & Action Button */}
-                  <div className="mt-auto pt-5 border-t border-neutral-100 flex items-center justify-between gap-3">
+                  <div className="mt-auto pt-4 border-t border-neutral-100 flex items-center justify-between gap-3">
                     <div>
-                      <span className="text-[11px] font-medium text-neutral-500 uppercase tracking-wider block">
+                      <span className="text-[10px] font-medium text-neutral-500 uppercase tracking-wider block">
                         From
                       </span>
                       <div className="flex items-baseline gap-1">
-                        <span className="text-xl sm:text-2xl font-black text-neutral-900">
+                        <span className="text-base sm:text-lg font-black text-neutral-900">
                           {priceFormatter.format(exp.priceFrom.amount)}
                         </span>
                         <span className="text-xs text-neutral-500 font-normal">/ person</span>
@@ -217,7 +204,7 @@ export function InteractiveExperienceExplorer({
 
                     <Link
                       href={`/experiences/${exp.slug}`}
-                      className="inline-flex items-center justify-center gap-1.5 rounded-2xl bg-[#183528] px-4 sm:px-5 py-2.5 text-xs sm:text-sm font-semibold text-white shadow-sm transition-all duration-200 hover:bg-[#0e241a] hover:shadow-md hover:scale-105 active:scale-95"
+                      className="inline-flex items-center justify-center gap-1.5 rounded-2xl bg-[#183528] px-4 py-2.5 text-xs font-semibold text-white shadow-sm transition-all duration-200 hover:bg-[#0e241a] hover:shadow-md hover:scale-105 active:scale-95"
                     >
                       <span>Book Ticket</span>
                       <span className="text-xs">&rarr;</span>

@@ -74,7 +74,7 @@ export async function QuickCategoryRibbon() {
                 {ICONS[category.icon]}
               </div>
               <div className="min-w-0 flex-1">
-                <h3 className="text-xs font-bold text-neutral-900 truncate group-hover:text-[#183528]">
+                <h3 className="text-xs font-bold leading-snug text-neutral-900 group-hover:text-[#183528]">
                   {category.name}
                 </h3>
                 <p className="text-[10.5px] text-neutral-500 truncate">
