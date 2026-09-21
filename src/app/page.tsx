@@ -28,7 +28,7 @@ export const metadata: Metadata = {
 
 export default async function HomePage() {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.vacayinflorence.com";
-  
+
   const [categories, productsResult] = await Promise.all([
     getAllCategories(),
     searchProducts({ pageSize: 50 }),
@@ -83,5 +83,3 @@ export default async function HomePage() {
     </>
   );
 }
-
-

@@ -3,7 +3,7 @@ import { HeroSearch } from "@/components/home/hero-search";
 
 export function Hero() {
   return (
-    <section className="relative z-20 min-h-[560px] h-[100dvh] max-h-[960px] w-full flex flex-col justify-center bg-stone-900 text-white pt-20 sm:pt-24 pb-8 sm:pb-12">
+    <section className="relative z-20 min-h-[560px] h-[100dvh] max-h-[960px] w-full flex flex-col justify-center text-white pt-20 sm:pt-24 pb-8 sm:pb-12">
       {/* Background Video: High-Definition Panoramic Video of Florence */}
       <div className="absolute inset-0 z-0 select-none overflow-hidden">
         <video
@@ -18,15 +18,6 @@ export function Hero() {
           <source src="/video/hero-florence.mp4" type="video/mp4" />
           <source src="/vedio/genrate_a_longer_vedio_min.mp4" type="video/mp4" />
         </video>
-
-        {/* Horizontal Gradient on the Left side */}
-        <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/35 via-45% to-transparent pointer-events-none" />
-
-        {/* Soft top gradient for header legibility */}
-        <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-black/50 via-black/15 to-transparent pointer-events-none" />
-
-        {/* Soft bottom gradient */}
-        <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-black/60 via-black/20 to-transparent pointer-events-none" />
       </div>
 
       {/* Hero Content & Stretched Centered Search Bar */}

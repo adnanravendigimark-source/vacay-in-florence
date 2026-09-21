@@ -47,26 +47,26 @@ export function MobileTicketShowcase() {
   const [selectedPass, setSelectedPass] = useState(SAMPLE_PASSES[0]);
 
   return (
-    <section className="bg-neutral-900 text-white py-18 sm:py-24 overflow-hidden relative border-b border-neutral-800">
+    <section className="bg-cream text-ink py-18 sm:py-24 overflow-hidden relative border-b border-stone">
       {/* Glow Backdrops */}
-      <div className="absolute top-1/2 left-1/4 -translate-y-1/2 h-[450px] w-[450px] rounded-full bg-emerald-600/15 blur-[120px] pointer-events-none" />
-      <div className="absolute top-1/3 right-1/4 h-[350px] w-[350px] rounded-full bg-amber-500/10 blur-[100px] pointer-events-none" />
+      <div className="absolute top-1/2 left-1/4 -translate-y-1/2 h-[450px] w-[450px] rounded-full bg-cypress-light/60 blur-[120px] pointer-events-none" />
+      <div className="absolute top-1/3 right-1/4 h-[350px] w-[350px] rounded-full bg-gold-light/60 blur-[100px] pointer-events-none" />
 
       <Container className="relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
           {/* Left Text Column */}
           <div className="lg:col-span-6 flex flex-col justify-center">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3.5 py-1 text-xs font-semibold text-emerald-300 mb-4 backdrop-blur-md self-start">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-ping" />
+            <div className="inline-flex items-center gap-2 rounded-full bg-cypress-light px-3.5 py-1 text-xs font-semibold text-cypress mb-4 self-start">
+              <span className="h-1.5 w-1.5 rounded-full bg-cypress animate-ping" />
               <span>INSTANT DIGITAL WALLET VOUCHERS</span>
             </div>
 
-            <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl font-medium tracking-tight text-white leading-[1.12]">
+            <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl font-medium tracking-tight text-ink leading-[1.12]">
               No Printing. No Lines.<br />
-              <span className="text-[#faeedd] italic font-light">Scan &amp; Walk Right In.</span>
+              <span className="text-gold italic font-light">Scan &amp; Walk Right In.</span>
             </h2>
 
-            <p className="mt-4 text-sm sm:text-base text-neutral-300 leading-relaxed max-w-lg">
+            <p className="mt-4 text-sm sm:text-base text-ink-soft leading-relaxed max-w-lg">
               Every booking instantly generates an official digital fast-pass for your Apple Wallet or Google Wallet. Simply hold your phone to the scanner at the monument gate and bypass hundreds waiting in line.
             </p>
 
@@ -81,8 +81,8 @@ export function MobileTicketShowcase() {
                     onClick={() => setSelectedPass(pass)}
                     className={`rounded-2xl px-4 py-2.5 text-xs font-semibold transition-all duration-200 cursor-pointer ${
                       isSelected
-                        ? "bg-white text-neutral-900 shadow-lg scale-105 ring-2 ring-emerald-400 ring-offset-2 ring-offset-neutral-900"
-                        : "bg-white/10 text-neutral-300 hover:bg-white/20 hover:text-white"
+                        ? "bg-cypress text-white shadow-lg scale-105 ring-2 ring-cypress ring-offset-2 ring-offset-cream"
+                        : "bg-stone text-ink-soft hover:bg-stone-dark hover:text-ink"
                     }`}
                   >
                     {pass.title}
@@ -92,22 +92,22 @@ export function MobileTicketShowcase() {
             </div>
 
             {/* 3 Step Micro-Guide */}
-            <div className="mt-10 grid grid-cols-3 gap-4 pt-6 border-t border-white/10 text-xs">
+            <div className="mt-10 grid grid-cols-3 gap-4 pt-6 border-t border-stone text-xs">
               <div>
-                <div className="text-emerald-400 font-bold mb-1">01. Book Online</div>
-                <div className="text-neutral-400 text-[11px] leading-normal">
+                <div className="text-cypress font-bold mb-1">01. Book Online</div>
+                <div className="text-ink-faint text-[11px] leading-normal">
                   Reserve your timeslot in 30 seconds.
                 </div>
               </div>
               <div>
-                <div className="text-emerald-400 font-bold mb-1">02. Instant Pass</div>
-                <div className="text-neutral-400 text-[11px] leading-normal">
+                <div className="text-cypress font-bold mb-1">02. Instant Pass</div>
+                <div className="text-ink-faint text-[11px] leading-normal">
                   Barcode sent to email &amp; Apple Wallet.
                 </div>
               </div>
               <div>
-                <div className="text-emerald-400 font-bold mb-1">03. Fast Entry</div>
-                <div className="text-neutral-400 text-[11px] leading-normal">
+                <div className="text-cypress font-bold mb-1">03. Fast Entry</div>
+                <div className="text-ink-faint text-[11px] leading-normal">
                   Scan at priority door &amp; enter directly.
                 </div>
               </div>
@@ -116,7 +116,7 @@ export function MobileTicketShowcase() {
 
           {/* Right Mobile Phone Pass Visualizer */}
           <div className="lg:col-span-6 flex justify-center lg:justify-end">
-            <div className="relative w-full max-w-sm rounded-[40px] bg-neutral-950 p-4 shadow-2xl border-[6px] border-neutral-800 ring-1 ring-white/10">
+            <div className="relative w-full max-w-sm rounded-[40px] bg-neutral-950 p-4 shadow-2xl border-[6px] border-neutral-800 ring-1 ring-black/10">
               {/* Phone Speaker Notch */}
               <div className="mx-auto h-4 w-28 rounded-full bg-neutral-900 mb-4 flex items-center justify-center">
                 <div className="h-1.5 w-10 rounded-full bg-neutral-800" />

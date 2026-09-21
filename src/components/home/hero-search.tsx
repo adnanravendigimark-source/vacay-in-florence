@@ -220,9 +220,8 @@ export function HeroSearch() {
             </div>
             <svg
               viewBox="0 0 20 20"
-              className={`h-4 w-4 text-white/60 shrink-0 transition-transform duration-150 ${
-                openDropdown === "destination" ? "rotate-180 text-white" : ""
-              }`}
+              className={`h-4 w-4 text-white/60 shrink-0 transition-transform duration-150 ${openDropdown === "destination" ? "rotate-180 text-white" : ""
+                }`}
               fill="currentColor"
             >
               <path
@@ -262,9 +261,8 @@ export function HeroSearch() {
                         setDestinationFilter("");
                         setOpenDropdown(null);
                       }}
-                      className={`flex w-full flex-col rounded-xl px-3 py-2 text-left text-xs transition-colors hover:bg-neutral-100 cursor-pointer ${
-                        destination === dest.name ? "bg-neutral-100 font-semibold" : ""
-                      }`}
+                      className={`flex w-full flex-col rounded-xl px-3 py-2 text-left text-xs transition-colors hover:bg-neutral-100 cursor-pointer ${destination === dest.name ? "bg-neutral-100 font-semibold" : ""
+                        }`}
                     >
                       <span className="font-semibold text-neutral-900 text-[13px]">{dest.name}</span>
                       <span className="text-[11px] text-neutral-500">{dest.sub}</span>
@@ -305,9 +303,8 @@ export function HeroSearch() {
             </div>
             <svg
               viewBox="0 0 20 20"
-              className={`h-4 w-4 text-white/60 shrink-0 transition-transform duration-150 ${
-                openDropdown === "date" ? "rotate-180 text-white" : ""
-              }`}
+              className={`h-4 w-4 text-white/60 shrink-0 transition-transform duration-150 ${openDropdown === "date" ? "rotate-180 text-white" : ""
+                }`}
               fill="currentColor"
             >
               <path
@@ -374,9 +371,8 @@ export function HeroSearch() {
             >
               <svg
                 viewBox="0 0 20 20"
-                className={`h-4 w-4 shrink-0 transition-transform duration-150 ${
-                  openDropdown === "search" ? "rotate-180 text-white" : ""
-                }`}
+                className={`h-4 w-4 shrink-0 transition-transform duration-150 ${openDropdown === "search" ? "rotate-180 text-white" : ""
+                  }`}
                 fill="currentColor"
               >
                 <path
@@ -439,9 +435,8 @@ export function HeroSearch() {
                             aria-selected={activeIndex === index}
                             onClick={() => goToSuggestion(row)}
                             onMouseEnter={() => setActiveIndex(index)}
-                            className={`flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-left text-xs transition-colors cursor-pointer ${
-                              activeIndex === index ? "bg-neutral-100" : "hover:bg-neutral-100"
-                            }`}
+                            className={`flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-left text-xs transition-colors cursor-pointer ${activeIndex === index ? "bg-neutral-100" : "hover:bg-neutral-100"
+                              }`}
                           >
                             <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 text-[#142d22] shrink-0 fill-none stroke-current stroke-2">
                               <circle cx="11" cy="11" r="7.5" />
@@ -468,9 +463,8 @@ export function HeroSearch() {
                             aria-selected={activeIndex === index}
                             onClick={() => goToSuggestion(row)}
                             onMouseEnter={() => setActiveIndex(index)}
-                            className={`flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-left text-xs transition-colors cursor-pointer ${
-                              activeIndex === index ? "bg-neutral-100" : "hover:bg-neutral-100"
-                            }`}
+                            className={`flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-left text-xs transition-colors cursor-pointer ${activeIndex === index ? "bg-neutral-100" : "hover:bg-neutral-100"
+                              }`}
                           >
                             <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 text-[#142d22] shrink-0 fill-none stroke-current stroke-2">
                               <path d="M4 6h16M4 12h16M4 18h10" strokeLinecap="round" />

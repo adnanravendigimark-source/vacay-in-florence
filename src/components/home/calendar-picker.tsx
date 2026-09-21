@@ -201,15 +201,14 @@ export function CalendarPicker({
               type="button"
               disabled={disabled}
               onClick={() => handleSelectDay(day)}
-              className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-semibold transition-all ${
-                active
+              className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-semibold transition-all ${active
                   ? "bg-[#183528] text-white shadow-sm scale-105"
                   : disabled
-                  ? "text-neutral-300 cursor-not-allowed"
-                  : current
-                  ? "border border-[#183528] text-[#183528] hover:bg-[#183528]/10"
-                  : "text-neutral-800 hover:bg-neutral-100"
-              }`}
+                    ? "text-neutral-300 cursor-not-allowed"
+                    : current
+                      ? "border border-[#183528] text-[#183528] hover:bg-[#183528]/10"
+                      : "text-neutral-800 hover:bg-neutral-100"
+                }`}
             >
               {day}
             </button>

@@ -85,11 +85,10 @@ export function InteractiveExperienceExplorer({
                 key={tab.id}
                 type="button"
                 onClick={() => setActiveTab(tab.filter)}
-                className={`shrink-0 rounded-full px-4 sm:px-5 py-2.5 text-xs sm:text-sm font-medium transition-all duration-200 cursor-pointer ${
-                  isSelected
+                className={`shrink-0 rounded-full px-4 sm:px-5 py-2.5 text-xs sm:text-sm font-medium transition-all duration-200 cursor-pointer ${isSelected
                     ? "bg-neutral-900 text-white shadow-md ring-2 ring-neutral-900 ring-offset-2 scale-100"
                     : "bg-neutral-100 text-neutral-700 hover:bg-neutral-200 hover:text-neutral-900"
-                }`}
+                  }`}
               >
                 {tab.label}
               </button>

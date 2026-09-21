@@ -168,11 +168,10 @@ export function FlorenceItineraryBuilder() {
                   key={plan.id}
                   type="button"
                   onClick={() => setSelectedPlanId(plan.id)}
-                  className={`rounded-full px-5 py-2 text-xs sm:text-sm font-semibold transition-all duration-200 cursor-pointer ${
-                    active
+                  className={`rounded-full px-5 py-2 text-xs sm:text-sm font-semibold transition-all duration-200 cursor-pointer ${active
                       ? "bg-[#183528] text-white shadow-md scale-100"
                       : "text-neutral-700 hover:text-neutral-950 hover:bg-neutral-200/60"
-                  }`}
+                    }`}
                 >
                   {plan.id === "1-day" ? "1 Day (Express)" : plan.id === "2-days" ? "2 Days (Classic)" : "3 Days (Tuscany Hills)"}
                 </button>

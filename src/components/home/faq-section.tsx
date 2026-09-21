@@ -86,9 +86,8 @@ export function FaqSection() {
               return (
                 <div
                   key={idx}
-                  className={`rounded-2xl border transition-all duration-200 overflow-hidden ${
-                    isOpen ? "border-[#183528] bg-emerald-50/20 shadow-sm" : "border-neutral-200 bg-white hover:border-neutral-300"
-                  }`}
+                  className={`rounded-2xl border transition-all duration-200 overflow-hidden ${isOpen ? "border-[#183528] bg-emerald-50/20 shadow-sm" : "border-neutral-200 bg-white hover:border-neutral-300"
+                    }`}
                 >
                   <button
                     type="button"
@@ -97,9 +96,8 @@ export function FaqSection() {
                   >
                     <span>{faq.question}</span>
                     <span
-                      className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-neutral-700 text-sm font-bold transition-transform duration-200 ${
-                        isOpen ? "rotate-45 bg-[#183528] text-white" : ""
-                      }`}
+                      className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-neutral-700 text-sm font-bold transition-transform duration-200 ${isOpen ? "rotate-45 bg-[#183528] text-white" : ""
+                        }`}
                     >
                       +
                     </span>
