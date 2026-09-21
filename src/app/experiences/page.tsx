@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
 import { searchProducts, type ProductSortOption } from "@/lib/data/products";
 import { getAllCategories } from "@/lib/data/categories";
+import { ExperiencesHero } from "@/components/experiences/experiences-hero";
 import { ExperienceListing } from "@/components/experiences/experience-listing";
-import { Container } from "@/components/ui/container";
 
 export const metadata: Metadata = {
-  title: "Florence Experiences — Tickets, Tours & Day Trips",
+  title: "Experiences in Florence — Skip-the-Line Tickets, Tours & Day Trips",
   description:
-    "Browse every skip-the-line ticket, guided tour, and day trip in Florence. Filter by category, search by name, and book with free cancellation.",
+    "Skip the lines, explore iconic landmarks, and immerse yourself in the art, culture and beauty of Florence. Browse every skip-the-line ticket, guided tour, and day trip.",
   alternates: { canonical: "/experiences" },
 };
 
@@ -22,9 +22,6 @@ export default async function ExperiencesPage({
 }) {
   const params = await searchParams;
 
-  // `dest` is a Florence-neighborhood preset from the homepage search bar
-  // (see hero-search.tsx) rather than a separate filter dimension in the
-  // catalog — folded into the same free-text search as `q`.
   const combinedQuery = [params.q, params.dest].filter(Boolean).join(" ").trim() || undefined;
   const sort = VALID_SORTS.includes(params.sort as ProductSortOption)
     ? (params.sort as ProductSortOption)
@@ -32,32 +29,29 @@ export default async function ExperiencesPage({
   const page = Number.parseInt(params.page ?? "1", 10) || 1;
 
   const [result, categories] = await Promise.all([
-    searchProducts({ q: combinedQuery, date: params.date, sort, page, pageSize: 12 }),
+    searchProducts({ q: combinedQuery, date: params.date, sort, page, pageSize: 8 }),
     getAllCategories(),
   ]);
 
-  const heading = params.q
+  const titleOverride = params.q
     ? `Results for "${params.q}"`
     : params.dest
       ? `Experiences near ${params.dest}`
-      : "All Experiences in Florence";
+      : undefined;
 
   return (
-    <Container className="py-10 sm:py-14">
-      <div className="mb-8 max-w-2xl">
-        <h1 className="font-display text-3xl font-medium text-ink sm:text-4xl">{heading}</h1>
-        <p className="mt-2 text-ink-soft">
-          Skip-the-line tickets, guided tours, and day trips — every listing has free cancellation up to
-          24 hours ahead unless noted otherwise.
-        </p>
-      </div>
+    <main className="w-full">
+      {/* Golden Sunset Florence Hero Banner */}
+      <ExperiencesHero />
 
+      {/* Catalog Listing with Category Filter Ribbon */}
       <ExperienceListing
         basePath="/experiences"
         result={result}
         categories={categories}
+        titleOverride={titleOverride}
         currentParams={{ q: params.q, dest: params.dest, date: params.date, sort: params.sort }}
       />
-    </Container>
+    </main>
   );
 }

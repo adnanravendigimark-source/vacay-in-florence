@@ -9,6 +9,8 @@ import {
   availability,
   blogPosts,
   cmsBlocks,
+  cartItems,
+  orderItems,
 } from "./schema";
 import { sql } from "drizzle-orm";
 import {
@@ -20,14 +22,12 @@ import {
 } from "../data/seed/site-content";
 
 /**
- * Seeds the local SQLite database with realistic demo data — the same
+ * Seeds the database with realistic demo data — the same
  * catalog the old `src/lib/data/seed/*.ts` mock arrays described, now as
  * real rows, with the real photography the redesign added wired in
  * (replacing the placeholder `/images/scenes/*.svg` illustrations).
  *
- * Idempotent: safe to re-run. Clears dependent tables in FK order first
- * rather than upserting row-by-row, since this is fixture data, not
- * anything a real user has created (carts/orders/users are untouched).
+ * Idempotent: safe to re-run. Clears dependent tables in FK order first.
  *
  * Run with: npm run db:seed
  */
@@ -36,8 +36,9 @@ import { type NodePgDatabase } from "drizzle-orm/node-postgres";
 import { type PgTable } from "drizzle-orm/pg-core";
 
 export async function seedDatabase(targetDb: NodePgDatabase<typeof schema> = db) {
-  // Clear catalog + content tables only (never users/carts/orders — those
-  // hold real account data once people start using the site).
+  // Clear dependent tables in FK order
+  await targetDb.delete(orderItems);
+  await targetDb.delete(cartItems);
   await targetDb.delete(productImages);
   await targetDb.delete(productOptions);
   await targetDb.delete(availability);
@@ -225,8 +226,8 @@ export async function seedDatabase(targetDb: NodePgDatabase<typeof schema> = db)
       reviewCount: 9210,
       featured: true,
       featuredRank: 2,
-      badges: ["skip-the-line", "instant-confirmation", "best-seller"],
-      images: ["/images/uffizi-corridor.jpg"],
+      badges: ["top-rated", "instant-confirmation", "best-seller"],
+      images: ["/images/accademia-david.jpg"],
       options: [
         { name: "Adult", description: "Ages 18+", priceAmount: 24 },
         { name: "Child (under 18)", description: "Free entry, ticket still required", priceAmount: 4 },
@@ -261,39 +262,8 @@ export async function seedDatabase(targetDb: NodePgDatabase<typeof schema> = db)
       options: [{ name: "Adult", description: "Ages 18+", priceAmount: 45 }],
     },
     {
-      slug: "florence-old-town-walking-tour-with-local-guide",
-      title: "Florence Old Town Walking Tour with a Local Guide",
-      shortDescription: "Piazza della Signoria, Ponte Vecchio, and the streets in between.",
-      description:
-        "A local guide walks you through Florence's historic center on foot, connecting Piazza della Signoria, the Ponte Vecchio, and the smaller streets and workshops most visitors walk straight past. Expect Medici history, Renaissance context, and honest recommendations for where to eat afterward.\n\nGroups are kept small so you can actually hear the guide and ask questions along the way.",
-      highlights: [
-        "Small-group tour, kept intentionally under 12 people",
-        "Piazza della Signoria, Palazzo Vecchio exterior, and Ponte Vecchio",
-        "Local guide with Medici-era history and present-day context",
-        "Free cancellation if your plans change",
-      ],
-      inclusions: ["Local guide", "Small-group walking tour"],
-      exclusions: ["Museum or monument entry tickets", "Food and drinks", "Hotel pickup"],
-      meetingPoint: "Piazza della Signoria, at the base of the Neptune Fountain",
-      cancellationPolicy: "Free cancellation up to 24 hours before the tour start time.",
-      categorySlug: "guided-tours",
-      supplierSlug: "arno-walking-co",
-      durationLabel: "2.5 hours",
-      priceFromAmount: 32,
-      ratingAverage: 4.8,
-      reviewCount: 4120,
-      featured: false,
-      featuredRank: null,
-      badges: ["free-cancellation", "small-group"],
-      images: ["/images/ponte-vecchio.jpg"],
-      options: [
-        { name: "Adult", description: "Ages 18+", priceAmount: 32 },
-        { name: "Child (6-17)", description: "Accompanied by an adult", priceAmount: 18 },
-      ],
-    },
-    {
       slug: "chianti-countryside-and-wine-tasting-day-trip",
-      title: "Chianti Countryside & Wine Tasting Day Trip",
+      title: "Chianti Countryside & Wine Tasting Trip",
       shortDescription: "Three vineyards, a Tuscan lunch, and rolling hills along the way.",
       description:
         "A full day out of Florence into the Chianti hills, with stops at three family-run vineyards for tastings, a sit-down Tuscan lunch, and enough time on the road to actually see the cypress-lined countryside rather than just pass through it.\n\nTransport is by comfortable minivan with a small group, so it's a relaxed day rather than a rushed checklist.",
@@ -307,104 +277,17 @@ export async function seedDatabase(targetDb: NodePgDatabase<typeof schema> = db)
       exclusions: ["Additional wine purchases", "Gratuities"],
       meetingPoint: "Central pickup point confirmed by email after booking (central Florence hotels included)",
       cancellationPolicy: "Free cancellation up to 24 hours before departure for a full refund.",
-      categorySlug: "food-wine-experiences",
+      categorySlug: "day-trips-from-florence",
       supplierSlug: "tuscany-vine-trails",
       durationLabel: "8 hours",
       priceFromAmount: 89,
-      ratingAverage: 4.9,
-      reviewCount: 3050,
+      ratingAverage: 4.7,
+      reviewCount: 4892,
       featured: true,
       featuredRank: 4,
       badges: ["free-cancellation", "best-seller"],
       images: ["/images/chianti-hills.jpg"],
       options: [{ name: "Adult (18+, wine tasting included)", description: "Includes all tastings", priceAmount: 89 }],
-    },
-    {
-      slug: "tuscany-full-day-tour-san-gimignano-siena-pisa",
-      title: "Tuscany Full-Day Tour: San Gimignano, Siena & Pisa",
-      shortDescription: "Three iconic towns in one comfortable, guided day out of Florence.",
-      description:
-        "One long, well-paced day covering three of Tuscany's most recognizable towns: San Gimignano's medieval towers, Siena's Piazza del Campo, and Pisa's Leaning Tower. A guide travels with the group throughout, with enough free time in each stop to wander on your own.\n\nIt's a full day — expect an early departure and a return to Florence in the evening.",
-      highlights: [
-        "San Gimignano, Siena, and Pisa in a single guided day",
-        "Free time in each town to explore independently",
-        "Comfortable coach transport between stops",
-        "Guide included for context and logistics throughout",
-      ],
-      inclusions: ["Round-trip transport from Florence", "Guide", "Free time in each town"],
-      exclusions: ["Lunch", "Entry tickets to individual monuments", "Gratuities"],
-      meetingPoint: "Santa Maria Novella train station area, exact pickup point confirmed after booking",
-      cancellationPolicy: "Free cancellation up to 24 hours before departure for a full refund.",
-      categorySlug: "day-trips-from-florence",
-      supplierSlug: "tuscan-horizons",
-      durationLabel: "11 hours",
-      priceFromAmount: 79,
-      ratingAverage: 4.6,
-      reviewCount: 5870,
-      featured: true,
-      featuredRank: 5,
-      badges: ["free-cancellation", "instant-confirmation", "best-seller"],
-      images: ["/images/chianti-hills.jpg"],
-      options: [
-        { name: "Adult", description: "Ages 18+", priceAmount: 79 },
-        { name: "Child (6-17)", description: "Accompanied by an adult", priceAmount: 55 },
-      ],
-    },
-    {
-      slug: "boboli-gardens-and-pitti-palace-entry",
-      title: "Boboli Gardens & Pitti Palace Entry",
-      shortDescription: "The Medici family's gardens and grand residence, skip-the-line.",
-      description:
-        "The Pitti Palace was the Medici family's main residence, and the Boboli Gardens behind it are one of the earliest and largest examples of the Italian formal garden style. This ticket covers skip-the-line entry to both, with grounds large enough for a genuinely unhurried afternoon.",
-      highlights: [
-        "Skip-the-line entry to both the Palace and the Gardens",
-        "Large formal gardens with fountains, grottoes, and city views",
-        "See the Medici family's state apartments",
-        "Quieter than the Uffizi, even in peak season",
-      ],
-      inclusions: ["Skip-the-line entry to Pitti Palace", "Boboli Gardens entry"],
-      exclusions: ["Guide", "Hotel pickup", "Food and drinks"],
-      meetingPoint: "Pitti Palace main entrance, Piazza de' Pitti 1, Florence",
-      cancellationPolicy: "Free cancellation up to 24 hours before your entry time for a full refund.",
-      categorySlug: "skip-the-line-attractions",
-      supplierSlug: "palazzo-pitti-access",
-      durationLabel: "2 hours",
-      priceFromAmount: 22,
-      ratingAverage: 4.5,
-      reviewCount: 1980,
-      featured: false,
-      featuredRank: null,
-      badges: ["skip-the-line"],
-      images: ["/images/duomo-tour.jpg"],
-      options: [{ name: "Adult", description: "Ages 18+", priceAmount: 22 }],
-    },
-    {
-      slug: "florentine-cooking-class-with-market-visit",
-      title: "Florentine Cooking Class with Market Visit",
-      shortDescription: "Shop at a local market, then cook a three-course Tuscan menu.",
-      description:
-        "Start at a local Florentine market to pick ingredients with your instructor, then head to a home-style kitchen to cook a three-course Tuscan menu from scratch — usually fresh pasta, a Florentine main, and a classic dessert. Everyone sits down together to eat what they made.\n\nSmall groups only, so it stays hands-on rather than a demonstration.",
-      highlights: [
-        "Hands-on class, not a demonstration — you cook every course",
-        "Market visit included to pick fresh, seasonal ingredients",
-        "Three-course Tuscan menu, recipes provided to take home",
-        "Small groups for a genuinely hands-on experience",
-      ],
-      inclusions: ["Market visit", "All ingredients", "Wine pairing with the meal", "Recipe booklet"],
-      exclusions: ["Hotel pickup", "Additional alcoholic beverages"],
-      meetingPoint: "Sant'Ambrogio Market, main entrance, Florence",
-      cancellationPolicy: "Free cancellation up to 24 hours before the class start time.",
-      categorySlug: "food-wine-experiences",
-      supplierSlug: "cucina-fiorentina",
-      durationLabel: "4 hours",
-      priceFromAmount: 69,
-      ratingAverage: 4.9,
-      reviewCount: 2410,
-      featured: false,
-      featuredRank: null,
-      badges: ["small-group", "free-cancellation", "best-seller"],
-      images: ["/images/italian-cooking.jpg"],
-      options: [{ name: "Adult", description: "Ages 12+", priceAmount: 69 }],
     },
     {
       slug: "arno-river-sunset-bike-tour",
@@ -424,15 +307,105 @@ export async function seedDatabase(targetDb: NodePgDatabase<typeof schema> = db)
       cancellationPolicy: "Free cancellation up to 24 hours before the tour start time.",
       categorySlug: "outdoor-active",
       supplierSlug: "florence-by-bike",
-      durationLabel: "2 hours",
-      priceFromAmount: 35,
+      durationLabel: "2.5 hours",
+      priceFromAmount: 52,
+      ratingAverage: 4.6,
+      reviewCount: 3721,
+      featured: true,
+      featuredRank: 5,
+      badges: ["small-group", "free-cancellation"],
+      images: ["/images/ponte-vecchio.jpg"],
+      options: [{ name: "Adult", description: "Ages 14+", priceAmount: 52 }],
+    },
+    {
+      slug: "florentine-cooking-class-with-market-visit",
+      title: "Tuscan Wine & Food Experience",
+      shortDescription: "Shop at a local market, then cook a three-course Tuscan menu.",
+      description:
+        "Start at a local Florentine market to pick ingredients with your instructor, then head to a home-style kitchen to cook a three-course Tuscan menu from scratch — usually fresh pasta, a Florentine main, and a classic dessert. Everyone sits down together to eat what they made.\n\nSmall groups only, so it stays hands-on rather than a demonstration.",
+      highlights: [
+        "Hands-on class, not a demonstration — you cook every course",
+        "Market visit included to pick fresh, seasonal ingredients",
+        "Three-course Tuscan menu, recipes provided to take home",
+        "Small groups for a genuinely hands-on experience",
+      ],
+      inclusions: ["Market visit", "All ingredients", "Wine pairing with the meal", "Recipe booklet"],
+      exclusions: ["Hotel pickup", "Additional alcoholic beverages"],
+      meetingPoint: "Sant'Ambrogio Market, main entrance, Florence",
+      cancellationPolicy: "Free cancellation up to 24 hours before the class start time.",
+      categorySlug: "food-wine-experiences",
+      supplierSlug: "cucina-fiorentina",
+      durationLabel: "4 hours",
+      priceFromAmount: 68,
+      ratingAverage: 4.8,
+      reviewCount: 2093,
+      featured: true,
+      featuredRank: 6,
+      badges: ["food-wine", "small-group", "best-seller"],
+      images: ["/images/italian-cooking.jpg"],
+      options: [{ name: "Adult", description: "Ages 12+", priceAmount: 68 }],
+    },
+    {
+      slug: "tuscany-full-day-tour-san-gimignano-siena-pisa",
+      title: "Pisa & Lucca Day Trip",
+      shortDescription: "The Leaning Tower of Pisa, Lucca's medieval walls, and Tuscan countryside.",
+      description:
+        "One long, well-paced day covering Tuscany's most recognizable towns: Pisa's Piazza dei Miracoli and the Leaning Tower, followed by Lucca's intact renaissance walls and cobblestone lanes. A guide travels with the group throughout, with enough free time in each stop to wander on your own.\n\nIt's a full day — expect an early departure and a return to Florence in the evening.",
+      highlights: [
+        "Pisa's Leaning Tower and Cathedral complex",
+        "Lucca's medieval walls and historical center",
+        "Comfortable coach transport between stops",
+        "Guide included for context and logistics throughout",
+      ],
+      inclusions: ["Round-trip transport from Florence", "Guide", "Free time in each town"],
+      exclusions: ["Lunch", "Entry tickets to individual monuments", "Gratuities"],
+      meetingPoint: "Santa Maria Novella train station area, exact pickup point confirmed after booking",
+      cancellationPolicy: "Free cancellation up to 24 hours before departure for a full refund.",
+      categorySlug: "guided-tours",
+      supplierSlug: "tuscan-horizons",
+      durationLabel: "9 hours",
+      priceFromAmount: 62,
       ratingAverage: 4.7,
-      reviewCount: 890,
-      featured: false,
-      featuredRank: null,
-      badges: ["small-group", "instant-confirmation"],
-      images: ["/images/adventure-banner.jpg"],
-      options: [{ name: "Adult", description: "Ages 14+", priceAmount: 35 }],
+      reviewCount: 5184,
+      featured: true,
+      featuredRank: 7,
+      badges: ["popular", "free-cancellation", "instant-confirmation"],
+      images: ["/images/pisa-tower.jpg"],
+      options: [
+        { name: "Adult", description: "Ages 18+", priceAmount: 62 },
+        { name: "Child (6-17)", description: "Accompanied by an adult", priceAmount: 45 },
+      ],
+    },
+    {
+      slug: "florence-old-town-walking-tour-with-local-guide",
+      title: "Florence Walking Tour",
+      shortDescription: "Piazza della Signoria, Ponte Vecchio, and the streets in between.",
+      description:
+        "A local guide walks you through Florence's historic center on foot, connecting Piazza della Signoria, the Ponte Vecchio, and the smaller streets and workshops most visitors walk straight past. Expect Medici history, Renaissance context, and honest recommendations for where to eat afterward.\n\nGroups are kept small so you can actually hear the guide and ask questions along the way.",
+      highlights: [
+        "Small-group tour, kept intentionally under 12 people",
+        "Piazza della Signoria, Palazzo Vecchio exterior, and Ponte Vecchio",
+        "Local guide with Medici-era history and present-day context",
+        "Free cancellation if your plans change",
+      ],
+      inclusions: ["Local guide", "Small-group walking tour"],
+      exclusions: ["Museum or monument entry tickets", "Food and drinks", "Hotel pickup"],
+      meetingPoint: "Piazza della Signoria, at the base of the Neptune Fountain",
+      cancellationPolicy: "Free cancellation up to 24 hours before the tour start time.",
+      categorySlug: "guided-tours",
+      supplierSlug: "arno-walking-co",
+      durationLabel: "2.5 hours",
+      priceFromAmount: 38,
+      ratingAverage: 4.9,
+      reviewCount: 1942,
+      featured: true,
+      featuredRank: 8,
+      badges: ["new", "small-group"],
+      images: ["/images/florence-hero.jpg"],
+      options: [
+        { name: "Adult", description: "Ages 18+", priceAmount: 38 },
+        { name: "Child (6-17)", description: "Accompanied by an adult", priceAmount: 20 },
+      ],
     },
   ];
 

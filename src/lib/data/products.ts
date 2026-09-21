@@ -2,6 +2,111 @@ import { eq, and, inArray, sql, desc, asc, gte, SQL } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { products, categories, suppliers, productImages, productOptions, availability } from "@/lib/db/schema";
 import type { ProductBadge, ProductCardSummary } from "@/lib/types";
+import { ensureSearchIndexes } from "@/lib/db/search-indexes";
+
+/**
+ * Smart-search query normalization, shared by searchProducts() and
+ * searchProductSuggestions() (and by categories.ts's own suggestion
+ * search) so "the same query typed twice" always matches the same way.
+ *
+ * Strips a short list of filler words so a natural-language query like
+ * "things to do in Florence" reduces to its meaningful terms ("florence")
+ * instead of requiring every stopword to also appear in the product
+ * text. Falls back to the untouched word list if stripping stopwords
+ * would leave nothing (e.g. a query that's *only* filler words).
+ */
+const SEARCH_STOPWORDS = new Set([
+  "a", "an", "the", "in", "on", "at", "to", "do", "does", "of", "for", "with",
+  "near", "things", "thing", "and", "or", "is", "are", "it", "this", "that",
+  "what", "where", "best", "top", "some", "me", "find", "show",
+]);
+
+export function tokenizeSearchQuery(raw: string): string[] {
+  const words = raw
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[^\p{L}\p{N}\s]/gu, " ")
+    .split(/\s+/)
+    .filter(Boolean);
+  const meaningful = words.filter((w) => !SEARCH_STOPWORDS.has(w) && w.length > 1);
+  return meaningful.length > 0 ? meaningful : words;
+}
+
+/**
+ * Builds the fuzzy/partial-match WHERE condition for a search term across
+ * product title, short description, category name, and supplier name.
+ *
+ * Combines three techniques so common query shapes all work:
+ * - `ILIKE '%term%'` — fast substring match (hits the trigram indexes too).
+ * - `word_similarity()` — matches a token against the best-matching
+ *   substring of a longer field, so "uffizi" scores well against
+ *   "Uffizi Gallery Skip-the-Line Ticket" even though it's not the whole
+ *   title.
+ * - `similarity()` on the whole phrase vs. title — spelling-variation
+ *   tolerance for typos ("Ufizzi", "musuem") that ILIKE alone would miss.
+ *
+ * Requires the `pg_trgm` extension (see src/lib/db/search-indexes.ts).
+ */
+function buildSearchCondition(rawQuery: string): SQL {
+  const trimmed = rawQuery.trim();
+  const tokens = tokenizeSearchQuery(trimmed);
+
+  // 0.42 is empirically tuned, not a default: measured directly against
+  // the catalog (see the debug queries this was built with). A random
+  // short word like "wine" or "tasting" scores a consistent ~0.4 against
+  // completely unrelated titles just from incidental trigram overlap —
+  // that's noise, not a match. A genuine one-letter-typo like "musuem"
+  // vs. "Museums & Galleries" scores ~0.43. 0.42 sits in the gap between
+  // them: keeps the real typo tolerance, drops the coincidental noise.
+  const WORD_SIMILARITY_THRESHOLD = 0.42;
+
+  const tokenConditions = tokens.map((token) => {
+    const like = `%${token}%`;
+    return sql`(
+      ${products.title} ILIKE ${like}
+      OR ${products.shortDescription} ILIKE ${like}
+      OR ${categories.name} ILIKE ${like}
+      OR ${suppliers.name} ILIKE ${like}
+      OR word_similarity(${token}, ${products.title}) > ${WORD_SIMILARITY_THRESHOLD}
+      OR word_similarity(${token}, ${categories.name}) > ${WORD_SIMILARITY_THRESHOLD}
+    )`;
+  });
+
+  // Whole-phrase fuzzy fallback — catches typo'd multi-word phrases
+  // ("ufizzi galery") that token-by-token matching can miss. 0.3 matches
+  // pg_trgm's own default similarity threshold for the `%` operator.
+  const phraseCondition = sql`similarity(${products.title}, ${trimmed}) > 0.3`;
+
+  return sql`(${sql.join(tokenConditions, sql` OR `)} OR ${phraseCondition})`;
+}
+
+/**
+ * Same relevance signal as buildSearchCondition, expressed as a numeric
+ * score for ORDER BY instead of a boolean filter. Exact/near-exact title
+ * matches rank highest, then category matches, then loose description
+ * matches — so "Uffizi" surfaces the Uffizi ticket before anything that
+ * merely mentions Florence in its description.
+ */
+function buildRelevanceScore(rawQuery: string): SQL<number> {
+  const trimmed = rawQuery.trim();
+  const like = `%${trimmed.toLowerCase()}%`;
+  const tokens = tokenizeSearchQuery(trimmed);
+  const tokenTitleHits = tokens.length
+    ? sql.join(
+        tokens.map((t) => sql`word_similarity(${t}, ${products.title})`),
+        sql` + `,
+      )
+    : sql`0`;
+
+  return sql<number>`(
+    (CASE WHEN lower(${products.title}) LIKE ${like} THEN 4 ELSE 0 END)
+    + similarity(${products.title}, ${trimmed}) * 3
+    + (${tokenTitleHits}) * 2
+    + (CASE WHEN lower(${categories.name}) LIKE ${like} THEN 1.5 ELSE 0 END)
+    + similarity(${categories.name}, ${trimmed})
+    + (CASE WHEN lower(${products.shortDescription}) LIKE ${like} THEN 0.5 ELSE 0 END)
+  )`;
+}
 
 /**
  * Real repository layer for the product catalog. See the note in
@@ -149,15 +254,20 @@ export async function searchProducts(params: SearchProductsParams = {}): Promise
   // grows, while still bounding worst-case query size.
   const pageSize = Math.min(100, Math.max(1, params.pageSize ?? 12));
 
+  const hasQuery = Boolean(params.q && params.q.trim().length > 0);
+  if (hasQuery) {
+    // Fuzzy/partial search needs pg_trgm's similarity()/word_similarity();
+    // make sure the extension + indexes exist before relying on them
+    // (no-op after the first call in this process — see search-indexes.ts).
+    await ensureSearchIndexes();
+  }
+
   const conditions: SQL[] = [eq(products.status, "live")];
   if (params.categorySlug) {
     conditions.push(eq(categories.slug, params.categorySlug));
   }
-  if (params.q && params.q.trim().length > 0) {
-    const term = `%${params.q.trim().toLowerCase()}%`;
-    conditions.push(
-      sql`(lower(${products.title}) LIKE ${term} OR lower(${products.shortDescription}) LIKE ${term} OR lower(${categories.name}) LIKE ${term})`,
-    );
+  if (hasQuery) {
+    conditions.push(buildSearchCondition(params.q!));
   }
   if (params.date) {
     // Only products with an availability row for that date that isn't
@@ -177,6 +287,10 @@ export async function searchProducts(params: SearchProductsParams = {}): Promise
     .innerJoin(suppliers, eq(products.supplierId, suppliers.id))
     .where(where);
 
+  // A free-text query defaults to best-match-first ("recommended" without
+  // a query still means editorially-featured-first); an explicit sort
+  // choice (price/rating) is always respected, query or not, per the
+  // "results update correctly based on all selected filters" requirement.
   const orderBy =
     params.sort === "price-asc"
       ? asc(products.priceFromAmount)
@@ -184,7 +298,9 @@ export async function searchProducts(params: SearchProductsParams = {}): Promise
         ? desc(products.priceFromAmount)
         : params.sort === "rating"
           ? desc(products.ratingAverage)
-          : asc(products.featuredRank);
+          : hasQuery
+            ? desc(buildRelevanceScore(params.q!))
+            : asc(products.featuredRank);
 
   const rows = await baseSelect()
     .where(where)
@@ -196,6 +312,55 @@ export async function searchProducts(params: SearchProductsParams = {}): Promise
   const totalPages = Math.max(1, Math.ceil(count / pageSize));
 
   return { items, total: count, page, pageSize, totalPages };
+}
+
+export interface ProductSuggestion {
+  id: string;
+  slug: string;
+  title: string;
+  categoryName: string;
+  priceFrom: { amount: number; currency: "EUR" };
+}
+
+/**
+ * Backs the search bar's autocomplete dropdown. Deliberately narrow:
+ * text fields only (no image join, no total count) and a small, fixed
+ * LIMIT, so every keystroke's request stays cheap — this is called far
+ * more often (once per debounced keystroke) than searchProducts() itself.
+ */
+export async function searchProductSuggestions(rawQuery: string, limit = 5): Promise<ProductSuggestion[]> {
+  const trimmed = rawQuery.trim();
+  if (trimmed.length === 0) return [];
+
+  await ensureSearchIndexes();
+
+  const rows = await db
+    .select({
+      id: products.id,
+      slug: products.slug,
+      title: products.title,
+      categoryName: categories.name,
+      priceFromAmount: products.priceFromAmount,
+      priceFromCurrency: products.priceFromCurrency,
+    })
+    .from(products)
+    .innerJoin(categories, eq(products.categoryId, categories.id))
+    // buildSearchCondition() also matches on supplier name (e.g. a
+    // supplier's own brand name typed into search), so this join has to
+    // be here even though the column itself isn't selected — same join
+    // shape as baseSelect()/searchProducts().
+    .innerJoin(suppliers, eq(products.supplierId, suppliers.id))
+    .where(and(eq(products.status, "live"), buildSearchCondition(trimmed)))
+    .orderBy(desc(buildRelevanceScore(trimmed)))
+    .limit(limit);
+
+  return rows.map((row) => ({
+    id: row.id,
+    slug: row.slug,
+    title: row.title,
+    categoryName: row.categoryName,
+    priceFrom: { amount: row.priceFromAmount, currency: row.priceFromCurrency as "EUR" },
+  }));
 }
 
 // -----------------------------------------------------------------------

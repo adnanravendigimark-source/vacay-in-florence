@@ -2,11 +2,9 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getAllCategories, getCategoryBySlug } from "@/lib/data/categories";
 import { searchProducts, type ProductSortOption } from "@/lib/data/products";
+import { ExperiencesHero } from "@/components/experiences/experiences-hero";
 import { ExperienceListing } from "@/components/experiences/experience-listing";
-import { Container } from "@/components/ui/container";
 
-// Only 6 categories today — cheap to pre-render all of them at build time
-// rather than falling back to on-demand rendering for every visit.
 export async function generateStaticParams() {
   const categories = await getAllCategories();
   return categories.map((category) => ({ slug: category.slug }));
@@ -25,7 +23,7 @@ export async function generateMetadata({
   if (!category) return {};
 
   return {
-    title: `${category.name} in Florence`,
+    title: `${category.name} in Florence — Tickets & Experiences`,
     description: `${category.shortDescription} Browse ${category.productCount} ${category.name.toLowerCase()} experiences in Florence with free cancellation.`,
     alternates: { canonical: `/experiences/category/${category.slug}` },
     openGraph: {
@@ -58,7 +56,7 @@ export default async function CategoryPage({
   const page = Number.parseInt(search.page ?? "1", 10) || 1;
 
   const [result, allCategories] = await Promise.all([
-    searchProducts({ categorySlug: category.slug, sort, page, pageSize: 12 }),
+    searchProducts({ categorySlug: category.slug, sort, page, pageSize: 8 }),
     getAllCategories(),
   ]);
 
@@ -72,13 +70,9 @@ export default async function CategoryPage({
   };
 
   return (
-    <Container className="py-10 sm:py-14">
+    <main className="w-full">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      <div className="mb-8 max-w-2xl">
-        <h1 className="font-display text-3xl font-medium text-ink sm:text-4xl">{category.name}</h1>
-        <p className="mt-2 text-ink-soft">{category.shortDescription}</p>
-      </div>
-
+      <ExperiencesHero />
       <ExperienceListing
         basePath={`/experiences/category/${category.slug}`}
         result={result}
@@ -86,6 +80,6 @@ export default async function CategoryPage({
         activeCategorySlug={category.slug}
         currentParams={{ sort: search.sort }}
       />
-    </Container>
+    </main>
   );
 }

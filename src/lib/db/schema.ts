@@ -9,6 +9,7 @@ import {
   uniqueIndex,
   index,
 } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 
 /**
  * VACAY Florence — production schema (Neon Postgres via node-postgres).
@@ -63,6 +64,12 @@ export const categories = pgTable(
   (t) => [
     uniqueIndex("categories_slug_idx").on(t.slug),
     index("categories_featured_sort_idx").on(t.featured, t.sortOrder),
+    // Trigram index backing fuzzy/partial category-name matching in the
+    // smart search bar (see src/lib/data/search.ts) — lets `similarity()`
+    // and `word_similarity()` lookups on `name` use an index scan instead
+    // of a full table scan. Requires the `pg_trgm` extension, ensured at
+    // runtime by src/lib/db/search-indexes.ts.
+    index("categories_name_trgm_idx").using("gin", sql`${t.name} gin_trgm_ops`),
   ],
 );
 
@@ -118,6 +125,12 @@ export const products = pgTable(
     index("products_supplier_idx").on(t.supplierId),
     index("products_category_idx").on(t.categoryId),
     index("products_status_featured_idx").on(t.status, t.featured, t.featuredRank),
+    // Trigram indexes power the smart search bar's partial-match and
+    // spelling-tolerant search (similarity()/word_similarity() over
+    // title + shortDescription) without falling back to a sequential
+    // scan as the catalog grows. See src/lib/data/search.ts.
+    index("products_title_trgm_idx").using("gin", sql`${t.title} gin_trgm_ops`),
+    index("products_short_description_trgm_idx").using("gin", sql`${t.shortDescription} gin_trgm_ops`),
   ],
 );
 
