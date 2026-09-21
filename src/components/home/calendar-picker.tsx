@@ -104,34 +104,34 @@ export function CalendarPicker({
   };
 
   return (
-    <div className="w-[310px] sm:w-[330px] rounded-2xl border border-neutral-200/90 bg-white p-4 shadow-[0_20px_50px_rgba(0,0,0,0.25)] ring-1 ring-black/5 animate-in fade-in zoom-in-95 duration-150 text-neutral-900 select-none">
+    <div className="w-[315px] sm:w-[335px] rounded-3xl border border-neutral-200/90 bg-white p-4 shadow-[0_20px_50px_rgba(0,0,0,0.3)] ring-1 ring-black/5 text-neutral-900 select-none">
       {/* Quick Presets Strip */}
-      <div className="grid grid-cols-4 gap-1.5 pb-3 border-b border-neutral-100">
+      <div className="grid grid-cols-4 gap-1.5 pb-3.5 border-b border-neutral-100">
         <button
           type="button"
           onClick={() => handleQuickPreset("today")}
-          className="rounded-lg bg-neutral-100/80 px-2 py-1.5 text-[11px] font-semibold text-neutral-800 transition-colors hover:bg-[#183528] hover:text-white"
+          className="rounded-full bg-neutral-100/90 px-2.5 py-1.5 text-[11.5px] font-semibold text-neutral-800 transition-colors hover:bg-[#183528] hover:text-white cursor-pointer"
         >
           Today
         </button>
         <button
           type="button"
           onClick={() => handleQuickPreset("tomorrow")}
-          className="rounded-lg bg-neutral-100/80 px-2 py-1.5 text-[11px] font-semibold text-neutral-800 transition-colors hover:bg-[#183528] hover:text-white"
+          className="rounded-full bg-neutral-100/90 px-2.5 py-1.5 text-[11.5px] font-semibold text-neutral-800 transition-colors hover:bg-[#183528] hover:text-white cursor-pointer"
         >
           Tomorrow
         </button>
         <button
           type="button"
           onClick={() => handleQuickPreset("weekend")}
-          className="rounded-lg bg-neutral-100/80 px-2 py-1.5 text-[11px] font-semibold text-neutral-800 transition-colors hover:bg-[#183528] hover:text-white"
+          className="rounded-full bg-neutral-100/90 px-2.5 py-1.5 text-[11.5px] font-semibold text-neutral-800 transition-colors hover:bg-[#183528] hover:text-white cursor-pointer"
         >
           Weekend
         </button>
         <button
           type="button"
           onClick={() => handleQuickPreset("anytime")}
-          className="rounded-lg bg-neutral-100/80 px-2 py-1.5 text-[11px] font-semibold text-neutral-800 transition-colors hover:bg-neutral-200"
+          className="rounded-full bg-neutral-100/90 px-2.5 py-1.5 text-[11.5px] font-semibold text-neutral-800 transition-colors hover:bg-neutral-200 cursor-pointer"
         >
           Anytime
         </button>

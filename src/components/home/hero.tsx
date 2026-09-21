@@ -3,7 +3,7 @@ import { HeroSearch } from "@/components/home/hero-search";
 
 export function Hero() {
   return (
-    <section className="relative h-[100dvh] min-h-[580px] max-h-[960px] w-full flex flex-col justify-between overflow-hidden bg-stone-900 text-white pt-20 sm:pt-22 pb-2 sm:pb-3">
+    <section className="relative z-20 min-h-[580px] h-[100dvh] max-h-[960px] w-full flex flex-col justify-between bg-stone-900 text-white pt-20 sm:pt-22 pb-2 sm:pb-3">
       {/* Background Video: High-Definition Panoramic Video of Florence */}
       <div className="absolute inset-0 z-0 select-none overflow-hidden">
         <video
@@ -30,7 +30,7 @@ export function Hero() {
       </div>
 
       {/* Hero Content & Stretched Centered Search Bar */}
-      <Container className="relative z-20 my-auto py-1 sm:py-2 flex flex-col justify-center">
+      <Container className="relative z-20 my-auto py-2 sm:py-4 flex flex-col justify-center">
         <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 mb-2">
           {/* Text Block */}
           <div className="max-w-3xl">
@@ -41,7 +41,7 @@ export function Hero() {
             </div>
 
             {/* Main Headline with Luxury Editorial Font */}
-            <h1 className="font-display text-2xl sm:text-3xl md:text-4xl lg:text-[40px] xl:text-[44px] font-normal leading-[1.12] tracking-tight text-white drop-shadow-[0_4px_24px_rgba(0,0,0,0.5)]">
+            <h1 className="font-display text-2xl sm:text-3xl md:text-4xl lg:text-[42px] xl:text-[46px] font-normal leading-[1.12] tracking-tight text-white drop-shadow-[0_4px_24px_rgba(0,0,0,0.5)]">
               Unforgettable Experiences in{" "}
               <span className="italic font-light text-transparent bg-clip-text bg-gradient-to-r from-[#ffe4a0] via-[#faeedd] to-[#e5b869] drop-shadow-2xl inline-block">
                 Florence
@@ -53,42 +53,11 @@ export function Hero() {
               Skip the 2-hour queues at the Duomo and Uffizi. Guaranteed entrance timeslots, expert local guides, and <span className="text-amber-200 font-medium">100% free 24-hour cancellation</span>.
             </p>
           </div>
-
-          {/* Live Floating Guarantee Pill */}
-          <div className="hidden lg:flex flex-col items-end gap-1.5 text-right shrink-0">
-            <div className="inline-flex items-center gap-2 rounded-xl bg-black/40 backdrop-blur-md px-3.5 py-1.5 text-[11px] font-semibold text-white border border-white/20 shadow-lg">
-              <span className="text-amber-400 text-xs">★★★★★</span>
-              <span>4.9 / 5.0 (14k+ Reviews)</span>
-            </div>
-            <div className="text-[10.5px] text-white/80 font-medium">
-              ⚡ Over 98% sold out at the gate &bull; Reserve ahead
-            </div>
-          </div>
         </div>
 
         {/* Stretched Centered Search Bar Widget */}
-        <div className="relative z-30 w-full mt-3.5 sm:mt-4 mb-2.5 sm:mb-3.5">
+        <div className="relative z-30 w-full mt-4 sm:mt-6 mb-2 sm:mb-4">
           <HeroSearch />
-        </div>
-
-        {/* Trending Quick Searches */}
-        <div className="relative z-10 flex flex-wrap items-center gap-2 text-xs pt-0.5 pb-0.5">
-          <span className="text-white/80 font-medium text-[10.5px] uppercase tracking-wider">Trending:</span>
-          {[
-            { label: "⚡ Duomo Dome Climb", href: "/experiences/duomo-and-brunelleschis-dome-climb" },
-            { label: "🏛️ Uffizi Skip-The-Line", href: "/experiences/uffizi-gallery-skip-the-line-ticket" },
-            { label: "🎨 Michelangelo's David", href: "/experiences/accademia-gallery-michelangelos-david-ticket" },
-            { label: "🍷 Chianti Wine Tour", href: "/experiences/chianti-countryside-and-wine-tasting-day-trip" },
-            { label: "🍝 Tuscan Cooking Class", href: "/experiences/florentine-cooking-class-with-market-visit" },
-          ].map((tag) => (
-            <a
-              key={tag.label}
-              href={tag.href}
-              className="rounded-full bg-black/40 backdrop-blur-md px-3 py-1 text-white/95 text-[11px] sm:text-xs font-medium hover:bg-white hover:text-neutral-900 transition-all duration-150 border border-white/25 shadow-sm"
-            >
-              {tag.label}
-            </a>
-          ))}
         </div>
       </Container>
 

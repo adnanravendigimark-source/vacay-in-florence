@@ -204,14 +204,14 @@ export function HeroSearch() {
             className="w-full flex items-center gap-3 px-3.5 py-2 text-left rounded-2xl md:rounded-full hover:bg-white/10 transition-all cursor-pointer"
           >
             {/* Soft Icon Badge */}
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/15 text-white transition-colors group-hover:bg-white group-hover:text-neutral-900">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/10 text-white transition-colors group-hover:bg-white group-hover:text-neutral-900">
               <svg viewBox="0 0 24 24" className="h-4.5 w-4.5 fill-none stroke-current stroke-[1.85]">
                 <path d="M12 21c-4-4.5-7-8.5-7-12a7 7 0 1 1 14 0c0 3.5-3 7.5-7 12z" />
                 <circle cx="12" cy="9" r="2.5" />
               </svg>
             </div>
             <div className="flex flex-col min-w-0 flex-1 leading-tight">
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-white/70">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-white/60">
                 Destination
               </span>
               <span className="text-[13.5px] font-semibold text-white truncate mt-0.5">
@@ -277,7 +277,7 @@ export function HeroSearch() {
         </div>
 
         {/* Hairline Divider */}
-        <div className="hidden md:block h-8 w-[1px] bg-white/20 my-auto" />
+        <div className="hidden md:block h-8 w-[1px] bg-white/15 my-auto" />
 
         {/* Date Field */}
         <div className="relative flex-1 group">
@@ -287,7 +287,7 @@ export function HeroSearch() {
             className="w-full flex items-center gap-3 px-3.5 py-2 text-left rounded-2xl md:rounded-full hover:bg-white/10 transition-all cursor-pointer"
           >
             {/* Soft Icon Badge */}
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/15 text-white transition-colors group-hover:bg-white group-hover:text-neutral-900">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/10 text-white transition-colors group-hover:bg-white group-hover:text-neutral-900">
               <svg viewBox="0 0 24 24" className="h-4.5 w-4.5 fill-none stroke-current stroke-[1.85]">
                 <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
                 <line x1="16" y1="2" x2="16" y2="6" />
@@ -296,7 +296,7 @@ export function HeroSearch() {
               </svg>
             </div>
             <div className="flex flex-col min-w-0 flex-1 leading-tight">
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-white/70">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-white/60">
                 Date
               </span>
               <span className={`text-[13.5px] truncate mt-0.5 ${dateDisplay === "Select date" ? "font-normal text-white/80" : "font-semibold text-white"}`}>
@@ -320,7 +320,7 @@ export function HeroSearch() {
 
           {/* Calendar Picker Dropdown */}
           {openDropdown === "date" && (
-            <div className="absolute left-0 md:left-auto md:right-0 lg:left-0 top-full z-50 mt-3 shadow-2xl">
+            <div className="absolute left-1/2 -translate-x-1/2 top-full z-50 mt-3 shadow-2xl animate-in fade-in zoom-in-95 duration-150">
               <CalendarPicker
                 selectedDate={selectedDate}
                 onSelectDate={(d, label) => {
@@ -334,20 +334,20 @@ export function HeroSearch() {
         </div>
 
         {/* Hairline Divider */}
-        <div className="hidden md:block h-8 w-[1px] bg-white/20 my-auto" />
+        <div className="hidden md:block h-8 w-[1px] bg-white/15 my-auto" />
 
         {/* What are you looking for Field */}
         <div className="relative flex-[1.4] group">
           <div className="flex items-center gap-3 px-3.5 py-2 rounded-2xl md:rounded-full hover:bg-white/10 transition-all">
             {/* Soft Icon Badge */}
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/15 text-white transition-colors group-hover:bg-white group-hover:text-neutral-900">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/10 text-white transition-colors group-hover:bg-white group-hover:text-neutral-900">
               <svg viewBox="0 0 24 24" className="h-4.5 w-4.5 fill-none stroke-current stroke-[1.85]">
                 <circle cx="11" cy="11" r="7.5" />
                 <line x1="16.5" y1="16.5" x2="21.5" y2="21.5" strokeLinecap="round" />
               </svg>
             </div>
             <div className="flex flex-col min-w-0 flex-1 leading-tight">
-              <label htmlFor="search-input" className="text-[10px] font-semibold uppercase tracking-wider text-white/70 cursor-pointer">
+              <label htmlFor="search-input" className="text-[10px] font-bold uppercase tracking-wider text-white/60 cursor-pointer">
                 What are you looking for?
               </label>
               <input
