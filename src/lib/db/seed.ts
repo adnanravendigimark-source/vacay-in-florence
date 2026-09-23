@@ -209,6 +209,7 @@ export async function seedDatabase(targetDb: NodePgDatabase<typeof schema> = db)
       options: [
         { name: "Adult", description: "Ages 18+", priceAmount: 29 },
         { name: "Youth (18-25, EU citizen)", description: "Reduced-rate EU youth ticket", priceAmount: 15 },
+        { name: "Child (6-17)", description: "Accompanied by an adult", priceAmount: 15 },
       ],
     },
     {
@@ -276,7 +277,10 @@ export async function seedDatabase(targetDb: NodePgDatabase<typeof schema> = db)
       featuredRank: 3,
       badges: ["skip-the-line", "small-group", "best-seller"],
       images: ["/images/duomo-tour.jpg", "/images/hero2-duomo-terrace.jpg", "/images/hero2-duomo-vertical.jpg", "/images/hero-florence-duomo.jpg"],
-      options: [{ name: "Adult", description: "Ages 18+", priceAmount: 45 }],
+      options: [
+        { name: "Adult", description: "Ages 18+", priceAmount: 45 },
+        { name: "Child (10-17)", description: "Accompanied by an adult", priceAmount: 23 },
+      ],
     },
     {
       slug: "chianti-countryside-and-wine-tasting-day-trip",
@@ -308,7 +312,10 @@ export async function seedDatabase(targetDb: NodePgDatabase<typeof schema> = db)
       featuredRank: 4,
       badges: ["free-cancellation", "best-seller"],
       images: ["/images/chianti-hills.jpg", "/images/hero2-chianti-wine.jpg", "/images/auth-tuscany-balloons.jpg", "/images/hero2-florence-panorama.jpg"],
-      options: [{ name: "Adult (18+, wine tasting included)", description: "Includes all tastings", priceAmount: 89 }],
+      options: [
+        { name: "Adult (18+, wine tasting included)", description: "Includes all tastings", priceAmount: 89 },
+        { name: "Child (6-17)", description: "Accompanied by an adult", priceAmount: 45 },
+      ],
     },
     {
       slug: "arno-river-sunset-bike-tour",
@@ -340,7 +347,10 @@ export async function seedDatabase(targetDb: NodePgDatabase<typeof schema> = db)
       featuredRank: 5,
       badges: ["small-group", "free-cancellation"],
       images: ["/images/ponte-vecchio.jpg", "/images/hero2-water-sky.jpg", "/images/adventure-banner.jpg", "/images/hero2-florence-inner.jpg"],
-      options: [{ name: "Adult", description: "Ages 14+", priceAmount: 52 }],
+      options: [
+        { name: "Adult", description: "Ages 14+", priceAmount: 52 },
+        { name: "Child (6-13)", description: "Accompanied by an adult", priceAmount: 26 },
+      ],
     },
     {
       slug: "florentine-cooking-class-with-market-visit",
@@ -372,7 +382,10 @@ export async function seedDatabase(targetDb: NodePgDatabase<typeof schema> = db)
       featuredRank: 6,
       badges: ["food-wine", "small-group", "best-seller"],
       images: ["/images/italian-cooking.jpg", "/images/tuscan-food.jpg", "/images/hero-food-wine.jpg", "/images/hero2-florence-gate.jpg"],
-      options: [{ name: "Adult", description: "Ages 12+", priceAmount: 68 }],
+      options: [
+        { name: "Adult", description: "Ages 12+", priceAmount: 68 },
+        { name: "Child (6-11)", description: "Accompanied by an adult", priceAmount: 34 },
+      ],
     },
     {
       slug: "tuscany-full-day-tour-san-gimignano-siena-pisa",
