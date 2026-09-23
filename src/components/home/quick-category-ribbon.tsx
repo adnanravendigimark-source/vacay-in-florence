@@ -50,14 +50,14 @@ export async function QuickCategoryRibbon() {
       <Container>
         <div className="flex items-center justify-between gap-4 mb-4">
           <div className="flex items-center gap-2">
-            <span className="h-2 w-2 rounded-full bg-[#183528]" />
+            <span className="h-2 w-2 rounded-full bg-[#2b0934]" />
             <span className="text-xs font-bold uppercase tracking-wider text-neutral-800">
               Browse by Category
             </span>
           </div>
           <Link
             href="/experiences"
-            className="text-xs font-semibold text-[#183528] hover:underline"
+            className="text-xs font-semibold text-[#2b0934] hover:underline"
           >
             All Categories &rarr;
           </Link>
@@ -68,13 +68,13 @@ export async function QuickCategoryRibbon() {
             <Link
               key={category.id}
               href={`/experiences/category/${category.slug}`}
-              className="group flex items-center gap-3 p-3 rounded-2xl bg-white border border-neutral-200/90 shadow-sm transition-all duration-200 hover:shadow-md hover:border-[#183528]/40 hover:-translate-y-0.5"
+              className="group flex items-center gap-3 p-3 rounded-2xl bg-white border border-neutral-200/90 shadow-sm transition-all duration-200 hover:shadow-md hover:border-[#2b0934]/40 hover:-translate-y-0.5"
             >
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-neutral-100 text-[#183528] transition-all duration-200 group-hover:bg-[#183528] group-hover:text-white">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-neutral-100 text-[#2b0934] transition-all duration-200 group-hover:bg-[#2b0934] group-hover:text-white">
                 {ICONS[category.icon]}
               </div>
               <div className="min-w-0 flex-1">
-                <h3 className="text-xs font-bold leading-snug text-neutral-900 group-hover:text-[#183528]">
+                <h3 className="text-xs font-bold leading-snug text-neutral-900 group-hover:text-[#2b0934]">
                   {category.name}
                 </h3>
                 <p className="text-[10.5px] text-neutral-500 truncate">

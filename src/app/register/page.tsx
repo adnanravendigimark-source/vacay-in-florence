@@ -4,7 +4,7 @@ import { AuthCard, FormField, FormError, SubmitButton } from "@/components/auth/
 import { registerAction } from "./actions";
 
 export const metadata: Metadata = {
-  title: "Join VACAY Florence | Travel with us",
+  title: "Sign Up",
   description: "Join VACAY Florence to book skip-the-line tickets, guided tours, and save your Florentine itineraries.",
   robots: { index: false },
 };
@@ -67,7 +67,7 @@ export default async function RegisterPage({
             Privacy Policy
           </Link>
           , including{" "}
-          <Link href="/privacy#cookies" className="underline hover:text-neutral-900">
+          <Link href="/privacy" className="underline hover:text-neutral-900">
             cookie use
           </Link>
           .

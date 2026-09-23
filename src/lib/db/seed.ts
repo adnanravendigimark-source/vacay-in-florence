@@ -157,6 +157,10 @@ export async function seedDatabase(targetDb: NodePgDatabase<typeof schema> = db)
     inclusions: string[];
     exclusions: string[];
     meetingPoint: string;
+    meetingCity: string;
+    meetingCountry: string;
+    meetingLat: number;
+    meetingLng: number;
     cancellationPolicy: string;
     categorySlug: string;
     supplierSlug: string;
@@ -187,6 +191,10 @@ export async function seedDatabase(targetDb: NodePgDatabase<typeof schema> = db)
       inclusions: ["Skip-the-line entry ticket", "Digital audio guide app access"],
       exclusions: ["Hotel pickup and drop-off", "Food and drinks", "Gratuities"],
       meetingPoint: "Uffizi Gallery, Door 3 (groups entrance), Piazzale degli Uffizi, Florence",
+      meetingLat: 43.7678,
+      meetingLng: 11.2553,
+      meetingCity: "Florence",
+      meetingCountry: "Italy",
       cancellationPolicy: "Free cancellation up to 24 hours before your entry time for a full refund.",
       categorySlug: "museums-galleries",
       supplierSlug: "florence-heritage-tours",
@@ -218,6 +226,10 @@ export async function seedDatabase(targetDb: NodePgDatabase<typeof schema> = db)
       inclusions: ["Timed entry ticket"],
       exclusions: ["Guided tour (available as an add-on)", "Hotel pickup", "Gratuities"],
       meetingPoint: "Galleria dell'Accademia, Via Ricasoli 58-60, Florence",
+      meetingLat: 43.7768,
+      meetingLng: 11.2588,
+      meetingCity: "Florence",
+      meetingCountry: "Italy",
       cancellationPolicy: "Free cancellation up to 24 hours before your entry time for a full refund.",
       categorySlug: "museums-galleries",
       supplierSlug: "uffizi-accademia-direct",
@@ -249,6 +261,10 @@ export async function seedDatabase(targetDb: NodePgDatabase<typeof schema> = db)
       inclusions: ["Timed dome climb entry", "Access to the Duomo complex (Baptistery, Crypt)"],
       exclusions: ["Bell tower climb (separate ticket)", "Guide", "Hotel pickup"],
       meetingPoint: "Piazza del Duomo, at the dome entrance on the north side of the Cathedral",
+      meetingLat: 43.7731,
+      meetingLng: 11.256,
+      meetingCity: "Florence",
+      meetingCountry: "Italy",
       cancellationPolicy: "Free cancellation up to 48 hours before your entry time; non-refundable inside 48 hours.",
       categorySlug: "skip-the-line-attractions",
       supplierSlug: "opera-del-duomo-partners",
@@ -277,6 +293,10 @@ export async function seedDatabase(targetDb: NodePgDatabase<typeof schema> = db)
       inclusions: ["Round-trip transport from central Florence", "Three vineyard tastings", "Tuscan lunch"],
       exclusions: ["Additional wine purchases", "Gratuities"],
       meetingPoint: "Central pickup point confirmed by email after booking (central Florence hotels included)",
+      meetingLat: 43.7707,
+      meetingLng: 11.2559,
+      meetingCity: "Florence",
+      meetingCountry: "Italy",
       cancellationPolicy: "Free cancellation up to 24 hours before departure for a full refund.",
       categorySlug: "day-trips-from-florence",
       supplierSlug: "tuscany-vine-trails",
@@ -305,6 +325,10 @@ export async function seedDatabase(targetDb: NodePgDatabase<typeof schema> = db)
       inclusions: ["Bike rental", "Helmet", "Local guide"],
       exclusions: ["Hotel pickup", "Food and drinks"],
       meetingPoint: "Florence by Bike shop, Via San Zanobi 120r, Florence",
+      meetingLat: 43.779,
+      meetingLng: 11.253,
+      meetingCity: "Florence",
+      meetingCountry: "Italy",
       cancellationPolicy: "Free cancellation up to 24 hours before the tour start time.",
       categorySlug: "outdoor-active",
       supplierSlug: "florence-by-bike",
@@ -333,6 +357,10 @@ export async function seedDatabase(targetDb: NodePgDatabase<typeof schema> = db)
       inclusions: ["Market visit", "All ingredients", "Wine pairing with the meal", "Recipe booklet"],
       exclusions: ["Hotel pickup", "Additional alcoholic beverages"],
       meetingPoint: "Sant'Ambrogio Market, main entrance, Florence",
+      meetingLat: 43.7722,
+      meetingLng: 11.2648,
+      meetingCity: "Florence",
+      meetingCountry: "Italy",
       cancellationPolicy: "Free cancellation up to 24 hours before the class start time.",
       categorySlug: "food-wine-experiences",
       supplierSlug: "cucina-fiorentina",
@@ -361,6 +389,10 @@ export async function seedDatabase(targetDb: NodePgDatabase<typeof schema> = db)
       inclusions: ["Round-trip transport from Florence", "Guide", "Free time in each town"],
       exclusions: ["Lunch", "Entry tickets to individual monuments", "Gratuities"],
       meetingPoint: "Santa Maria Novella train station area, exact pickup point confirmed after booking",
+      meetingLat: 43.7765,
+      meetingLng: 11.2482,
+      meetingCity: "Florence",
+      meetingCountry: "Italy",
       cancellationPolicy: "Free cancellation up to 24 hours before departure for a full refund.",
       categorySlug: "guided-tours",
       supplierSlug: "tuscan-horizons",
@@ -392,6 +424,10 @@ export async function seedDatabase(targetDb: NodePgDatabase<typeof schema> = db)
       inclusions: ["Local guide", "Small-group walking tour"],
       exclusions: ["Museum or monument entry tickets", "Food and drinks", "Hotel pickup"],
       meetingPoint: "Piazza della Signoria, at the base of the Neptune Fountain",
+      meetingLat: 43.7696,
+      meetingLng: 11.2558,
+      meetingCity: "Florence",
+      meetingCountry: "Italy",
       cancellationPolicy: "Free cancellation up to 24 hours before the tour start time.",
       categorySlug: "guided-tours",
       supplierSlug: "arno-walking-co",
@@ -428,6 +464,10 @@ export async function seedDatabase(targetDb: NodePgDatabase<typeof schema> = db)
         inclusions: p.inclusions,
         exclusions: p.exclusions,
         meetingPoint: p.meetingPoint,
+        meetingCity: p.meetingCity,
+        meetingCountry: p.meetingCountry,
+        meetingLat: p.meetingLat,
+        meetingLng: p.meetingLng,
         cancellationPolicy: p.cancellationPolicy,
         categoryId: category.id,
         supplierId: supplier.id,
@@ -498,7 +538,7 @@ export async function seedDatabase(targetDb: NodePgDatabase<typeof schema> = db)
         slug: "48-hours-in-florence-perfect-itinerary",
         title: "48 Hours in Florence: The Perfect First-Time Itinerary",
         excerpt:
-          "How to fit the Duomo, the Uffizi, and a sunset at Piazzale Michelangelo into one tight weekend without rushing.",
+          "How to fit the Duomo, the Uffizi, and a sunset at Piazzale Michelangelo into one tight weekend without missing the magic.",
         category: "Itineraries",
         author: "VACAY Florence Editorial",
         quickAnswer:
@@ -512,10 +552,10 @@ export async function seedDatabase(targetDb: NodePgDatabase<typeof schema> = db)
           "## The One Mistake Worth Avoiding\n\n" +
           "Trying to add a day trip to Pisa or Siena into this window. Two days is tight enough for Florence itself — save the countryside for a return trip or an extra day.",
         coverImageUrl: "/images/duomo-tour.jpg",
-        coverImageAlt: "Illustration of Florence's Duomo dome",
+        coverImageAlt: "Florence panoramic cityscape with the Duomo",
         readingTimeMinutes: 6,
         tags: ["itinerary", "first-time-visitors"],
-        publishedAt: new Date("2026-09-10"),
+        publishedAt: new Date("2025-09-20"),
       },
       {
         slug: "skip-the-line-vs-standard-tickets",
@@ -532,16 +572,16 @@ export async function seedDatabase(targetDb: NodePgDatabase<typeof schema> = db)
           "At the Accademia, the gap is even starker: the gallery is small, and without a pre-booked timed ticket you can be turned away entirely on a sold-out day, not just delayed.\n\n" +
           "Where it matters less: shoulder season (November, early March) or first thing in the morning, when standard lines can be short enough that the premium isn't worth it. The honest rule of thumb — book ahead for the Accademia always, and for the Uffizi whenever you're visiting between April and October.",
         coverImageUrl: "/images/uffizi-corridor.jpg",
-        coverImageAlt: "Illustration of a museum colonnade",
+        coverImageAlt: "Uffizi Gallery Renaissance hallway and statues",
         readingTimeMinutes: 5,
         tags: ["tickets", "tips"],
-        publishedAt: new Date("2026-09-03"),
+        publishedAt: new Date("2025-09-18"),
       },
       {
         slug: "5-best-day-trips-from-florence",
         title: "5 Day Trips From Florence Worth the Train Ticket",
         excerpt:
-          "Siena, San Gimignano, Pisa, Chianti, and Cinque Terre — how far each one is and how to plan the day around it.",
+          "Siena, San Gimignano, Pisa, Chianti, and Cinque Terre — how far each one is and how to plan the day.",
         category: "Day Trips",
         author: "VACAY Florence Editorial",
         quickAnswer:
@@ -557,10 +597,86 @@ export async function seedDatabase(targetDb: NodePgDatabase<typeof schema> = db)
           "## Cinque Terre\n\n" +
           "The outlier: roughly 3 hours each way by train, which makes it a long day rather than a relaxed one. Worth it once, but plan for an early departure and a late return.",
         coverImageUrl: "/images/chianti-hills.jpg",
-        coverImageAlt: "Illustration of a cypress-lined Tuscan road",
+        coverImageAlt: "Tuscan rolling hills with cypress trees and vineyards",
         readingTimeMinutes: 7,
         tags: ["day-trips", "tuscany"],
-        publishedAt: new Date("2026-08-27"),
+        publishedAt: new Date("2025-08-27"),
+      },
+      {
+        slug: "the-ultimate-florentine-food-and-wine-guide",
+        title: "The Ultimate Florentine Food & Wine Guide: What & Where to Eat",
+        excerpt:
+          "From Bistecca alla Fiorentina to lampredotto and Chianti Classico — discover authentic dining spots in Florence.",
+        category: "Food & Wine",
+        author: "VACAY Florence Editorial",
+        quickAnswer:
+          "Eat bistecca in San Frediano or Sant'Ambrogio, avoid restaurants with laminated photo menus outside the Duomo, and pair your meal with a glass of Chianti Classico from a traditional vinaino.",
+        body:
+          "Florentine cuisine is rooted in simple, high-quality ingredients and hearty peasant recipes. Here's what to look for and where to find the real thing.\n\n" +
+          "## The Florentine Steak\n\n" +
+          "Bistecca alla Fiorentina is cut thick from Chianina beef and cooked rare over hot embers. Don't ask for it well-done — traditional trattorias serve it strictly rare to medium-rare.",
+        coverImageUrl: "/images/tuscan-food.jpg",
+        coverImageAlt: "Florentine food spread with wine and fresh ingredients",
+        readingTimeMinutes: 6,
+        tags: ["food", "wine"],
+        publishedAt: new Date("2025-08-15"),
+      },
+      {
+        slug: "hidden-renaissance-gems-beyond-the-duomo",
+        title: "Hidden Renaissance Gems: Beyond the Duomo & Uffizi",
+        excerpt:
+          "Explore lesser-known chapels, artisan workshops, and quiet cloisters where Florence's rich history lives on.",
+        category: "Culture & History",
+        author: "VACAY Florence Editorial",
+        quickAnswer:
+          "Visit the Brancacci Chapel, the convent of San Marco for Fra Angelico frescoes, and the Laurentian Library for quiet Renaissance mastery without lines.",
+        body:
+          "While millions crowd into the Uffizi and Accademia, some of the Renaissance's greatest masterpieces sit peacefully in neighborhood churches and quiet monastic cloisters.\n\n" +
+          "## San Marco Monastic Cells\n\n" +
+          "Each cell features a private meditative fresco painted by Fra Angelico in the 15th century.",
+        coverImageUrl: "/images/hero2-florence-panorama.jpg",
+        coverImageAlt: "Historic Florence terracotta rooftops",
+        readingTimeMinutes: 8,
+        tags: ["culture", "history"],
+        publishedAt: new Date("2025-08-04"),
+      },
+      {
+        slug: "top-10-sunset-spots-in-florence-local-guide",
+        title: "Top 10 Sunset Spots in Florence: A Local's Guide",
+        excerpt:
+          "Where to catch golden hour over the Arno, from secret terrace rooftops to scenic hilltop gardens.",
+        category: "Travel Tips",
+        author: "VACAY Florence Editorial",
+        quickAnswer:
+          "Piazzale Michelangelo is iconic but crowded; try San Miniato al Monte just above it, or Ponte Santa Trinita for the best view of Ponte Vecchio against the twilight sky.",
+        body:
+          "Golden hour in Florence is unforgettable when the setting sun turns the Arno river and terracotta roofs into glowing gold.\n\n" +
+          "## San Miniato al Monte\n\n" +
+          "Ten minutes higher than Piazzale Michelangelo, with fewer tour buses and breathtaking quiet.",
+        coverImageUrl: "/images/ponte-vecchio.jpg",
+        coverImageAlt: "Ponte Vecchio reflection in the river at dusk",
+        readingTimeMinutes: 5,
+        tags: ["tips", "sunset"],
+        publishedAt: new Date("2025-07-28"),
+      },
+      {
+        slug: "climbing-the-duomo-everything-you-need-to-know",
+        title: "Climbing the Duomo: Everything You Need to Know",
+        excerpt:
+          "From ticket details to what to expect at the top — here's your complete guide to the Duomo dome climb.",
+        category: "Travel Tips",
+        author: "VACAY Florence Editorial",
+        quickAnswer:
+          "Book your timed dome climb ticket weeks in advance. The climb is 463 steps with no elevator. Wear comfortable shoes and start early in the morning for the best light.",
+        body:
+          "Brunelleschi's dome is the defining symbol of Florence. Climbing between its double shells is an incredible engineering journey and rooftop panorama.\n\n" +
+          "## What to Expect\n\n" +
+          "The climb takes you through narrow stone corridors, right beneath the Last Judgment fresco on the interior dome drum, before emerging onto the open lantern terrace.",
+        coverImageUrl: "/images/hero2-duomo-terrace.jpg",
+        coverImageAlt: "Brunelleschi dome rooftop view",
+        readingTimeMinutes: 5,
+        tags: ["travel-tips", "duomo"],
+        publishedAt: new Date("2025-09-12"),
       },
     ]);
 

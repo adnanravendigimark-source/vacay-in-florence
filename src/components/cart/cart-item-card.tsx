@@ -20,15 +20,6 @@ export function CartItemCard({ item }: { item: CartLineItem }) {
   const [quantities, setQuantities] = useState<Record<string, number>>(initialQuantities);
   const [dirty, setDirty] = useState(false);
 
-  // updateCartItemAction is a fire-and-forget server action (no
-  // useActionState), so nothing told this component when a submitted
-  // update actually landed — the "Update" button just stayed visible
-  // forever after the first edit, even once the save succeeded. Once
-  // revalidatePath brings back fresh server data, item.participants
-  // changes and initialQuantities is recomputed to a new object; noticing
-  // that during render (React's recommended way to reset state when a
-  // prop changes, rather than an effect) is what tells us the in-flight
-  // edit is now reflected, so we can drop back out of the "dirty" state.
   const [prevInitialQuantities, setPrevInitialQuantities] = useState(initialQuantities);
   if (initialQuantities !== prevInitialQuantities) {
     setPrevInitialQuantities(initialQuantities);
@@ -43,74 +34,187 @@ export function CartItemCard({ item }: { item: CartLineItem }) {
     setDirty(true);
   }
 
-  return (
-    <div className="flex flex-col gap-4 rounded-2xl border border-stone/60 bg-white p-4 sm:flex-row sm:p-5">
-      <div className="relative h-28 w-full shrink-0 overflow-hidden rounded-xl bg-cream-deep sm:h-28 sm:w-40">
-        <Image src={item.image.src} alt={item.image.alt} fill sizes="160px" className="object-cover" />
-      </div>
+  function removeOption(optionId: string) {
+    setQuantities((prev) => ({ ...prev, [optionId]: 0 }));
+    setDirty(true);
+  }
 
-      <div className="flex flex-1 flex-col gap-3">
-        <div className="flex flex-wrap items-start justify-between gap-2">
-          <div>
-            <Link href={`/experiences/${item.productSlug}`} className="font-display text-lg font-medium text-ink hover:text-terracotta">
-              {item.productTitle}
-            </Link>
-            <p className="mt-0.5 text-sm text-ink-faint">{dateFormatter.format(new Date(item.date + "T00:00:00"))}</p>
-          </div>
-          <form action={removeCartItemAction}>
-            <input type="hidden" name="itemId" value={item.id} />
-            <button type="submit" className="text-sm font-medium text-ink-faint underline-offset-2 hover:text-terracotta hover:underline">
-              Remove
-            </button>
-          </form>
+  const formattedDate = dateFormatter.format(new Date(item.date + "T00:00:00"));
+
+  return (
+    <div className="rounded-2xl border border-stone-200/90 bg-white p-5 sm:p-6 shadow-xs transition-all hover:shadow-md">
+      {/* Top section: Thumbnail + Details */}
+      <div className="flex flex-col sm:flex-row gap-5">
+        {/* Experience Thumbnail with Category Badge */}
+        <div className="relative aspect-[4/3] sm:aspect-square w-full sm:w-44 shrink-0 overflow-hidden rounded-xl bg-stone-100">
+          <Image
+            src={item.image.src}
+            alt={item.image.alt}
+            fill
+            sizes="(min-width: 640px) 180px, 100vw"
+            className="object-cover"
+          />
+          {item.categoryName && (
+            <span className="absolute left-2.5 top-2.5 rounded-full bg-white/95 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-neutral-800 shadow-xs backdrop-blur-md">
+              {item.categoryName}
+            </span>
+          )}
         </div>
 
-        <form action={updateCartItemAction} className="flex flex-col gap-3">
-          <input type="hidden" name="itemId" value={item.id} />
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-            {item.availableOptions.map((option) => (
-              <div key={option.id} className="flex items-center justify-between gap-2 text-sm">
-                <div>
-                  <span className="text-ink">{option.name}</span>
-                  <span className="ml-1.5 text-ink-faint">{priceFormatter.format(option.priceAmount)}</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <button
-                    type="button"
-                    aria-label={`Decrease ${option.name}`}
-                    onClick={() => updateQuantity(option.id, -1)}
-                    className="flex h-7 w-7 items-center justify-center rounded-full border border-stone-dark text-ink-soft transition hover:bg-cream-deep"
-                  >
-                    −
-                  </button>
-                  <span className="w-5 text-center text-sm font-medium text-ink">{quantities[option.id] ?? 0}</span>
-                  <button
-                    type="button"
-                    aria-label={`Increase ${option.name}`}
-                    onClick={() => updateQuantity(option.id, 1)}
-                    className="flex h-7 w-7 items-center justify-center rounded-full border border-stone-dark text-ink-soft transition hover:bg-cream-deep"
-                  >
-                    +
-                  </button>
-                  <input type="hidden" name={`option:${option.id}`} value={quantities[option.id] ?? 0} />
-                </div>
-              </div>
-            ))}
-          </div>
+        {/* Content Details */}
+        <div className="flex flex-1 flex-col justify-between">
+          <div>
+            {/* Title */}
+            <div className="flex items-start justify-between gap-3">
+              <Link
+                href={`/experiences/${item.productSlug}`}
+                className="font-display text-lg sm:text-xl font-bold leading-snug text-neutral-900 transition-colors hover:text-terracotta"
+              >
+                {item.productTitle}
+              </Link>
 
-          <div className="flex items-center justify-between border-t border-stone pt-3">
-            <span className="text-sm text-ink-soft">Subtotal</span>
-            <div className="flex items-center gap-3">
-              <span className="font-display text-lg font-medium text-ink">{priceFormatter.format(liveTotal)}</span>
-              {dirty ? (
-                <button type="submit" className="rounded-full bg-cream-deep px-4 py-1.5 text-xs font-semibold text-ink-soft transition hover:bg-stone">
-                  Update
+              {/* One-click removal of the whole cart line — distinct from
+                  the per-option trash icons below, which only zero out
+                  that option locally until 'Save Changes' is pressed.
+                  Wired to removeCartItemAction (already scoped to this
+                  visitor's own cart id server-side). */}
+              <form action={removeCartItemAction}>
+                <input type="hidden" name="itemId" value={item.id} />
+                <button
+                  type="submit"
+                  className="shrink-0 text-xs font-semibold text-neutral-400 hover:text-red-600 transition-colors cursor-pointer"
+                  aria-label={`Remove ${item.productTitle} from cart`}
+                >
+                  Remove
                 </button>
-              ) : null}
+              </form>
+            </div>
+
+            {/* Date and Location Row */}
+            <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-neutral-500">
+              <div className="flex items-center gap-1.5">
+                <svg viewBox="0 0 24 24" className="h-4 w-4 text-[#a813c9] fill-none stroke-current stroke-2">
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                  <line x1="16" y1="2" x2="16" y2="6" strokeLinecap="round" />
+                  <line x1="8" y1="2" x2="8" y2="6" strokeLinecap="round" />
+                  <line x1="3" y1="10" x2="21" y2="10" />
+                </svg>
+                <span>{formattedDate}</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <svg viewBox="0 0 24 24" className="h-4 w-4 text-[#a813c9] fill-none stroke-current stroke-2">
+                  <path d="M12 21c-4-4.5-7-8.5-7-12a7 7 0 1 1 14 0c0 3.5-3 7.5-7 12z" />
+                  <circle cx="12" cy="9" r="2.5" />
+                </svg>
+                <span>{item.location || "Florence, Italy"}</span>
+              </div>
             </div>
           </div>
-        </form>
+
+          {/* Options & Steppers */}
+          <form action={updateCartItemAction} className="mt-4 space-y-3">
+            <input type="hidden" name="itemId" value={item.id} />
+            <div className="space-y-2.5">
+              {item.availableOptions.map((option) => {
+                const qty = quantities[option.id] ?? 0;
+                return (
+                  <div key={option.id} className="flex items-center justify-between gap-3 text-xs sm:text-sm">
+                    <div className="min-w-0 flex-1">
+                      <span className="font-medium text-neutral-800">{option.name}</span>
+                    </div>
+
+                    <div className="flex items-center gap-4 shrink-0">
+                      <span className="font-semibold text-neutral-900 w-16 text-right">
+                        {priceFormatter.format(option.priceAmount)}
+                      </span>
+
+                      {/* Stepper Buttons */}
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          aria-label={`Decrease ${option.name}`}
+                          onClick={() => updateQuantity(option.id, -1)}
+                          className="flex h-7 w-7 items-center justify-center rounded-full border border-stone-200 bg-neutral-50 text-neutral-600 transition hover:bg-stone-200 cursor-pointer"
+                        >
+                          &minus;
+                        </button>
+                        <span className="w-5 text-center font-bold text-neutral-900">{qty}</span>
+                        <button
+                          type="button"
+                          aria-label={`Increase ${option.name}`}
+                          onClick={() => updateQuantity(option.id, 1)}
+                          className="flex h-7 w-7 items-center justify-center rounded-full border border-stone-200 bg-neutral-50 text-neutral-600 transition hover:bg-stone-200 cursor-pointer"
+                        >
+                          &#43;
+                        </button>
+                        <input type="hidden" name={`option:${option.id}`} value={qty} />
+                      </div>
+
+                      {/* Trash can delete icon button */}
+                      <button
+                        type="button"
+                        onClick={() => removeOption(option.id)}
+                        aria-label={`Remove ${option.name}`}
+                        className="text-neutral-400 hover:text-red-600 transition-colors p-1 cursor-pointer"
+                      >
+                        <svg viewBox="0 0 24 24" className="h-4 w-4 fill-none stroke-current stroke-2">
+                          <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                          <line x1="10" y1="11" x2="10" y2="17" />
+                          <line x1="14" y1="11" x2="14" y2="17" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {dirty && (
+              <div className="flex justify-end pt-2">
+                <button
+                  type="submit"
+                  className="rounded-full bg-[#2b0934] px-4 py-1.5 text-xs font-bold text-white transition hover:bg-[#3d0d4a]"
+                >
+                  Save Changes
+                </button>
+              </div>
+            )}
+          </form>
+        </div>
+      </div>
+
+      {/* Feature Badges Row */}
+      <div className="mt-5 pt-4 border-t border-stone-100 flex flex-wrap items-center gap-x-6 gap-y-2 text-[11px] font-medium text-neutral-600">
+        <div className="flex items-center gap-1.5">
+          <svg viewBox="0 0 24 24" className="h-4 w-4 text-[#a813c9] fill-none stroke-current stroke-2">
+            <circle cx="12" cy="12" r="10" />
+            <polyline points="12 6 12 12 16 14" />
+          </svg>
+          <span>Skip-the-line entry</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <svg viewBox="0 0 24 24" className="h-4 w-4 text-[#a813c9] fill-none stroke-current stroke-2">
+            <path d="M3 18v-6a9 9 0 0 1 18 0v6" />
+            <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z" />
+          </svg>
+          <span>Audio guide included</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <svg viewBox="0 0 24 24" className="h-4 w-4 text-[#a813c9] fill-none stroke-current stroke-2">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+          </svg>
+          <span>Free cancellation up to 24 hours</span>
+        </div>
+      </div>
+
+      {/* Bottom Subtotal Row */}
+      <div className="mt-4 pt-3 border-t border-stone-200/80 flex items-center justify-end gap-3">
+        <span className="text-xs font-semibold text-neutral-500">Subtotal</span>
+        <span className="font-display text-2xl font-bold text-neutral-900">
+          {priceFormatter.format(liveTotal)}
+        </span>
       </div>
     </div>
   );
 }
+

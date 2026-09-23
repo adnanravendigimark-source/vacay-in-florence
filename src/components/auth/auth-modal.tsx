@@ -33,20 +33,26 @@ export function AuthModal() {
   const [notice, setNotice] = useState<string | null>(null);
   const [isCheckingEmail, setIsCheckingEmail] = useState(false);
 
-  // Sync initial email when modal opens or email changes in context
-  useEffect(() => {
-    if (email) {
-      setInputEmail(email);
-    }
-  }, [email]);
+  // Sync initial email when modal opens or email changes in context, and
+  // reset errors/password fields when the view changes. Both are cases of
+  // 'adjusting state when a prop changes' — done during render (React's
+  // recommended pattern for this) rather than via a setState-in-effect,
+  // which would otherwise trigger an extra cascading render on every
+  // email/view change.
+  const [prevEmail, setPrevEmail] = useState(email);
+  if (email !== prevEmail) {
+    setPrevEmail(email);
+    if (email) setInputEmail(email);
+  }
 
-  // Reset errors and password fields when view changes
-  useEffect(() => {
+  const [prevView, setPrevView] = useState(view);
+  if (view !== prevView) {
+    setPrevView(view);
     setError(null);
     setNotice(null);
     setPassword("");
     setConfirmPassword("");
-  }, [view]);
+  }
 
   // Handle escape key
   useEffect(() => {
@@ -311,7 +317,7 @@ export function AuthModal() {
                     value={inputEmail}
                     onChange={(e) => setInputEmail(e.target.value)}
                     placeholder="name@example.com"
-                    className="w-full rounded-2xl border border-neutral-300 bg-white px-4 py-3.5 text-sm text-neutral-900 placeholder:text-neutral-400 outline-none transition-all focus:border-[#183528] focus:ring-1 focus:ring-[#183528]"
+                    className="w-full rounded-2xl border border-neutral-300 bg-white px-4 py-3.5 text-sm text-neutral-900 placeholder:text-neutral-400 outline-none transition-all focus:border-[#a813c9] focus:ring-1 focus:ring-[#a813c9]"
                   />
                 </div>
 
@@ -319,7 +325,7 @@ export function AuthModal() {
                 <button
                   type="submit"
                   disabled={isCheckingEmail}
-                  className="w-full rounded-full bg-[#183528] hover:bg-[#12281e] text-white py-3.5 text-sm font-semibold shadow-sm transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-60 flex items-center justify-center gap-2 cursor-pointer"
+                  className="w-full rounded-full bg-[#2b0934] hover:bg-[#3d0d4a] text-white py-3.5 text-sm font-semibold shadow-sm transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-60 flex items-center justify-center gap-2 cursor-pointer"
                 >
                   {isCheckingEmail ? (
                     <>
@@ -433,7 +439,7 @@ export function AuthModal() {
                 <button
                   type="button"
                   onClick={() => setView("email")}
-                  className="text-xs font-semibold text-[#183528] hover:underline shrink-0 cursor-pointer"
+                  className="text-xs font-semibold text-[#a813c9] hover:underline shrink-0 cursor-pointer"
                 >
                   Edit
                 </button>
@@ -466,7 +472,7 @@ export function AuthModal() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Enter your password"
-                    className="w-full rounded-2xl border border-neutral-300 bg-white px-4 py-3.5 pr-11 text-sm text-neutral-900 placeholder:text-neutral-400 outline-none transition-all focus:border-[#183528] focus:ring-1 focus:ring-[#183528]"
+                    className="w-full rounded-2xl border border-neutral-300 bg-white px-4 py-3.5 pr-11 text-sm text-neutral-900 placeholder:text-neutral-400 outline-none transition-all focus:border-[#a813c9] focus:ring-1 focus:ring-[#a813c9]"
                   />
                   <button
                     type="button"
@@ -496,7 +502,7 @@ export function AuthModal() {
                   type="checkbox"
                   checked={rememberMe}
                   onChange={(e) => setRememberMe(e.target.checked)}
-                  className="h-4 w-4 rounded border-neutral-300 text-[#183528] focus:ring-[#183528] accent-[#183528]"
+                  className="h-4 w-4 rounded border-neutral-300 text-[#2b0934] focus:ring-[#a813c9] accent-[#a813c9]"
                 />
                 <label htmlFor="modal-remember-me" className="cursor-pointer select-none">
                   Remember me on this browser
@@ -507,7 +513,7 @@ export function AuthModal() {
               <button
                 type="submit"
                 disabled={isPending}
-                className="w-full rounded-full bg-[#183528] hover:bg-[#12281e] text-white py-3.5 text-sm font-semibold shadow-sm transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-60 flex items-center justify-center gap-2 cursor-pointer mt-2"
+                className="w-full rounded-full bg-[#2b0934] hover:bg-[#3d0d4a] text-white py-3.5 text-sm font-semibold shadow-sm transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-60 flex items-center justify-center gap-2 cursor-pointer mt-2"
               >
                 {isPending ? (
                   <>
@@ -526,7 +532,7 @@ export function AuthModal() {
                   onClick={() => setView("register")}
                   className="text-xs font-semibold text-neutral-600 hover:text-neutral-900 cursor-pointer"
                 >
-                  Don&apos;t have an account? <span className="underline text-[#183528]">Create one</span>
+                  Don&apos;t have an account? <span className="underline text-[#2b0934]">Create one</span>
                 </button>
               </div>
             </form>
@@ -546,7 +552,7 @@ export function AuthModal() {
                 <button
                   type="button"
                   onClick={() => setView("email")}
-                  className="text-xs font-semibold text-[#183528] hover:underline shrink-0 cursor-pointer"
+                  className="text-xs font-semibold text-[#a813c9] hover:underline shrink-0 cursor-pointer"
                 >
                   Edit
                 </button>
@@ -568,7 +574,7 @@ export function AuthModal() {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="e.g. Leonardo da Vinci"
-                  className="w-full rounded-2xl border border-neutral-300 bg-white px-4 py-3 text-sm text-neutral-900 placeholder:text-neutral-400 outline-none transition-all focus:border-[#183528] focus:ring-1 focus:ring-[#183528]"
+                  className="w-full rounded-2xl border border-neutral-300 bg-white px-4 py-3 text-sm text-neutral-900 placeholder:text-neutral-400 outline-none transition-all focus:border-[#a813c9] focus:ring-1 focus:ring-[#a813c9]"
                 />
               </div>
 
@@ -588,7 +594,7 @@ export function AuthModal() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Create a secure password"
-                    className="w-full rounded-2xl border border-neutral-300 bg-white px-4 py-3 pr-11 text-sm text-neutral-900 placeholder:text-neutral-400 outline-none transition-all focus:border-[#183528] focus:ring-1 focus:ring-[#183528]"
+                    className="w-full rounded-2xl border border-neutral-300 bg-white px-4 py-3 pr-11 text-sm text-neutral-900 placeholder:text-neutral-400 outline-none transition-all focus:border-[#a813c9] focus:ring-1 focus:ring-[#a813c9]"
                   />
                   <button
                     type="button"
@@ -626,7 +632,7 @@ export function AuthModal() {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="Repeat your password"
-                  className="w-full rounded-2xl border border-neutral-300 bg-white px-4 py-3 text-sm text-neutral-900 placeholder:text-neutral-400 outline-none transition-all focus:border-[#183528] focus:ring-1 focus:ring-[#183528]"
+                  className="w-full rounded-2xl border border-neutral-300 bg-white px-4 py-3 text-sm text-neutral-900 placeholder:text-neutral-400 outline-none transition-all focus:border-[#a813c9] focus:ring-1 focus:ring-[#a813c9]"
                 />
               </div>
 
@@ -634,7 +640,7 @@ export function AuthModal() {
               <button
                 type="submit"
                 disabled={isPending}
-                className="w-full rounded-full bg-[#183528] hover:bg-[#12281e] text-white py-3.5 text-sm font-semibold shadow-sm transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-60 flex items-center justify-center gap-2 cursor-pointer mt-2"
+                className="w-full rounded-full bg-[#2b0934] hover:bg-[#3d0d4a] text-white py-3.5 text-sm font-semibold shadow-sm transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-60 flex items-center justify-center gap-2 cursor-pointer mt-2"
               >
                 {isPending ? (
                   <>
@@ -653,7 +659,7 @@ export function AuthModal() {
                   onClick={() => setView("login")}
                   className="text-xs font-semibold text-neutral-600 hover:text-neutral-900 cursor-pointer"
                 >
-                  Already have an account? <span className="underline text-[#183528]">Sign in</span>
+                  Already have an account? <span className="underline text-[#2b0934]">Sign in</span>
                 </button>
               </div>
             </form>
@@ -682,7 +688,7 @@ export function AuthModal() {
                   value={inputEmail}
                   onChange={(e) => setInputEmail(e.target.value)}
                   placeholder="name@example.com"
-                  className="w-full rounded-2xl border border-neutral-300 bg-white px-4 py-3.5 text-sm text-neutral-900 placeholder:text-neutral-400 outline-none transition-all focus:border-[#183528] focus:ring-1 focus:ring-[#183528]"
+                  className="w-full rounded-2xl border border-neutral-300 bg-white px-4 py-3.5 text-sm text-neutral-900 placeholder:text-neutral-400 outline-none transition-all focus:border-[#a813c9] focus:ring-1 focus:ring-[#a813c9]"
                 />
               </div>
 
@@ -692,7 +698,7 @@ export function AuthModal() {
                   setNotice("If an account exists for this email, password reset instructions have been sent.");
                   setTimeout(() => setView("login"), 2000);
                 }}
-                className="w-full rounded-full bg-[#183528] hover:bg-[#12281e] text-white py-3.5 text-sm font-semibold shadow-sm transition-all hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
+                className="w-full rounded-full bg-[#2b0934] hover:bg-[#3d0d4a] text-white py-3.5 text-sm font-semibold shadow-sm transition-all hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
               >
                 Send reset link
               </button>

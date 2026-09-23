@@ -51,7 +51,7 @@ export function SiteFooter() {
                 </Link>
               </li>
               <li>
-                <Link href="/experiences#categories" className="hover:text-ink transition-colors">
+                <Link href="/categories" className="hover:text-ink transition-colors">
                   Categories
                 </Link>
               </li>

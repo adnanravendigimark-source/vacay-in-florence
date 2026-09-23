@@ -121,7 +121,7 @@ export function SiteHeader() {
                   {link.name}
                   {link.active && (
                     <span
-                      className={`absolute -bottom-1 left-0 right-0 h-[2px] rounded-full transition-colors ${isLight ? "bg-white shadow-sm" : "bg-[#183528]"
+                      className={`absolute -bottom-1 left-0 right-0 h-[2px] rounded-full transition-colors ${isLight ? "bg-white shadow-sm" : "bg-[#a813c9]"
                         }`}
                     />
                   )}
@@ -214,7 +214,7 @@ export function SiteHeader() {
                   <path d="M9 6V5C9 3.34315 10.3431 2 12 2C13.6569 2 15 3.34315 15 5V6" />
                 </svg>
                 {cartCount ? (
-                  <span className="absolute top-0.5 right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-[#183528] text-[9px] font-bold text-white shadow-sm ring-1 ring-white/50">
+                  <span className="absolute top-0.5 right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-[#a813c9] text-[9px] font-bold text-white shadow-sm ring-1 ring-white/50">
                     {cartCount > 9 ? "9+" : cartCount}
                   </span>
                 ) : null}
@@ -280,7 +280,7 @@ export function SiteHeader() {
                       <button
                         type="button"
                         onClick={() => openAuthModal({ view: "email" })}
-                        className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#183528] text-white px-4 py-3 text-sm font-semibold hover:bg-[#12281e] transition-colors cursor-pointer"
+                        className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#2b0934] text-white px-4 py-3 text-sm font-semibold hover:bg-[#3d0d4a] transition-colors cursor-pointer"
                       >
                         <svg viewBox="0 0 24 24" className="h-4 w-4 fill-none stroke-current stroke-2">
                           <circle cx="12" cy="8" r="4" />

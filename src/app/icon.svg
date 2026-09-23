@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
   <!-- Rounded Brand Shield / Badge in Deep Forest Green -->
-  <rect width="64" height="64" rx="16" fill="#142d22" />
+  <rect width="64" height="64" rx="16" fill="#2b0934" />
 
   <!-- Ground Platform Line -->
   <rect x="8" y="52" width="48" height="3" rx="1.5" fill="#fcfbfa" />

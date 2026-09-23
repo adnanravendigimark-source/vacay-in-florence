@@ -149,7 +149,7 @@ export function FlorenceItineraryBuilder() {
       <Container>
         {/* Section Title */}
         <div className="text-center max-w-3xl mx-auto mb-10">
-          <div className="inline-flex items-center gap-2 rounded-full bg-[#183528]/10 px-3.5 py-1 text-xs font-semibold text-[#183528] mb-3">
+          <div className="inline-flex items-center gap-2 rounded-full bg-[#2b0934]/10 px-3.5 py-1 text-xs font-semibold text-[#2b0934] mb-3">
             <span>INTERACTIVE FLORENCE TRIP PLANNER</span>
           </div>
           <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl font-medium tracking-tight text-neutral-900 leading-[1.15]">
@@ -169,7 +169,7 @@ export function FlorenceItineraryBuilder() {
                   type="button"
                   onClick={() => setSelectedPlanId(plan.id)}
                   className={`rounded-full px-5 py-2 text-xs sm:text-sm font-semibold transition-all duration-200 cursor-pointer ${active
-                      ? "bg-[#183528] text-white shadow-md scale-100"
+                      ? "bg-[#2b0934] text-white shadow-md scale-100"
                       : "text-neutral-700 hover:text-neutral-950 hover:bg-neutral-200/60"
                     }`}
                 >
@@ -218,7 +218,7 @@ export function FlorenceItineraryBuilder() {
                 <span className="absolute top-3 left-3 rounded-full bg-neutral-900/85 backdrop-blur-md px-2.5 py-0.5 text-[10.5px] font-bold text-white">
                   {step.time}
                 </span>
-                <span className="absolute top-3 right-3 rounded-full bg-white/90 backdrop-blur-md px-2.5 py-0.5 text-[10.5px] font-bold text-[#183528]">
+                <span className="absolute top-3 right-3 rounded-full bg-white/90 backdrop-blur-md px-2.5 py-0.5 text-[10.5px] font-bold text-[#2b0934]">
                   {step.tag}
                 </span>
               </div>
@@ -226,7 +226,7 @@ export function FlorenceItineraryBuilder() {
               {/* Step Content */}
               <div className="flex flex-1 flex-col justify-between p-5">
                 <div>
-                  <h4 className="text-base font-bold text-neutral-900 leading-snug group-hover:text-[#183528] transition-colors">
+                  <h4 className="text-base font-bold text-neutral-900 leading-snug group-hover:text-[#2b0934] transition-colors">
                     {step.title}
                   </h4>
                   <p className="mt-2 text-xs text-neutral-600 leading-relaxed">
@@ -238,7 +238,7 @@ export function FlorenceItineraryBuilder() {
                   <div className="mt-4 pt-3 border-t border-neutral-200/70">
                     <Link
                       href={step.href}
-                      className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-[#183528] py-2 text-xs font-semibold text-white transition-all duration-200 hover:bg-[#0e241a]"
+                      className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-[#2b0934] py-2 text-xs font-semibold text-white transition-all duration-200 hover:bg-[#3d0d4a]"
                     >
                       <span>{step.actionText}</span>
                     </Link>

@@ -1,6 +1,6 @@
 import { eq, inArray, asc, and } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { cartItems, products, productImages, productOptions } from "@/lib/db/schema";
+import { cartItems, products, productImages, productOptions, categories } from "@/lib/db/schema";
 import { getCartId } from "@/lib/cart";
 
 export interface CartLineItem {
@@ -8,6 +8,8 @@ export interface CartLineItem {
   productId: string;
   productSlug: string;
   productTitle: string;
+  categoryName?: string;
+  location?: string;
   image: { src: string; alt: string };
   date: string;
   participants: { optionId: string; optionName: string; quantity: number; unitPriceAmount: number }[];
@@ -43,6 +45,9 @@ export async function getCartSummary(): Promise<CartSummary> {
       productId: cartItems.productId,
       productSlug: products.slug,
       productTitle: products.title,
+      categoryName: categories.name,
+      meetingCity: products.meetingCity,
+      meetingCountry: products.meetingCountry,
       date: cartItems.date,
       participants: cartItems.participants,
       subtotalAmount: cartItems.subtotalAmount,
@@ -50,6 +55,7 @@ export async function getCartSummary(): Promise<CartSummary> {
     })
     .from(cartItems)
     .innerJoin(products, eq(cartItems.productId, products.id))
+    .leftJoin(categories, eq(products.categoryId, categories.id))
     .where(eq(cartItems.cartId, cartId))
     .orderBy(asc(cartItems.createdAt));
 
@@ -81,11 +87,17 @@ export async function getCartSummary(): Promise<CartSummary> {
 
   const items: CartLineItem[] = rows.map((row) => {
     const image = imageByProduct.get(row.productId) ?? { url: "/images/florence-hero.jpg", alt: row.productTitle };
+    const location = [row.meetingCity, row.meetingCountry].filter(Boolean).join(", ") || "Florence, Italy";
     return {
       id: row.id,
       productId: row.productId,
       productSlug: row.productSlug,
       productTitle: row.productTitle,
+      // Honest: no fabricated category label — a product without a
+      // resolvable category (left join miss) simply shows no category
+      // badge, rather than a specific, wrong category name.
+      categoryName: row.categoryName ?? undefined,
+      location,
       image: { src: image.url, alt: image.alt },
       date: row.date,
       participants: row.participants as CartLineItem["participants"],

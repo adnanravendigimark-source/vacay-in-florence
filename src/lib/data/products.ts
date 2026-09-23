@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { products, categories, suppliers, productImages, productOptions, availability } from "@/lib/db/schema";
 import type { ProductBadge, ProductCardSummary } from "@/lib/types";
 import { ensureSearchIndexes } from "@/lib/db/search-indexes";
+import { geocodeAddress } from "@/lib/geocoding";
 
 /**
  * Smart-search query normalization, shared by searchProducts() and
@@ -372,6 +373,15 @@ export interface ProductDetail {
   inclusions: string[];
   exclusions: string[];
   meetingPoint: string | null;
+  meetingCity: string | null;
+  meetingCountry: string | null;
+  // Real coordinates for the meeting point. Backed by the stored
+  // meetingLat/meetingLng when present; otherwise getProductBySlug
+  // geocodes meetingPoint/City/Country on the fly and writes the result
+  // back to the row. Null only when there's no address to geocode, or
+  // geocoding failed — the map renders an honest fallback, never a
+  // fake/guessed pin.
+  meetingLocation: { lat: number; lng: number } | null;
   cancellationPolicy: string;
   durationLabel: string;
   priceFrom: { amount: number; currency: "EUR" };
@@ -383,6 +393,52 @@ export interface ProductDetail {
   supplierName: string;
   images: { src: string; alt: string }[];
   options: ProductOptionSummary[];
+}
+
+type MeetingRow = {
+  id: string;
+  meetingPoint: string | null;
+  meetingCity: string | null;
+  meetingCountry: string | null;
+  meetingLat: number | null;
+  meetingLng: number | null;
+};
+
+// Stored coordinates win outright — no network call on the common path.
+// Only a product with an address but no coordinates yet triggers a
+// geocode, and a successful result is persisted so it never happens again
+// for that product. A geocoding failure (bad address, API down, no token
+// configured) resolves to null rather than throwing, so a broken map
+// never takes the rest of the product page down with it.
+async function resolveMeetingLocation(
+  row: MeetingRow
+): Promise<{ lat: number; lng: number } | null> {
+  if (row.meetingLat != null && row.meetingLng != null) {
+    return { lat: row.meetingLat, lng: row.meetingLng };
+  }
+
+  const hasAddress = Boolean(row.meetingPoint || row.meetingCity || row.meetingCountry);
+  if (!hasAddress) return null;
+
+  const geocoded = await geocodeAddress({
+    address: row.meetingPoint,
+    city: row.meetingCity,
+    country: row.meetingCountry,
+  });
+  if (!geocoded) return null;
+
+  try {
+    await db
+      .update(products)
+      .set({ meetingLat: geocoded.lat, meetingLng: geocoded.lng })
+      .where(eq(products.id, row.id));
+  } catch (err) {
+    // Serving the geocoded location is more important than persisting it —
+    // worst case, the next request geocodes the same address again.
+    console.error("[products] Failed to persist geocoded meeting location:", err);
+  }
+
+  return geocoded;
 }
 
 export async function getProductBySlug(slug: string): Promise<ProductDetail | null> {
@@ -397,6 +453,10 @@ export async function getProductBySlug(slug: string): Promise<ProductDetail | nu
       inclusions: products.inclusions,
       exclusions: products.exclusions,
       meetingPoint: products.meetingPoint,
+      meetingCity: products.meetingCity,
+      meetingCountry: products.meetingCountry,
+      meetingLat: products.meetingLat,
+      meetingLng: products.meetingLng,
       cancellationPolicy: products.cancellationPolicy,
       durationLabel: products.durationLabel,
       priceFromAmount: products.priceFromAmount,
@@ -414,6 +474,8 @@ export async function getProductBySlug(slug: string): Promise<ProductDetail | nu
     .where(and(eq(products.slug, slug), eq(products.status, "live")));
 
   if (!row) return null;
+
+  const meetingLocation = await resolveMeetingLocation(row);
 
   const images = await db
     .select({ url: productImages.url, alt: productImages.alt })
@@ -443,6 +505,9 @@ export async function getProductBySlug(slug: string): Promise<ProductDetail | nu
     inclusions: row.inclusions as string[],
     exclusions: row.exclusions as string[],
     meetingPoint: row.meetingPoint,
+    meetingCity: row.meetingCity,
+    meetingCountry: row.meetingCountry,
+    meetingLocation,
     cancellationPolicy: row.cancellationPolicy,
     durationLabel: row.durationLabel,
     priceFrom: { amount: row.priceFromAmount, currency: row.priceFromCurrency as "EUR" },

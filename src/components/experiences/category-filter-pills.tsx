@@ -69,7 +69,7 @@ export function CategoryFilterPills({
           href="/experiences"
           className={`inline-flex items-center gap-2.5 shrink-0 rounded-full px-5 py-2.5 text-xs font-semibold transition-all duration-200 cursor-pointer ${
             !activeCategorySlug
-              ? "bg-[#142d22] text-white shadow-md ring-1 ring-black/10 scale-[1.02]"
+              ? "bg-[#2b0934] text-white shadow-md ring-1 ring-black/10 scale-[1.02]"
               : "bg-white text-neutral-700 hover:bg-[#f6f4ee] hover:text-neutral-900 border border-[#e4ded5] shadow-xs"
           }`}
         >
@@ -91,11 +91,11 @@ export function CategoryFilterPills({
               href={`/experiences/category/${cat.slug}`}
               className={`inline-flex items-center gap-2.5 shrink-0 rounded-full px-5 py-2.5 text-xs font-semibold transition-all duration-200 cursor-pointer ${
                 isActive
-                  ? "bg-[#142d22] text-white shadow-md ring-1 ring-black/10 scale-[1.02]"
+                  ? "bg-[#2b0934] text-white shadow-md ring-1 ring-black/10 scale-[1.02]"
                   : "bg-white text-neutral-700 hover:bg-[#f6f4ee] hover:text-neutral-900 border border-[#e4ded5] shadow-xs"
               }`}
             >
-              <span className={isActive ? "text-amber-300" : "text-[#142d22]"}>
+              <span className={isActive ? "text-amber-300" : "text-[#2b0934]"}>
                 {getCategoryIcon(cat.slug)}
               </span>
               <span>{cat.name}</span>

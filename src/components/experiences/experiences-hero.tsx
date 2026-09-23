@@ -247,10 +247,10 @@ export function ExperiencesHero() {
             </div>
 
             {/* Editorial Luxury Headline */}
-            <h1 className="font-display text-4xl sm:text-5xl md:text-[54px] lg:text-[58px] xl:text-[64px] font-normal leading-[1.08] tracking-tight text-[#142d22]">
+            <h1 className="font-display text-4xl sm:text-5xl md:text-[54px] lg:text-[58px] xl:text-[64px] font-normal leading-[1.08] tracking-tight text-[#2b0934]">
               Unforgettable<br />
               Experiences in<br />
-              <span className="italic font-normal font-display text-[#142d22]">Florence</span>
+              <span className="italic font-normal font-display text-[#2b0934]">Florence</span>
             </h1>
 
             {/* Descriptive Subheading */}
@@ -381,7 +381,7 @@ export function ExperiencesHero() {
                       onChange={(e) => setDestinationFilter(e.target.value)}
                       placeholder="Search destinations..."
                       autoFocus
-                      className="w-full rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-1.5 text-xs text-neutral-900 outline-none focus:border-[#183528] focus:bg-white transition-colors"
+                      className="w-full rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-1.5 text-xs text-neutral-900 outline-none focus:border-[#a813c9] focus:bg-white transition-colors"
                     />
                   </div>
                   <div className="px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-neutral-400">
@@ -516,7 +516,7 @@ export function ExperiencesHero() {
                 >
                   {searchState === "loading" && (
                     <div className="flex items-center gap-2 px-3 py-4 text-xs text-neutral-500">
-                      <span className="h-3.5 w-3.5 shrink-0 animate-spin rounded-full border-2 border-neutral-300 border-t-[#142d22]" />
+                      <span className="h-3.5 w-3.5 shrink-0 animate-spin rounded-full border-2 border-neutral-300 border-t-[#a813c9]" />
                       Searching&hellip;
                     </div>
                   )}
@@ -527,7 +527,7 @@ export function ExperiencesHero() {
                       <button
                         type="button"
                         onClick={() => void runSearch(query)}
-                        className="mt-1.5 font-semibold text-[#142d22] underline decoration-dotted"
+                        className="mt-1.5 font-semibold text-[#a813c9] underline decoration-dotted"
                       >
                         Try again
                       </button>
@@ -562,7 +562,7 @@ export function ExperiencesHero() {
                                   activeIndex === index ? "bg-neutral-100" : "hover:bg-neutral-100"
                                 }`}
                               >
-                                <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 text-[#142d22] shrink-0 fill-none stroke-current stroke-2">
+                                <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 text-[#2b0934] shrink-0 fill-none stroke-current stroke-2">
                                   <circle cx="11" cy="11" r="7.5" />
                                   <line x1="16.5" y1="16.5" x2="21.5" y2="21.5" strokeLinecap="round" />
                                 </svg>
@@ -591,7 +591,7 @@ export function ExperiencesHero() {
                                   activeIndex === index ? "bg-neutral-100" : "hover:bg-neutral-100"
                                 }`}
                               >
-                                <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 text-[#142d22] shrink-0 fill-none stroke-current stroke-2">
+                                <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 text-[#2b0934] shrink-0 fill-none stroke-current stroke-2">
                                   <path d="M4 6h16M4 12h16M4 18h10" strokeLinecap="round" />
                                 </svg>
                                 <span className="min-w-0 flex-1 truncate">
@@ -613,7 +613,7 @@ export function ExperiencesHero() {
             <div className="p-1 md:p-0 md:pr-1">
               <button
                 type="submit"
-                className="group flex w-full md:w-auto items-center justify-center gap-2 rounded-2xl md:rounded-full bg-[#183528] hover:bg-[#0e241a] px-7 py-3 text-[13.5px] font-bold text-white shadow-lg transition-all duration-200 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
+                className="group flex w-full md:w-auto items-center justify-center gap-2 rounded-2xl md:rounded-full bg-[#2b0934] hover:bg-[#3d0d4a] px-7 py-3 text-[13.5px] font-bold text-white shadow-lg transition-all duration-200 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
               >
                 <span>Search</span>
                 <span className="transition-transform duration-200 group-hover:translate-x-1 font-bold text-white">&rarr;</span>

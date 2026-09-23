@@ -13,7 +13,16 @@ export function StickyHeader({
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
   const isHome = pathname === "/";
-  const isHeroPage = pathname === "/" || pathname.startsWith("/experiences");
+  // Only pages that render a full-bleed hero banner right at the top
+  // (which the transparent/negative-margin header is designed to overlap)
+  // belong here. /blog/[slug] article pages start with a plain breadcrumb
+  // + heading instead, so including a blanket /blog prefix pulled that
+  // content up underneath the sticky header — see /blog/[slug]/page.tsx.
+  const isHeroPage =
+    pathname === "/" ||
+    pathname.startsWith("/experiences") ||
+    pathname === "/blog" ||
+    pathname.startsWith("/blog/category");
 
   useEffect(() => {
     const handleScroll = () => {
@@ -38,4 +47,5 @@ export function StickyHeader({
     </header>
   );
 }
+
 

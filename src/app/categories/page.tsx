@@ -1,9 +1,7 @@
 import type { Metadata } from "next";
 import { getAllCategories } from "@/lib/data/categories";
 import { CategoriesHero } from "@/components/categories/categories-hero";
-import { CategoryCardShowcase } from "@/components/categories/category-card-showcase";
-import { TravelStyleGuide } from "@/components/categories/travel-style-guide";
-import { FlorenceCtaBanner } from "@/components/experiences/florence-cta-banner";
+import { CategoryBrowseSection } from "@/components/categories/category-browse-section";
 
 export const metadata: Metadata = {
   title: "Experience Categories in Florence — Skip-the-Line, Museums, Food & Day Trips",
@@ -40,19 +38,8 @@ export default async function CategoriesPage() {
       {/* Editorial Luxury Header & Quick Jump Bar */}
       <CategoriesHero categories={categories} />
 
-      {/* In-Depth Category Showcase Cards */}
-      <CategoryCardShowcase categories={categories} />
-
-      {/* Travel Style Recommendations */}
-      <TravelStyleGuide />
-
-      {/* Local Concierge Assistance Banner */}
-      <div className="bg-[#FAF8F5] pb-12">
-        <FlorenceCtaBanner
-          primaryLabel="Browse All Experiences"
-          primaryHref="/experiences"
-        />
-      </div>
+      {/* Redesigned Category Browse Section: Sub-nav Circles + Header + Filter Pills + 8 Cards Grid + Bottom CTA Banner */}
+      <CategoryBrowseSection categories={categories} />
     </main>
   );
 }

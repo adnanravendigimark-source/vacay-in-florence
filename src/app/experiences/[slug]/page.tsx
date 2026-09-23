@@ -7,6 +7,7 @@ import { Container } from "@/components/ui/container";
 import { SingleExperienceBookingCard } from "@/components/experiences/single-experience-booking-card";
 import { ExperienceCard } from "@/components/ui/experience-card";
 import { ProductBadgePill } from "@/components/ui/badge";
+import { ExperienceLocationMap } from "@/components/experiences/experience-location-map";
 
 export async function generateStaticParams() {
   const { items } = await searchProducts({ pageSize: 100 });
@@ -21,7 +22,7 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
   if (!product) return {};
 
   return {
-    title: `${product.title} | VACAY Florence`,
+    title: product.title,
     description: product.shortDescription,
     alternates: { canonical: `/experiences/${product.slug}` },
     openGraph: {
@@ -44,9 +45,10 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
 // ProductBadgePill's formatting (src/components/ui/badge.tsx) so the same
 // badge always reads the same way across the site. An unrecognized badge
 // is skipped rather than guessed at.
-const BADGE_META: Partial<Record<string, { label: string; icon: React.ReactNode }>> = {
+const BADGE_META: Partial<Record<string, { label: string; icon: React.ReactNode; tone: "light" | "dark" }>> = {
   "skip-the-line": {
     label: "Skip the line",
+    tone: "dark",
     icon: (
       <svg className="h-2.5 w-2.5" viewBox="0 0 24 24" fill="currentColor">
         <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
@@ -55,6 +57,7 @@ const BADGE_META: Partial<Record<string, { label: string; icon: React.ReactNode 
   },
   "free-cancellation": {
     label: "Free cancellation",
+    tone: "dark",
     icon: (
       <svg className="h-2.5 w-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
         <polyline points="23 4 23 10 17 10" />
@@ -64,6 +67,7 @@ const BADGE_META: Partial<Record<string, { label: string; icon: React.ReactNode 
   },
   "instant-confirmation": {
     label: "Instant confirmation",
+    tone: "dark",
     icon: (
       <svg className="h-2.5 w-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
         <polyline points="20 6 9 17 4 12" />
@@ -72,6 +76,7 @@ const BADGE_META: Partial<Record<string, { label: string; icon: React.ReactNode 
   },
   "best-seller": {
     label: "Best seller",
+    tone: "light",
     icon: (
       <svg className="h-2.5 w-2.5" viewBox="0 0 24 24" fill="currentColor">
         <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
@@ -80,6 +85,7 @@ const BADGE_META: Partial<Record<string, { label: string; icon: React.ReactNode 
   },
   "small-group": {
     label: "Small group",
+    tone: "dark",
     icon: (
       <svg className="h-2.5 w-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
         <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
@@ -90,6 +96,7 @@ const BADGE_META: Partial<Record<string, { label: string; icon: React.ReactNode 
   },
   "top-rated": {
     label: "Top rated",
+    tone: "light",
     icon: (
       <svg className="h-2.5 w-2.5" viewBox="0 0 24 24" fill="currentColor">
         <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
@@ -98,6 +105,7 @@ const BADGE_META: Partial<Record<string, { label: string; icon: React.ReactNode 
   },
   popular: {
     label: "Popular",
+    tone: "light",
     icon: (
       <svg className="h-2.5 w-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
         <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z" />
@@ -106,6 +114,7 @@ const BADGE_META: Partial<Record<string, { label: string; icon: React.ReactNode 
   },
   new: {
     label: "New",
+    tone: "light",
     icon: (
       <svg className="h-2.5 w-2.5" viewBox="0 0 24 24" fill="currentColor">
         <path d="M12 2l2.4 7.2H22l-6 4.6 2.3 7.2-6.3-4.5L5.7 21l2.3-7.2-6-4.6h7.6z" />
@@ -114,6 +123,7 @@ const BADGE_META: Partial<Record<string, { label: string; icon: React.ReactNode 
   },
   "food-wine": {
     label: "Food & Wine",
+    tone: "light",
     icon: (
       <svg className="h-2.5 w-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
         <path d="M8 22h8M12 15v7M8 3h8c0 4.418-2.686 8-6 8s-6-3.582-6-8z" strokeLinecap="round" strokeLinejoin="round" />
@@ -201,7 +211,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<Pa
   const galleryThumbs = product.images.slice(1, 4);
 
   return (
-    <div className="min-h-screen w-full bg-[#FAF8F5] text-neutral-900 selection:bg-[#183528] selection:text-white">
+    <div className="min-h-screen w-full bg-[#FAF8F5] text-neutral-900 selection:bg-[#a813c9] selection:text-white">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -219,18 +229,15 @@ export default async function ProductDetailPage({ params }: { params: Promise<Pa
             fill
             priority
             sizes="100vw"
-            className="object-cover object-center brightness-[0.92] contrast-[1.02]"
+            className="object-cover object-center contrast-[1.02]"
           />
-          {/* Left-to-right scrim so the title/badges stay legible over any photo */}
-          <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/25 to-black/10 pointer-events-none" />
-          {/* Top scrim under the site header */}
-          <div className="absolute top-0 inset-x-0 h-24 bg-gradient-to-b from-black/35 to-transparent pointer-events-none" />
-          {/* Bottom scrim for depth where the hero meets the page */}
-          <div className="absolute bottom-0 inset-x-0 h-32 bg-gradient-to-t from-black/35 to-transparent pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/55 via-black/20 to-black/5 pointer-events-none" />
+          <div className="absolute top-0 inset-x-0 h-24 bg-gradient-to-b from-black/30 to-transparent pointer-events-none" />
+          <div className="absolute bottom-0 inset-x-0 h-28 bg-gradient-to-t from-black/28 to-transparent pointer-events-none" />
         </div>
 
         {/* Hero Content Container */}
-        <Container className="relative z-10 pt-28 pb-16 lg:py-20">
+        <Container className="relative z-10 pt-32 pb-14 lg:pt-36 lg:pb-16">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-10 lg:gap-14">
             {/* Left Hero Column: Breadcrumb, Titles, Ratings & Feature Pills */}
             <div className="max-w-2xl text-white">
@@ -291,18 +298,27 @@ export default async function ProductDetailPage({ params }: { params: Promise<Pa
                 </div>
               </div>
 
-              {/* Feature Pills Row — one per real badge on this product */}
+              {/* Feature Pills Row — one per real badge on this product. Popularity
+                  badges (top rated, best seller, popular, new) get the light
+                  cream treatment; booking-assurance badges (free cancellation,
+                  instant confirmation, skip the line, small group) get the
+                  solid brand-green treatment. */}
               {product.badges.length > 0 && (
                 <div className="mt-7 flex flex-wrap items-center gap-2.5 sm:gap-3">
                   {product.badges.map((badge) => {
                     const meta = BADGE_META[badge];
                     if (!meta) return null;
+                    const isLight = meta.tone === "light";
                     return (
                       <div
                         key={badge}
-                        className="inline-flex items-center gap-2.5 rounded-full bg-[#524436]/65 hover:bg-[#524436]/80 backdrop-blur-md px-3.5 py-1.5 text-xs font-medium text-neutral-100 border border-[#8C7A68]/35 shadow-xs"
+                        className={`inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-xs font-semibold shadow-sm ${
+                          isLight
+                            ? "bg-[#FAF6EE]/95 text-neutral-800 border border-neutral-200/60"
+                            : "bg-[#2b0934] text-white"
+                        }`}
                       >
-                        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#8E7966]/80 text-white shrink-0">
+                        <span className={isLight ? "text-amber-500 shrink-0" : "text-white shrink-0"}>
                           {meta.icon}
                         </span>
                         <span>{meta.label}</span>
@@ -314,7 +330,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<Pa
             </div>
 
             {/* Right Hero Column: Floating Booking Card */}
-            <div className="w-full lg:w-auto flex justify-center lg:justify-end shrink-0">
+            <div className="w-full lg:w-auto flex justify-center lg:justify-end shrink-0 lg:pt-6">
               <SingleExperienceBookingCard
                 productSlug={product.slug}
                 options={product.options}
@@ -345,7 +361,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<Pa
 
               {/* Highlight Quote Block — the product's own tagline, not a fabricated review */}
               <div className="rounded-2xl bg-[#F2EDE4] p-5 sm:p-6 border border-[#E7E0D3] flex items-start gap-4">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#183528] text-amber-200">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#2b0934] text-amber-200">
                   <svg viewBox="0 0 24 24" className="h-5 w-5 fill-none stroke-current stroke-[1.8]">
                     <path d="M4 4h16M4 20h16M6 4v16M18 4v16M10 4v16M14 4v16M2 20h20M2 4h20" strokeLinecap="round" />
                   </svg>
@@ -462,77 +478,123 @@ export default async function ProductDetailPage({ params }: { params: Promise<Pa
       {/* ================================================================= */}
       {/* 4. WHAT'S INCLUDED / NOT INCLUDED / MEETING POINT                 */}
       {/* ================================================================= */}
-      <section className="py-12 sm:py-16 border-t border-neutral-200/60">
+      <section className="py-12 sm:py-16 border-t border-neutral-200/60 bg-[#FAF8F5]/80">
         <Container>
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-12">
-            {/* Column 1: What's included */}
-            <div className="md:col-span-4 space-y-4">
-              <h2 className="font-display text-lg font-bold text-neutral-900 tracking-tight">
-                What&apos;s included
-              </h2>
-              {product.inclusions.length > 0 ? (
-                <ul className="space-y-3">
-                  {product.inclusions.map((item, index) => (
-                    <li key={index} className="flex items-start gap-2.5 text-xs sm:text-sm text-neutral-700">
-                      <span className="text-emerald-600 font-bold text-base leading-none">✓</span>
-                      <span>{item}</span>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="text-xs text-neutral-500">See your confirmation email for full details.</p>
-              )}
-            </div>
-
-            {/* Column 2: Not included */}
-            <div className="md:col-span-4 space-y-4">
-              <h2 className="font-display text-lg font-bold text-neutral-900 tracking-tight">
-                Not included
-              </h2>
-              {product.exclusions.length > 0 ? (
-                <ul className="space-y-3">
-                  {product.exclusions.map((item, index) => (
-                    <li key={index} className="flex items-start gap-2.5 text-xs sm:text-sm text-neutral-600">
-                      <span className="text-neutral-400 font-bold text-sm leading-none">✕</span>
-                      <span>{item}</span>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="text-xs text-neutral-500">Nothing else needed — this ticket covers your visit.</p>
-              )}
-            </div>
-
-            {/* Column 3: Meeting point & Cancellation Policy */}
-            <div className="md:col-span-4 space-y-6">
-              {product.meetingPoint && (
-                <div className="space-y-2">
-                  <h2 className="font-display text-lg font-bold text-neutral-900 tracking-tight">
-                    Meeting point
-                  </h2>
-                  <div className="flex items-start gap-2.5 text-xs sm:text-sm text-neutral-700">
-                    <svg viewBox="0 0 24 24" className="h-4 w-4 shrink-0 fill-none stroke-current stroke-2 text-[#183528] mt-0.5">
-                      <path d="M12 21s-8-6.5-8-12a8 8 0 1 1 16 0c0 5.5-8 12-8 12z" />
-                      <circle cx="12" cy="9" r="3" />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-7 items-stretch">
+            {/* Card 1: What's included */}
+            <div className="rounded-3xl bg-white p-6 sm:p-7 border border-[#e8e2eb] shadow-[0_4px_24px_rgba(43,9,52,0.04)] flex flex-col justify-between transition-all duration-200 hover:shadow-md">
+              <div>
+                <div className="flex items-center gap-3.5 mb-5 pb-4 border-b border-neutral-100">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700 border border-emerald-100">
+                    <svg viewBox="0 0 24 24" className="h-5 w-5 fill-none stroke-current stroke-2">
+                      <polyline points="20 6 9 17 4 12" />
                     </svg>
-                    <p className="leading-relaxed">{product.meetingPoint}</p>
+                  </div>
+                  <div>
+                    <h2 className="font-display text-lg font-bold text-[#2b0934] tracking-tight leading-tight">
+                      What&apos;s included
+                    </h2>
+                    <p className="text-[11px] text-neutral-500 font-medium mt-0.5">Included with your booking</p>
                   </div>
                 </div>
-              )}
 
-              <div className="space-y-2 pt-2 border-t border-neutral-200/60">
-                <h3 className="text-xs font-bold text-neutral-900 uppercase tracking-wider">
-                  Cancellation policy
-                </h3>
-                <div className="flex items-start gap-2.5 text-xs sm:text-sm text-neutral-600">
-                  <svg viewBox="0 0 24 24" className="h-4 w-4 shrink-0 fill-none stroke-current stroke-2 text-[#183528] mt-0.5">
-                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                    <line x1="16" y1="2" x2="16" y2="6" />
-                    <line x1="8" y1="2" x2="8" y2="6" />
-                    <line x1="3" y1="10" x2="21" y2="10" />
-                  </svg>
-                  <p className="leading-relaxed">{product.cancellationPolicy}</p>
+                {product.inclusions.length > 0 ? (
+                  <ul className="space-y-3">
+                    {product.inclusions.map((item, index) => (
+                      <li key={index} className="flex items-start gap-3 text-xs sm:text-[13.5px] text-neutral-800 leading-snug">
+                        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-100/90 text-emerald-800 text-[11px] font-bold mt-0.5 shadow-2xs">
+                          ✓
+                        </span>
+                        <span className="font-medium pt-0.5">{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-xs text-neutral-500">See your confirmation email for full details.</p>
+                )}
+              </div>
+            </div>
+
+            {/* Card 2: Not included */}
+            <div className="rounded-3xl bg-white p-6 sm:p-7 border border-[#e8e2eb] shadow-[0_4px_24px_rgba(43,9,52,0.04)] flex flex-col justify-between transition-all duration-200 hover:shadow-md">
+              <div>
+                <div className="flex items-center gap-3.5 mb-5 pb-4 border-b border-neutral-100">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-neutral-100 text-neutral-600 border border-neutral-200/60">
+                    <svg viewBox="0 0 24 24" className="h-5 w-5 fill-none stroke-current stroke-2">
+                      <line x1="18" y1="6" x2="6" y2="18" />
+                      <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h2 className="font-display text-lg font-bold text-[#2b0934] tracking-tight leading-tight">
+                      Not included
+                    </h2>
+                    <p className="text-[11px] text-neutral-500 font-medium mt-0.5">Extra options or expenses</p>
+                  </div>
                 </div>
+
+                {product.exclusions.length > 0 ? (
+                  <ul className="space-y-3">
+                    {product.exclusions.map((item, index) => (
+                      <li key={index} className="flex items-start gap-3 text-xs sm:text-[13.5px] text-neutral-600 leading-snug">
+                        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-neutral-400 text-[11px] font-bold mt-0.5">
+                          ✕
+                        </span>
+                        <span className="pt-0.5">{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-xs text-neutral-500">Nothing else needed — this ticket covers your visit.</p>
+                )}
+              </div>
+            </div>
+
+            {/* Card 3: Meeting Point & Cancellation Policy */}
+            <div className="rounded-3xl bg-white p-6 sm:p-7 border border-[#e8e2eb] shadow-[0_4px_24px_rgba(43,9,52,0.04)] flex flex-col justify-between gap-5 transition-all duration-200 hover:shadow-md">
+              {/* Meeting Point */}
+              {product.meetingPoint ? (
+                <div>
+                  <div className="flex items-center gap-3.5 mb-3.5">
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#f7ecfb] text-[#a813c9] border border-[#ecd5f4]">
+                      <svg viewBox="0 0 24 24" className="h-5 w-5 fill-none stroke-current stroke-2">
+                        <path d="M12 21s-8-6.5-8-12a8 8 0 1 1 16 0c0 5.5-8 12-8 12z" />
+                        <circle cx="12" cy="9" r="3" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h2 className="font-display text-lg font-bold text-[#2b0934] tracking-tight leading-tight">
+                        Meeting point
+                      </h2>
+                      <p className="text-[11px] text-neutral-500 font-medium mt-0.5">Arrival location</p>
+                    </div>
+                  </div>
+                  <div className="rounded-2xl bg-[#faf7fc] p-3.5 border border-[#ede3f2]">
+                    <p className="text-xs sm:text-[13px] font-medium text-neutral-800 leading-relaxed">
+                      {product.meetingPoint}
+                    </p>
+                  </div>
+                </div>
+              ) : null}
+
+              {/* Cancellation Policy */}
+              <div className="pt-4 border-t border-neutral-100">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-[#f7ecfb] text-[#a813c9]">
+                    <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 fill-none stroke-current stroke-2">
+                      <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                      <line x1="16" y1="2" x2="16" y2="6" />
+                      <line x1="8" y1="2" x2="8" y2="6" />
+                      <line x1="3" y1="10" x2="21" y2="10" />
+                    </svg>
+                  </div>
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-[#2b0934]">
+                    Cancellation policy
+                  </h3>
+                </div>
+                <p className="text-xs sm:text-[13px] text-neutral-600 leading-relaxed">
+                  {product.cancellationPolicy}
+                </p>
               </div>
             </div>
           </div>
@@ -546,35 +608,27 @@ export default async function ProductDetailPage({ params }: { params: Promise<Pa
         <Container>
           <div className="rounded-3xl bg-[#FAF8F5] border border-[#ECE7DF] p-3.5 sm:p-5 shadow-xs">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-6 items-center">
-              {/* Left Column: Stylized City Map Preview */}
-              <div className="lg:col-span-5 relative aspect-[4/3] lg:aspect-auto lg:h-[260px] rounded-2xl overflow-hidden border border-[#E5E0D5] bg-[#EDE8E0]">
-                <Image
-                  src="/images/florence-street-map.jpg"
-                  alt={`Street map of central Florence near ${product.title}`}
-                  fill
-                  sizes="(min-width: 1024px) 38vw, 100vw"
-                  className="object-cover object-center"
-                />
-                <div className="absolute top-[40%] left-[58%] -translate-x-1/2 -translate-y-1/2 z-10 flex items-center gap-1.5 max-w-[85%]">
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#142A20] text-white shadow-lg">
-                    <svg viewBox="0 0 24 24" className="h-4.5 w-4.5 fill-current">
-                      <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z" />
-                    </svg>
-                  </div>
-                  <div className="rounded-full bg-white/95 px-3 py-1 text-xs font-bold text-neutral-900 shadow-md border border-neutral-200/80 tracking-tight truncate">
-                    {product.title}
-                  </div>
-                </div>
-              </div>
+              {/* Left Column: Real, dynamic map — centered on this product's
+                  actual meeting-point coordinates from the database. See
+                  ExperienceLocationMap for the fallback when a product has
+                  no coordinates yet. */}
+              <ExperienceLocationMap
+                title={product.title}
+                meetingPoint={product.meetingPoint}
+                meetingCity={product.meetingCity}
+                meetingCountry={product.meetingCountry}
+                location={product.meetingLocation}
+                className="lg:col-span-5 aspect-[4/3] lg:aspect-auto lg:h-[260px]"
+              />
 
               {/* Center Column: Good to know bullet points */}
               <div className="lg:col-span-4 px-2 sm:px-3 py-2 space-y-4">
-                <h3 className="font-serif text-xl sm:text-2xl font-bold text-[#142A20] tracking-tight">
+                <h3 className="font-serif text-xl sm:text-2xl font-bold text-[#2b0934] tracking-tight">
                   Good to know
                 </h3>
                 <ul className="space-y-3">
                   <li className="flex items-center gap-3">
-                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#E5ECE7] text-[#183528]">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#f7ecfb] text-[#2b0934]">
                       <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <rect x="3" y="4" width="18" height="16" rx="2" />
                         <line x1="7" y1="8" x2="17" y2="8" />
@@ -587,7 +641,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<Pa
                     </span>
                   </li>
                   <li className="flex items-center gap-3">
-                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#E5ECE7] text-[#183528]">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#f7ecfb] text-[#2b0934]">
                       <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <circle cx="12" cy="12" r="10" />
                         <polyline points="12 6 12 12 16 14" />
@@ -598,7 +652,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<Pa
                     </span>
                   </li>
                   <li className="flex items-center gap-3">
-                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#E5ECE7] text-[#183528]">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#f7ecfb] text-[#2b0934]">
                       <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <path d="M20 6L9 17l-5-5" />
                       </svg>
@@ -606,7 +660,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<Pa
                     <span className="text-xs sm:text-[13px] font-medium text-neutral-700">{product.cancellationPolicy}</span>
                   </li>
                   <li className="flex items-center gap-3">
-                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#E5ECE7] text-[#183528]">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#f7ecfb] text-[#2b0934]">
                       <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <rect x="2" y="6" width="20" height="14" rx="2" />
                         <path d="M2 10h20" />
@@ -667,8 +721,8 @@ export default async function ProductDetailPage({ params }: { params: Promise<Pa
       {/* ================================================================= */}
       <section className="pb-16 sm:pb-24">
         <Container>
-          <div className="relative overflow-hidden rounded-3xl bg-[#183528] p-8 sm:p-12 text-white shadow-xl">
-            <div className="absolute -left-6 -bottom-6 w-48 h-48 opacity-15 pointer-events-none select-none">
+          <div className="relative overflow-hidden rounded-3xl bg-[#2b0934] p-8 sm:p-12 text-white shadow-xl">
+            <div className="absolute -left-6 -bottom-6 w-48 h-48 opacity-20 pointer-events-none select-none">
               <svg viewBox="0 0 100 100" className="w-full h-full fill-white">
                 <path d="M10,80 Q30,60 50,50 Q70,40 90,30 Q60,60 40,75 Z" />
                 <circle cx="35" cy="55" r="5" />
@@ -676,6 +730,8 @@ export default async function ProductDetailPage({ params }: { params: Promise<Pa
                 <circle cx="75" cy="35" r="5" />
               </svg>
             </div>
+            {/* Ambient luxury purple glow */}
+            <div className="absolute top-0 right-0 -mt-12 -mr-12 h-64 w-64 rounded-full bg-[#a813c9]/25 blur-3xl pointer-events-none" />
 
             <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left">
               <div>
@@ -689,7 +745,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<Pa
 
               <Link
                 href="/experiences"
-                className="inline-flex items-center gap-2 rounded-full border border-white/40 bg-white/10 hover:bg-white hover:text-[#183528] px-6 py-3.5 text-xs sm:text-sm font-semibold text-white transition-all hover:scale-105 shadow-md cursor-pointer shrink-0"
+                className="inline-flex items-center gap-2 rounded-full border border-white/40 bg-white/10 hover:bg-white hover:text-[#2b0934] px-6 py-3.5 text-xs sm:text-sm font-semibold text-white transition-all hover:scale-105 shadow-md cursor-pointer shrink-0"
               >
                 <span>View All Experiences</span>
                 <span>&rarr;</span>

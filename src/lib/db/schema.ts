@@ -98,6 +98,21 @@ export const products = pgTable(
     inclusions: jsonb("inclusions").$type<string[]>().notNull().default([]),
     exclusions: jsonb("exclusions").$type<string[]>().notNull().default([]),
     meetingPoint: text("meeting_point"),
+    // City / country, kept separate from the free-text venue/address above
+    // so the location map and geocoding fallback (src/lib/geocoding.ts)
+    // have a structured address to work with, and so this project isn't
+    // implicitly hardcoded to Florence if it ever lists products elsewhere.
+    meetingCity: text("meeting_city"),
+    meetingCountry: text("meeting_country"),
+    // Coordinates for the meeting point, used to render the real, dynamic
+    // location map on the product page. Nullable — a product without
+    // coordinates yet is server-side geocoded from meetingPoint/City/Country
+    // on read (see getProductBySlug), and the result written back here so
+    // the same address is never re-geocoded on every page view. Only shows
+    // a non-fake empty state if geocoding has no address to work with, or
+    // fails.
+    meetingLat: doublePrecision("meeting_lat"),
+    meetingLng: doublePrecision("meeting_lng"),
     cancellationPolicy: text("cancellation_policy").notNull(),
     categoryId: text("category_id")
       .notNull()

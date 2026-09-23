@@ -82,7 +82,7 @@ export function ExperienceCard({
           </div>
 
           {/* Title */}
-          <h3 className="font-display text-[16px] sm:text-[17px] font-semibold text-neutral-900 leading-snug line-clamp-2 mt-1 mb-2 group-hover:text-[#142d22] transition-colors">
+          <h3 className="font-display text-[16px] sm:text-[17px] font-semibold text-neutral-900 leading-snug line-clamp-2 mt-1 mb-2 group-hover:text-[#a813c9] transition-colors">
             {product.title}
           </h3>
 
@@ -97,14 +97,14 @@ export function ExperienceCard({
                 </span>
               </>
             ) : (
-              <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10.5px] font-bold text-emerald-700 border border-emerald-200/60">
+              <span className="rounded-full bg-[#f7ecfb] px-2 py-0.5 text-[10.5px] font-bold text-[#a813c9] border border-[#d2c8d6]">
                 New
               </span>
             )}
           </div>
 
           {/* Meta Details: Duration & Free Cancellation */}
-          <div className="flex items-center gap-3 text-xs text-[#667268] pb-3">
+          <div className="flex items-center gap-3 text-xs text-[#6e5d75] pb-3">
             <div className="flex items-center gap-1">
               <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 fill-none stroke-current stroke-[1.85]">
                 <circle cx="12" cy="12" r="10" />
@@ -113,7 +113,7 @@ export function ExperienceCard({
               <span>{product.durationLabel}</span>
             </div>
             <span className="text-neutral-300">•</span>
-            <div className="flex items-center gap-1 text-emerald-700 font-medium">
+            <div className="flex items-center gap-1 text-[#a813c9] font-medium">
               <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 fill-none stroke-current stroke-[2]">
                 <polyline points="20 6 9 17 4 12" />
               </svg>
@@ -132,7 +132,7 @@ export function ExperienceCard({
             <span className="text-[11px] text-neutral-400">/ person</span>
           </div>
 
-          <div className="flex h-7.5 w-7.5 items-center justify-center rounded-full bg-[#f4f2ec] text-[#142d22] group-hover:bg-[#142d22] group-hover:text-white transition-all duration-200 shadow-xs">
+          <div className="flex h-7.5 w-7.5 items-center justify-center rounded-full bg-[#f7ecfb] text-[#2b0934] group-hover:bg-[#2b0934] group-hover:text-white transition-all duration-200 shadow-xs">
             <svg viewBox="0 0 20 20" className="h-3.5 w-3.5 fill-none stroke-current stroke-[2.2]">
               <path d="M4 10h12M11 5l5 5-5 5" strokeLinecap="round" strokeLinejoin="round" />
             </svg>

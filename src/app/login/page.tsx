@@ -4,7 +4,7 @@ import { AuthCard, FormField, FormError, FormNotice, SubmitButton } from "@/comp
 import { loginAction } from "./actions";
 
 export const metadata: Metadata = {
-  title: "Sign In | VACAY Florence",
+  title: "Sign In",
   description: "Sign in to your VACAY Florence account to access priority tickets, itineraries, and vouchers.",
   robots: { index: false },
 };

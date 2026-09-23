@@ -71,7 +71,7 @@ export function TravelStyleGuide() {
           <div className="inline-flex items-center gap-2 text-[11px] font-bold tracking-[0.2em] text-[#556358] uppercase mb-2">
             <span>TAILORED RECOMMENDATIONS</span>
           </div>
-          <h2 className="font-display text-3xl sm:text-4xl font-normal tracking-tight text-[#142d22]">
+          <h2 className="font-display text-3xl sm:text-4xl font-normal tracking-tight text-[#2b0934]">
             Which Style Matches Your Visit?
           </h2>
           <p className="mt-3 text-sm text-[#59655d] leading-relaxed">
@@ -87,7 +87,7 @@ export function TravelStyleGuide() {
             >
               <div>
                 <div className="flex items-center justify-between mb-4">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#142d22]/5 text-[#142d22]">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#2b0934]/5 text-[#2b0934]">
                     {style.icon}
                   </div>
                   <span className="rounded-full bg-amber-50 px-2.5 py-0.5 text-[11px] font-bold text-amber-800 border border-amber-200/60">
@@ -126,7 +126,7 @@ export function TravelStyleGuide() {
               <div className="mt-6 pt-4 border-t border-neutral-100">
                 <Link
                   href={`/experiences/category/${style.recommendedSlug}`}
-                  className="group flex items-center justify-between text-xs font-bold text-[#142d22] hover:text-[#0b1b14] transition-colors"
+                  className="group flex items-center justify-between text-xs font-bold text-[#2b0934] hover:text-[#3d0d4a] transition-colors"
                 >
                   <span>Explore {style.recommendedCategory}</span>
                   <span className="transition-transform duration-200 group-hover:translate-x-1 font-bold">

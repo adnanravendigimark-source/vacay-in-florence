@@ -1,29 +1,37 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400..700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 @import "@fontsource-variable/inter/wght.css";
 @import "@fontsource-variable/fraunces/wght.css";
 
 @theme {
   --color-cream: #fbfbfa;
-  --color-cream-deep: #f4f3ef;
-  --color-stone: #e9e7e1;
-  --color-stone-dark: #d5d1c8;
-  --color-ink: #181c19;
-  --color-ink-soft: #48524c;
-  --color-ink-faint: #78827c;
-  --color-terracotta: #c1502e;
-  --color-terracotta-dark: #9c3d21;
-  --color-terracotta-light: #fbeee8;
-  --color-gold: #b8863b;
-  --color-gold-light: #f7eedb;
-  --color-cypress: #142d22;
-  --color-cypress-light: #e5ede8;
+  --color-cream-deep: #f8f3fa;
+  --color-stone: #e8e2eb;
+  --color-stone-dark: #d2c8d6;
+  --color-ink: #1a101f;
+  --color-ink-soft: #4f3d56;
+  --color-ink-faint: #7e6e85;
+  --color-terracotta: #a813c9;
+  --color-terracotta-dark: #850b9e;
+  --color-terracotta-light: #f7ecfb;
+  --color-brand: #a813c9;
+  --color-brand-deep: #2b0934;
+  --color-brand-light: #f7ecfb;
+  --color-gold: #d99b26;
+  --color-gold-light: #fdf5e6;
+  --color-cypress: #2b0934;
+  --color-cypress-light: #f5e6f8;
 
   --font-display: "Playfair Display", "Fraunces Variable", ui-serif, Georgia, serif;
   --font-sans: "Plus Jakarta Sans", "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-script: "Caveat", "Playfair Display", cursive, serif;
 
-  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.04), 0 8px 24px -10px rgba(0, 0, 0, 0.08);
-  --shadow-card-hover: 0 4px 12px rgba(0, 0, 0, 0.06), 0 16px 36px -12px rgba(0, 0, 0, 0.14);
+  --shadow-card: 0 1px 3px rgba(43, 9, 52, 0.04), 0 8px 24px -10px rgba(43, 9, 52, 0.08);
+  --shadow-card-hover: 0 4px 12px rgba(43, 9, 52, 0.06), 0 16px 36px -12px rgba(43, 9, 52, 0.14);
+}
+
+.font-script {
+  font-family: var(--font-script);
 }
 
 html {
@@ -34,6 +42,11 @@ body {
   background-color: var(--color-cream);
   color: var(--color-ink);
   font-family: var(--font-sans);
+}
+
+::selection {
+  background-color: #a813c9;
+  color: #ffffff;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -52,7 +65,7 @@ body {
 }
 
 :focus-visible:not(input):not(textarea):not(select) {
-  outline: 2px solid var(--color-terracotta);
+  outline: 2px solid #a813c9;
   outline-offset: 2px;
   border-radius: 4px;
 }

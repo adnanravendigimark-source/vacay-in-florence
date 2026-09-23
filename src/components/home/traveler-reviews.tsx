@@ -99,7 +99,7 @@ export function TravelerReviews() {
                 {/* Experience Link */}
                 <Link
                   href={rev.experienceHref}
-                  className="mt-3 block text-xs font-bold text-[#183528] hover:underline line-clamp-1"
+                  className="mt-3 block text-xs font-bold text-[#2b0934] hover:underline line-clamp-1"
                 >
                   {rev.experience}
                 </Link>

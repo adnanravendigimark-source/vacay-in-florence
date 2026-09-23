@@ -22,13 +22,6 @@ const MOSAIC_IMAGE: Record<string, string> = {
 };
 
 export function CategoriesHero({ categories }: CategoriesHeroProps) {
-  const scrollToCategory = (slug: string) => {
-    const el = document.getElementById(slug);
-    if (el) {
-      el.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
-  };
-
   const mosaicCategories = categories.slice(0, 5);
   const mobileCategory = categories[0];
 
@@ -63,9 +56,9 @@ export function CategoriesHero({ categories }: CategoriesHeroProps) {
             </div>
 
             {/* Main Title */}
-            <h1 className="font-display text-3xl sm:text-4xl md:text-5xl lg:text-[54px] font-normal leading-[1.1] tracking-tight text-[#142d22]">
+            <h1 className="font-display text-3xl sm:text-4xl md:text-5xl lg:text-[54px] font-normal leading-[1.1] tracking-tight text-[#2b0934]">
               Explore Florence by{" "}
-              <span className="italic font-normal font-display text-[#142d22]">Category</span>
+              <span className="italic font-normal font-display text-[#2b0934]">Category</span>
             </h1>
 
             {/* Subtitle */}
@@ -124,61 +117,6 @@ export function CategoriesHero({ categories }: CategoriesHeroProps) {
             </span>
           </Link>
         )}
-
-        {/* Value Highlights Pill Strip */}
-        <div className="mt-8 flex flex-wrap items-center gap-2.5 sm:gap-3 text-xs font-medium text-[#1f3a2c]">
-          <div className="inline-flex items-center gap-2 rounded-full bg-white px-3.5 py-1.5 shadow-xs border border-[#e5e0d8]">
-            <svg viewBox="0 0 20 20" className="h-4 w-4 text-emerald-600 fill-current">
-              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-            </svg>
-            <span>Official Priority Access</span>
-          </div>
-          <div className="inline-flex items-center gap-2 rounded-full bg-white px-3.5 py-1.5 shadow-xs border border-[#e5e0d8]">
-            <svg viewBox="0 0 20 20" className="h-4 w-4 text-emerald-600 fill-current">
-              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-            </svg>
-            <span>100% Free 24h Cancellation</span>
-          </div>
-          <div className="inline-flex items-center gap-2 rounded-full bg-white px-3.5 py-1.5 shadow-xs border border-[#e5e0d8]">
-            <svg viewBox="0 0 20 20" className="h-4 w-4 text-emerald-600 fill-current">
-              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-            </svg>
-            <span>Licensed Florentine Guides</span>
-          </div>
-          <div className="inline-flex items-center gap-2 rounded-full bg-white px-3.5 py-1.5 shadow-xs border border-[#e5e0d8]">
-            <svg viewBox="0 0 20 20" className="h-4 w-4 text-emerald-600 fill-current">
-              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-            </svg>
-            <span>Instant Mobile Vouchers</span>
-          </div>
-        </div>
-
-        {/* Quick Jump Category Anchor Bar */}
-        <div className="mt-8 pt-6 border-t border-[#e8e2d7]">
-          <div className="flex items-center justify-between gap-4 mb-3">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-neutral-500">
-              Jump to Category
-            </span>
-            <span className="text-xs text-neutral-400">
-              {categories.length} Collections Available
-            </span>
-          </div>
-          <div className="flex flex-wrap gap-2 sm:gap-2.5">
-            {categories.map((cat) => (
-              <button
-                key={cat.id}
-                type="button"
-                onClick={() => scrollToCategory(cat.slug)}
-                className="group inline-flex items-center gap-2 rounded-full bg-white hover:bg-[#142d22] px-3.5 py-2 text-xs font-semibold text-neutral-800 hover:text-white border border-[#e2ddd5] shadow-2xs hover:shadow-sm transition-all duration-200 cursor-pointer"
-              >
-                <span>{cat.name}</span>
-                <span className="rounded-full bg-neutral-100 group-hover:bg-white/20 px-1.5 py-0.5 text-[10px] font-bold text-neutral-600 group-hover:text-white transition-colors">
-                  {cat.productCount}
-                </span>
-              </button>
-            ))}
-          </div>
-        </div>
       </Container>
     </section>
   );

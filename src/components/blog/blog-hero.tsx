@@ -1,41 +1,58 @@
-import Link from "next/link";
+import Image from "next/image";
 import { Container } from "@/components/ui/container";
 import { BlogSearchBox } from "@/components/blog/blog-search-box";
 import type { BlogPageContent } from "@/lib/types";
 
-export function BlogHero({ content, initialQuery }: { content: BlogPageContent; initialQuery?: string }) {
+export function BlogHero({
+  content,
+  initialQuery,
+}: {
+  content: BlogPageContent;
+  initialQuery?: string;
+}) {
   return (
-    <section className="relative w-full bg-[#FAF8F5] pt-12 sm:pt-16 pb-10 sm:pb-14 border-b border-stone-dark/60 overflow-hidden">
-      <div className="absolute top-0 right-1/4 w-96 h-96 bg-gold-light/50 rounded-full blur-3xl pointer-events-none -z-10" />
-      <div className="absolute bottom-0 left-10 w-80 h-80 bg-cypress-light/60 rounded-full blur-3xl pointer-events-none -z-10" />
+    <section className="relative w-full overflow-hidden bg-[#FAF8F5] border-b border-stone-200/80">
+      {/* Background Panorama Image */}
+      <div className="absolute inset-0 z-0 select-none pointer-events-none">
+        <Image
+          src="/images/hero2-florence-panorama.jpg"
+          alt="Panoramic view of Florence and the Duomo"
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover object-right md:object-center"
+        />
+        {/* Soft light gradient mask for text contrast */}
+        <div className="absolute inset-0 bg-gradient-to-r from-[#FAF8F5] via-[#FAF8F5]/90 via-50% to-transparent" />
+        {/* Subtle bottom edge softness */}
+        <div className="absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-[#FAF8F5] to-transparent opacity-80" />
+      </div>
 
-      <Container className="relative z-10">
-        <nav aria-label="Breadcrumb" className="mb-6 text-xs text-ink-faint">
-          <ol className="flex items-center gap-2">
-            <li>
-              <Link href="/" className="hover:text-ink transition-colors">
-                Home
-              </Link>
-            </li>
-            <li className="text-stone-dark">/</li>
-            <li className="font-semibold text-ink">Travel Guide</li>
-          </ol>
-        </nav>
-
-        <div className="max-w-2xl">
-          <div className="inline-flex items-center gap-2 text-[11px] sm:text-xs font-bold tracking-[0.22em] text-ink-soft uppercase mb-3">
-            <span>{content.eyebrow}</span>
+      <Container className="relative z-10 pt-24 sm:pt-28 lg:pt-32 pb-16 sm:pb-20">
+        <div className="max-w-xl">
+          {/* Eyebrow — from the 'blog' CMS content block (cms_blocks), not
+              hardcoded, so an admin edit here is reflected on the site. */}
+          <div className="inline-block text-[11px] sm:text-xs font-bold tracking-[0.22em] text-neutral-500 uppercase mb-3.5">
+            {content.eyebrow}
           </div>
-          <h1 className="font-display text-3xl sm:text-4xl md:text-5xl font-normal leading-[1.1] tracking-tight text-cypress">
+
+          {/* Heading */}
+          <h1 className="font-display text-3xl sm:text-4xl md:text-5xl lg:text-[48px] font-bold text-neutral-900 leading-[1.12] tracking-tight">
             {content.heading}
           </h1>
-          <p className="mt-4 text-sm sm:text-base leading-relaxed text-ink-soft max-w-xl">{content.subheading}</p>
-        </div>
 
-        <div className="mt-8 max-w-md">
-          <BlogSearchBox placeholder={content.searchPlaceholder} initialQuery={initialQuery} />
+          {/* Subheading */}
+          <p className="mt-4 text-sm sm:text-base leading-relaxed text-neutral-600 max-w-lg">
+            {content.subheading}
+          </p>
+
+          {/* Search Box */}
+          <div className="mt-7 max-w-md">
+            <BlogSearchBox placeholder={content.searchPlaceholder} initialQuery={initialQuery} />
+          </div>
         </div>
       </Container>
     </section>
   );
 }
+

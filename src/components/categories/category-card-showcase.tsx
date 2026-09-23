@@ -181,12 +181,12 @@ function ShowcaseCard({
 
         {/* Floating Category Tag Badge */}
         <div className="absolute top-3 left-3 sm:top-4 sm:left-4 inline-flex items-center gap-1.5 rounded-full bg-white/95 backdrop-blur-md px-3 py-1.5 shadow-md border border-neutral-200/80 text-[11px] sm:text-xs font-bold text-neutral-900">
-          <span className="text-[#142d22]">{ICONS[category.icon]}</span>
+          <span className="text-[#2b0934]">{ICONS[category.icon]}</span>
           <span>{meta.tag}</span>
         </div>
 
         {/* Floating Experience Count Badge */}
-        <div className="absolute bottom-3 right-3 sm:bottom-4 sm:right-4 rounded-full bg-[#142d22]/90 backdrop-blur-md px-2.5 py-1 text-[10px] sm:text-xs font-semibold text-white shadow-md">
+        <div className="absolute bottom-3 right-3 sm:bottom-4 sm:right-4 rounded-full bg-[#2b0934]/90 backdrop-blur-md px-2.5 py-1 text-[10px] sm:text-xs font-semibold text-white shadow-md">
           {category.productCount} Experience{category.productCount === 1 ? "" : "s"} Available
         </div>
       </div>
@@ -204,13 +204,13 @@ function ShowcaseCard({
         </div>
 
         <h2
-          className={`font-display font-normal leading-tight text-[#142d22] ${
+          className={`font-display font-normal leading-tight text-[#2b0934] ${
             isFeatured ? "text-2xl sm:text-3xl" : isCompact ? "text-lg sm:text-xl" : "text-xl sm:text-2xl"
           }`}
         >
           <Link
             href={`/experiences/category/${category.slug}`}
-            className="hover:underline decoration-[#142d22]/40 underline-offset-4"
+            className="hover:underline decoration-[#2b0934]/40 underline-offset-4"
           >
             {category.name}
           </Link>
@@ -281,7 +281,7 @@ function ShowcaseCard({
         <div className="mt-auto pt-4 flex flex-wrap items-center gap-2.5">
           <Link
             href={`/experiences/category/${category.slug}`}
-            className={`group/cta inline-flex items-center justify-center gap-1.5 rounded-full bg-[#183528] hover:bg-[#0e241a] font-bold text-white shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer ${
+            className={`group/cta inline-flex items-center justify-center gap-1.5 rounded-full bg-[#2b0934] hover:bg-[#3d0d4a] font-bold text-white shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer ${
               isFeatured ? "px-6 py-3 text-xs sm:text-sm" : "px-4 py-2.5 text-[11px] sm:text-xs w-full sm:w-auto"
             }`}
           >
