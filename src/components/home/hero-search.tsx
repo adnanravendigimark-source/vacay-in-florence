@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { CalendarPicker } from "@/components/home/calendar-picker";
+import { useSearchAutocomplete } from "@/hooks/use-search-autocomplete";
 
 const DESTINATIONS = [
   { id: "florence-all", name: "Florence, Italy", sub: "All city attractions & tours" },
@@ -11,68 +12,6 @@ const DESTINATIONS = [
   { id: "oltrarno", name: "Oltrarno & Pitti Palace", sub: "Boboli Gardens & Artisans" },
   { id: "tuscany", name: "Tuscany & Chianti", sub: "Wine tasting & day trips" },
 ];
-
-// -----------------------------------------------------------------------
-// Smart search: DB-driven autocomplete (see /api/search and
-// src/lib/data/search.ts), replacing what used to be a hard-coded
-// SUGGESTIONS array. Rows are normalized to one common shape so product
-// results and category results render identically in the dropdown.
-// -----------------------------------------------------------------------
-
-interface SuggestionRow {
-  kind: "product" | "category";
-  id: string;
-  href: string;
-  title: string;
-  meta: string;
-}
-
-interface ApiProductSuggestion {
-  id: string;
-  slug: string;
-  title: string;
-  categoryName: string;
-  priceFrom: { amount: number; currency: string };
-}
-
-interface ApiCategorySuggestion {
-  id: string;
-  slug: string;
-  name: string;
-  productCount: number;
-}
-
-interface ApiSearchResponse {
-  query: string;
-  products: ApiProductSuggestion[];
-  categories: ApiCategorySuggestion[];
-  popular: { products: ApiProductSuggestion[]; categories: ApiCategorySuggestion[] };
-  error?: string;
-}
-
-function toProductRow(p: ApiProductSuggestion): SuggestionRow {
-  return {
-    kind: "product",
-    id: p.id,
-    href: `/experiences/${p.slug}`,
-    title: p.title,
-    meta: `${p.categoryName} · from €${Math.round(p.priceFrom.amount)}`,
-  };
-}
-
-function toCategoryRow(c: ApiCategorySuggestion): SuggestionRow {
-  return {
-    kind: "category",
-    id: c.id,
-    href: `/experiences/category/${c.slug}`,
-    title: c.name,
-    meta: `${c.productCount} experience${c.productCount === 1 ? "" : "s"}`,
-  };
-}
-
-// Debounce delay for autocomplete requests — short enough to feel live,
-// long enough that fast typing doesn't fire a request per keystroke.
-const SEARCH_DEBOUNCE_MS = 250;
 
 export function HeroSearch() {
   const router = useRouter();
@@ -86,58 +25,29 @@ export function HeroSearch() {
   const [openDropdown, setOpenDropdown] = useState<"destination" | "date" | "search" | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // --- Autocomplete state -------------------------------------------------
-  const [searchState, setSearchState] = useState<"idle" | "loading" | "success" | "empty" | "error">("idle");
-  const [productResults, setProductResults] = useState<SuggestionRow[]>([]);
-  const [categoryResults, setCategoryResults] = useState<SuggestionRow[]>([]);
-  const [isPopular, setIsPopular] = useState(false);
-  const [activeIndex, setActiveIndex] = useState(-1);
-  const abortRef = useRef<AbortController | null>(null);
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const runSearch = useCallback(async (q: string) => {
-    abortRef.current?.abort();
-    const controller = new AbortController();
-    abortRef.current = controller;
-    setSearchState("loading");
-
-    try {
-      const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`, { signal: controller.signal });
-      if (!res.ok) throw new Error(`Search request failed (${res.status})`);
-      const data: ApiSearchResponse = await res.json();
-
-      const usingPopular = q.trim().length < 2;
-      const products = usingPopular ? data.popular.products : data.products;
-      const categories = usingPopular ? data.popular.categories : data.categories;
-
-      setProductResults(products.map(toProductRow));
-      setCategoryResults(categories.map(toCategoryRow));
-      setIsPopular(usingPopular);
-      setActiveIndex(-1);
-      setSearchState(products.length === 0 && categories.length === 0 ? "empty" : "success");
-    } catch (error) {
-      if ((error as Error).name === "AbortError") return; // superseded by a newer keystroke
-      setSearchState("error");
-    }
-  }, []);
-
-  // Debounced fetch whenever the query changes while the search dropdown
-  // is open. Also fires once on focus (query === "") to populate the
-  // "Popular in Florence" panel from real data instead of static copy.
-  useEffect(() => {
-    if (openDropdown !== "search") return;
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => {
-      void runSearch(query);
-    }, query.trim().length === 0 ? 0 : SEARCH_DEBOUNCE_MS);
-    return () => {
-      if (debounceRef.current) clearTimeout(debounceRef.current);
-    };
-  }, [query, openDropdown, runSearch]);
-
-  useEffect(() => {
-    return () => abortRef.current?.abort();
-  }, []);
+  // Smart search: DB-driven autocomplete (see /api/search and
+  // src/lib/data/search.ts), shared with the /experiences hero via
+  // useSearchAutocomplete (src/hooks/use-search-autocomplete.ts).
+  const {
+    searchState,
+    productResults,
+    categoryResults,
+    isPopular,
+    activeIndex,
+    setActiveIndex,
+    flatResults,
+    goToSuggestion,
+    handleSearchKeyDown,
+    runSearch,
+  } = useSearchAutocomplete({
+    query,
+    active: openDropdown === "search",
+    onNavigate: (href) => {
+      setOpenDropdown(null);
+      router.push(href);
+    },
+    onEscape: () => setOpenDropdown(null),
+  });
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -149,36 +59,19 @@ export function HeroSearch() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const flatResults: SuggestionRow[] = [...productResults, ...categoryResults];
-
-  const goToSuggestion = (row: SuggestionRow) => {
-    setOpenDropdown(null);
-    router.push(row.href);
-  };
-
-  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (openDropdown !== "search" || flatResults.length === 0) return;
-    if (e.key === "ArrowDown") {
-      e.preventDefault();
-      setActiveIndex((i) => (i + 1) % flatResults.length);
-    } else if (e.key === "ArrowUp") {
-      e.preventDefault();
-      setActiveIndex((i) => (i <= 0 ? flatResults.length - 1 : i - 1));
-    } else if (e.key === "Enter" && activeIndex >= 0) {
-      e.preventDefault();
-      goToSuggestion(flatResults[activeIndex]);
-    } else if (e.key === "Escape") {
-      setOpenDropdown(null);
-    }
-  };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const params = new URLSearchParams();
     if (query) params.set("q", query);
     if (destination && destination !== "Florence, Italy") params.set("dest", destination);
     if (selectedDate) {
-      params.set("date", selectedDate.toISOString().split("T")[0]);
+      // Build the date string from local Y/M/D components (not toISOString,
+      // which converts to UTC and can shift the date back a day in
+      // timezones behind UTC).
+      const year = selectedDate.getFullYear();
+      const month = String(selectedDate.getMonth() + 1).padStart(2, "0");
+      const day = String(selectedDate.getDate()).padStart(2, "0");
+      params.set("date", `${year}-${month}-${day}`);
     }
     router.push(`/experiences?${params.toString()}`);
   };

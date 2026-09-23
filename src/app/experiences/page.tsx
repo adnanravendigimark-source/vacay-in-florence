@@ -29,7 +29,7 @@ export default async function ExperiencesPage({
   const page = Number.parseInt(params.page ?? "1", 10) || 1;
 
   const [result, categories] = await Promise.all([
-    searchProducts({ q: combinedQuery, date: params.date, sort, page, pageSize: 8 }),
+    searchProducts({ q: combinedQuery, date: params.date, sort, page, pageSize: 10 }),
     getAllCategories(),
   ]);
 
@@ -39,8 +39,18 @@ export default async function ExperiencesPage({
       ? `Experiences near ${params.dest}`
       : undefined;
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: "/" },
+      { "@type": "ListItem", position: 2, name: "Experiences", item: "/experiences" },
+    ],
+  };
+
   return (
     <main className="w-full">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       {/* Golden Sunset Florence Hero Banner */}
       <ExperiencesHero />
 

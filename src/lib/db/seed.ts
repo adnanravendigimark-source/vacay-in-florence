@@ -19,6 +19,7 @@ import {
   privacyPolicyContent,
   termsContent,
   cancellationPolicyContent,
+  blogPageContent,
 } from "../data/seed/site-content";
 
 /**
@@ -196,7 +197,7 @@ export async function seedDatabase(targetDb: NodePgDatabase<typeof schema> = db)
       featured: true,
       featuredRank: 1,
       badges: ["skip-the-line", "instant-confirmation", "best-seller"],
-      images: ["/images/uffizi-corridor.jpg"],
+      images: ["/images/uffizi-corridor.jpg", "/images/botticelli-venus.jpg", "/images/uffizi-courtyard.jpg", "/images/hero2-uffizi-corridor.jpg"],
       options: [
         { name: "Adult", description: "Ages 18+", priceAmount: 29 },
         { name: "Youth (18-25, EU citizen)", description: "Reduced-rate EU youth ticket", priceAmount: 15 },
@@ -227,7 +228,7 @@ export async function seedDatabase(targetDb: NodePgDatabase<typeof schema> = db)
       featured: true,
       featuredRank: 2,
       badges: ["top-rated", "instant-confirmation", "best-seller"],
-      images: ["/images/accademia-david.jpg"],
+      images: ["/images/accademia-david.jpg", "/images/hero-david.jpg", "/images/florence-art-lives-here.jpg", "/images/pitti-palace.jpg"],
       options: [
         { name: "Adult", description: "Ages 18+", priceAmount: 24 },
         { name: "Child (under 18)", description: "Free entry, ticket still required", priceAmount: 4 },
@@ -258,7 +259,7 @@ export async function seedDatabase(targetDb: NodePgDatabase<typeof schema> = db)
       featured: true,
       featuredRank: 3,
       badges: ["skip-the-line", "small-group", "best-seller"],
-      images: ["/images/duomo-tour.jpg"],
+      images: ["/images/duomo-tour.jpg", "/images/hero2-duomo-terrace.jpg", "/images/hero2-duomo-vertical.jpg", "/images/hero-florence-duomo.jpg"],
       options: [{ name: "Adult", description: "Ages 18+", priceAmount: 45 }],
     },
     {
@@ -286,7 +287,7 @@ export async function seedDatabase(targetDb: NodePgDatabase<typeof schema> = db)
       featured: true,
       featuredRank: 4,
       badges: ["free-cancellation", "best-seller"],
-      images: ["/images/chianti-hills.jpg"],
+      images: ["/images/chianti-hills.jpg", "/images/hero2-chianti-wine.jpg", "/images/auth-tuscany-balloons.jpg", "/images/hero2-florence-panorama.jpg"],
       options: [{ name: "Adult (18+, wine tasting included)", description: "Includes all tastings", priceAmount: 89 }],
     },
     {
@@ -314,7 +315,7 @@ export async function seedDatabase(targetDb: NodePgDatabase<typeof schema> = db)
       featured: true,
       featuredRank: 5,
       badges: ["small-group", "free-cancellation"],
-      images: ["/images/ponte-vecchio.jpg"],
+      images: ["/images/ponte-vecchio.jpg", "/images/hero2-water-sky.jpg", "/images/adventure-banner.jpg", "/images/hero2-florence-inner.jpg"],
       options: [{ name: "Adult", description: "Ages 14+", priceAmount: 52 }],
     },
     {
@@ -342,7 +343,7 @@ export async function seedDatabase(targetDb: NodePgDatabase<typeof schema> = db)
       featured: true,
       featuredRank: 6,
       badges: ["food-wine", "small-group", "best-seller"],
-      images: ["/images/italian-cooking.jpg"],
+      images: ["/images/italian-cooking.jpg", "/images/tuscan-food.jpg", "/images/hero-food-wine.jpg", "/images/hero2-florence-gate.jpg"],
       options: [{ name: "Adult", description: "Ages 12+", priceAmount: 68 }],
     },
     {
@@ -370,7 +371,7 @@ export async function seedDatabase(targetDb: NodePgDatabase<typeof schema> = db)
       featured: true,
       featuredRank: 7,
       badges: ["popular", "free-cancellation", "instant-confirmation"],
-      images: ["/images/pisa-tower.jpg"],
+      images: ["/images/pisa-tower.jpg", "/images/hero-day-trips.jpg", "/images/hero2-portal-door.jpg", "/images/florence-hero.jpg"],
       options: [
         { name: "Adult", description: "Ages 18+", priceAmount: 62 },
         { name: "Child (6-17)", description: "Accompanied by an adult", priceAmount: 45 },
@@ -401,7 +402,7 @@ export async function seedDatabase(targetDb: NodePgDatabase<typeof schema> = db)
       featured: true,
       featuredRank: 8,
       badges: ["new", "small-group"],
-      images: ["/images/florence-hero.jpg"],
+      images: ["/images/hero2-guided-tour.jpg", "/images/auth-florence-duomo.jpg", "/images/ponte-vecchio.jpg", "/images/duomo-tour.jpg"],
       options: [
         { name: "Adult", description: "Ages 18+", priceAmount: 38 },
         { name: "Child (6-17)", description: "Accompanied by an adult", priceAmount: 20 },
@@ -498,11 +499,18 @@ export async function seedDatabase(targetDb: NodePgDatabase<typeof schema> = db)
         title: "48 Hours in Florence: The Perfect First-Time Itinerary",
         excerpt:
           "How to fit the Duomo, the Uffizi, and a sunset at Piazzale Michelangelo into one tight weekend without rushing.",
+        category: "Itineraries",
+        author: "VACAY Florence Editorial",
+        quickAnswer:
+          "Day one: Duomo early, then a pre-booked Uffizi slot, Piazza della Signoria, and sunset at Piazzale Michelangelo. Day two: the Accademia in the morning, then the Oltrarno in the afternoon. Skip day trips — two days is tight enough for Florence alone.",
         body:
           "Florence rewards a slower pace than most first-time visitors give it, but 48 hours is enough to see the essentials without feeling rushed if you plan the order carefully.\n\n" +
-          "Day one: start early at the Duomo before the piazza fills up, then walk the few minutes to the Uffizi for a pre-booked skip-the-line slot — booking ahead here isn't optional in peak season, the standby line regularly runs past two hours. Spend the afternoon around Piazza della Signoria and the Ponte Vecchio, then head up to Piazzale Michelangelo for sunset over the city.\n\n" +
-          "Day two: the Accademia in the morning for Michelangelo's David, then cross the river into the Oltrarno neighborhood for a quieter afternoon — the Pitti Palace and Boboli Gardens, or just wandering the artisan workshops on Via Maggio.\n\n" +
-          "The one mistake worth avoiding: trying to add a day trip to Pisa or Siena into this window. Two days is tight enough for Florence itself — save the countryside for a return trip or an extra day.",
+          "## Day One: The Renaissance Core\n\n" +
+          "Start early at the Duomo before the piazza fills up, then walk the few minutes to the Uffizi for a pre-booked skip-the-line slot — booking ahead here isn't optional in peak season, the standby line regularly runs past two hours. Spend the afternoon around Piazza della Signoria and the Ponte Vecchio, then head up to Piazzale Michelangelo for sunset over the city.\n\n" +
+          "## Day Two: The Oltrarno Side\n\n" +
+          "The Accademia in the morning for Michelangelo's David, then cross the river into the Oltrarno neighborhood for a quieter afternoon — the Pitti Palace and Boboli Gardens, or just wandering the artisan workshops on Via Maggio.\n\n" +
+          "## The One Mistake Worth Avoiding\n\n" +
+          "Trying to add a day trip to Pisa or Siena into this window. Two days is tight enough for Florence itself — save the countryside for a return trip or an extra day.",
         coverImageUrl: "/images/duomo-tour.jpg",
         coverImageAlt: "Illustration of Florence's Duomo dome",
         readingTimeMinutes: 6,
@@ -514,6 +522,10 @@ export async function seedDatabase(targetDb: NodePgDatabase<typeof schema> = db)
         title: "Skip-the-Line vs. Standard Tickets: What Actually Saves You Time",
         excerpt:
           "Real queue times at the Uffizi and the Accademia, and when a skip-the-line ticket is worth the extra cost.",
+        category: "Tickets & Tips",
+        author: "VACAY Florence Editorial",
+        quickAnswer:
+          "Book ahead for the Accademia always — it can sell out entirely. Book ahead for the Uffizi whenever you're visiting between April and October, when the standard line can run past 90 minutes.",
         body:
           "\"Skip-the-line\" gets used loosely enough in travel marketing that it's worth asking, for each specific site, what it actually saves you.\n\n" +
           "At the Uffizi, the standard ticket line in July or August regularly runs 90 minutes to two hours. A skip-the-line ticket gets you to a separate, much shorter entrance queue — usually under 15 minutes. That gap is real and, in peak season, worth the small premium.\n\n" +
@@ -530,12 +542,20 @@ export async function seedDatabase(targetDb: NodePgDatabase<typeof schema> = db)
         title: "5 Day Trips From Florence Worth the Train Ticket",
         excerpt:
           "Siena, San Gimignano, Pisa, Chianti, and Cinque Terre — how far each one is and how to plan the day around it.",
+        category: "Day Trips",
+        author: "VACAY Florence Editorial",
+        quickAnswer:
+          "Siena and Pisa are the easiest half-day-to-full-day trips by train. San Gimignano and Chianti need a car or guided tour. Cinque Terre is a long day — roughly 3 hours each way — so plan an early departure.",
         body:
           "Florence's train connections make it one of the best bases in Italy for day trips, but not every destination is realistic in a single day.\n\n" +
+          "## Siena and San Gimignano\n\n" +
           "Siena (about 1h15 by bus, longer by train via Empoli) is comfortably doable, with the Piazza del Campo and the Duomo worth a half day on their own. San Gimignano has no direct train — a bus or guided tour is the practical option, and it pairs naturally with Siena in a combined day.\n\n" +
+          "## Pisa\n\n" +
           "Pisa is a straightforward hour by train, and while the Leaning Tower itself takes 20 minutes to see, the surrounding Piazza dei Miracoli is worth a couple of hours.\n\n" +
+          "## Chianti\n\n" +
           "Chianti has no train station worth using — this is a car, guided tour, or nothing kind of trip, but it's the closest thing to a full countryside day, with vineyards a short drive from the city center.\n\n" +
-          "Cinque Terre is the outlier: roughly 3 hours each way by train, which makes it a long day rather than a relaxed one. Worth it once, but plan for an early departure and a late return.",
+          "## Cinque Terre\n\n" +
+          "The outlier: roughly 3 hours each way by train, which makes it a long day rather than a relaxed one. Worth it once, but plan for an early departure and a late return.",
         coverImageUrl: "/images/chianti-hills.jpg",
         coverImageAlt: "Illustration of a cypress-lined Tuscan road",
         readingTimeMinutes: 7,
@@ -553,6 +573,7 @@ export async function seedDatabase(targetDb: NodePgDatabase<typeof schema> = db)
   await targetDb.insert(cmsBlocks).values([
     { key: "homepage", content: homepageContent, updatedBy: "seed" },
     { key: "about", content: aboutPageContent, updatedBy: "seed" },
+    { key: "blog", content: blogPageContent, updatedBy: "seed" },
     { key: "privacy-policy", content: privacyPolicyContent, updatedBy: "seed" },
     { key: "terms-conditions", content: termsContent, updatedBy: "seed" },
     { key: "cancellation-policy", content: cancellationPolicyContent, updatedBy: "seed" },

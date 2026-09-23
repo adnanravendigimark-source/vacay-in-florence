@@ -4,7 +4,8 @@ import { AuthCard, FormField, FormError, SubmitButton } from "@/components/auth/
 import { registerAction } from "./actions";
 
 export const metadata: Metadata = {
-  title: "Create an Account",
+  title: "Join VACAY Florence | Travel with us",
+  description: "Join VACAY Florence to book skip-the-line tickets, guided tours, and save your Florentine itineraries.",
   robots: { index: false },
 };
 
@@ -17,25 +18,64 @@ export default async function RegisterPage({
 
   return (
     <AuthCard
-      title="Create your account"
-      subtitle="Save your bookings and check out faster next time."
-      footer={
-        <p>
-          Already have an account?{" "}
-          <Link href="/login" className="font-semibold text-cypress hover:underline">
-            Sign in
-          </Link>
-        </p>
-      }
+      activeTab="register"
+      title="Travel with us"
+      subtitle="Join us today"
     >
       <form action={registerAction} className="space-y-4">
         <FormError message={error} />
-        <FormField label="Full name" name="name" autoComplete="name" />
-        <FormField label="Email" name="email" type="email" autoComplete="email" defaultValue={email} />
-        <FormField label="Password" name="password" type="password" autoComplete="new-password" />
-        <FormField label="Confirm password" name="confirmPassword" type="password" autoComplete="new-password" />
-        <p className="text-xs text-ink-faint">Must be at least 8 characters.</p>
-        <SubmitButton label="Create account" />
+        
+        <FormField
+          label="Full name"
+          name="name"
+          autoComplete="name"
+          placeholder="e.g. Leonardo da Vinci"
+        />
+
+        <FormField
+          label="Email address"
+          name="email"
+          type="email"
+          autoComplete="email"
+          defaultValue={email}
+          placeholder="your.email@example.com"
+        />
+
+        <FormField
+          label="Password"
+          name="password"
+          type="password"
+          autoComplete="new-password"
+          placeholder="At least 8 characters"
+        />
+
+        <FormField
+          label="Confirm password"
+          name="confirmPassword"
+          type="password"
+          autoComplete="new-password"
+          placeholder="Repeat your password"
+        />
+
+        <p className="text-xs text-neutral-500 leading-relaxed pt-1">
+          By signing up, you agree to the{" "}
+          <Link href="/terms" className="underline hover:text-neutral-900">
+            Terms of Service
+          </Link>{" "}
+          and{" "}
+          <Link href="/privacy" className="underline hover:text-neutral-900">
+            Privacy Policy
+          </Link>
+          , including{" "}
+          <Link href="/privacy#cookies" className="underline hover:text-neutral-900">
+            cookie use
+          </Link>
+          .
+        </p>
+
+        <div className="pt-2">
+          <SubmitButton label="Sign up with email" />
+        </div>
       </form>
     </AuthCard>
   );

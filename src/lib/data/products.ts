@@ -203,19 +203,6 @@ export async function getFeaturedExperiences(limit = 6): Promise<ProductCardSumm
   return attachPrimaryImages(rows);
 }
 
-export async function getPopularAttractions(limit = 4): Promise<ProductCardSummary[]> {
-  const rows = await baseSelect()
-    .where(
-      and(
-        eq(products.status, "live"),
-        inArray(categories.slug, ["skip-the-line-attractions", "museums-galleries"]),
-      ),
-    )
-    .orderBy(asc(products.featuredRank))
-    .limit(limit);
-  return attachPrimaryImages(rows);
-}
-
 export type ProductSortOption = "recommended" | "price-asc" | "price-desc" | "rating";
 
 export interface SearchProductsParams {

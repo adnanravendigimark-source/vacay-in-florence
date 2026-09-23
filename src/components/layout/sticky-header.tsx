@@ -13,6 +13,7 @@ export function StickyHeader({
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
   const isHome = pathname === "/";
+  const isHeroPage = pathname === "/" || pathname.startsWith("/experiences");
 
   useEffect(() => {
     const handleScroll = () => {
@@ -26,7 +27,7 @@ export function StickyHeader({
   return (
     <header
       className={`sticky top-0 z-50 w-full transition-all duration-300 ${
-        isHome
+        isHeroPage
           ? scrolled
             ? "bg-white/95 backdrop-blur-md shadow-sm border-b border-neutral-200/80 py-0"
             : "bg-transparent -mb-20 border-0 py-1"

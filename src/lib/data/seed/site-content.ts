@@ -1,4 +1,4 @@
-import type { HomepageContent } from "@/lib/types";
+import type { HomepageContent, BlogPageContent } from "@/lib/types";
 
 /**
  * Placeholder for the `cms_blocks` row keyed "homepage" that the Master
@@ -247,4 +247,15 @@ export const cancellationPolicyContent: LegalPageContent = {
       ],
     },
   ],
+};
+
+/** Same cms_blocks pattern as homepageContent — see getBlogPageContent(). */
+export const blogPageContent: BlogPageContent = {
+  eyebrow: "Florence Travel Guide",
+  heading: "Plan your Florence trip like a local",
+  subheading:
+    "Practical itineraries, honest ticket advice, and day-trip planning — written to help you plan a trip, not to sell you one specific tour.",
+  searchPlaceholder: "Search articles...",
+  emptyStateTitle: "No articles match your search",
+  emptyStateDescription: "Try a different keyword or browse all categories instead.",
 };

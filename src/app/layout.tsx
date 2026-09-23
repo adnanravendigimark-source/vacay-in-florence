@@ -3,6 +3,8 @@ import "./globals.css";
 import { SiteHeader } from "@/components/layout/site-header";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { AuthSessionProvider } from "@/components/auth/session-provider";
+import { AuthModalProvider } from "@/components/auth/auth-modal-context";
+import { AuthModal } from "@/components/auth/auth-modal";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.vacayinflorence.com";
 
@@ -52,11 +54,14 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           Skip to content
         </a>
         <AuthSessionProvider>
-          <SiteHeader />
-          <main id="main-content" className="flex-1">
-            {children}
-          </main>
-          <SiteFooter />
+          <AuthModalProvider>
+            <SiteHeader />
+            <main id="main-content" className="flex-1">
+              {children}
+            </main>
+            <SiteFooter />
+            <AuthModal />
+          </AuthModalProvider>
         </AuthSessionProvider>
       </body>
     </html>

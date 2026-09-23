@@ -56,7 +56,7 @@ export default async function CategoryPage({
   const page = Number.parseInt(search.page ?? "1", 10) || 1;
 
   const [result, allCategories] = await Promise.all([
-    searchProducts({ categorySlug: category.slug, sort, page, pageSize: 8 }),
+    searchProducts({ categorySlug: category.slug, sort, page, pageSize: 10 }),
     getAllCategories(),
   ]);
 

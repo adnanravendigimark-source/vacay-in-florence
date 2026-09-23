@@ -67,9 +67,16 @@ export interface BlogPostSummary {
   slug: string;
   title: string;
   excerpt: string;
+  category: string;
   readingTimeMinutes: number;
   publishedAt: string;
   image: PlaceholderImage;
+}
+
+export interface BlogCategorySummary {
+  name: string;
+  slug: string;
+  postCount: number;
 }
 
 export interface TrustHighlight {
@@ -122,4 +129,18 @@ export interface LegalPageContent {
   effectiveDate: string;
   intro: string;
   sections: { heading: string; body: string[] }[];
+}
+
+/**
+ * CMS-managed copy for the /blog hero banner — same cms_blocks pattern
+ * (key "blog") as HomepageContent/AboutPageContent, see
+ * src/lib/data/site-content.ts.
+ */
+export interface BlogPageContent {
+  eyebrow: string;
+  heading: string;
+  subheading: string;
+  searchPlaceholder: string;
+  emptyStateTitle: string;
+  emptyStateDescription: string;
 }

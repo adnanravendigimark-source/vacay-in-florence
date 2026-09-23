@@ -1,13 +1,14 @@
 import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { cmsBlocks } from "@/lib/db/schema";
-import type { HomepageContent, AboutPageContent, LegalPageContent } from "@/lib/types";
+import type { HomepageContent, AboutPageContent, LegalPageContent, BlogPageContent } from "@/lib/types";
 import {
   homepageContent as fallbackHomepageContent,
   aboutPageContent as fallbackAboutPageContent,
   privacyPolicyContent as fallbackPrivacyPolicyContent,
   termsContent as fallbackTermsContent,
   cancellationPolicyContent as fallbackCancellationPolicyContent,
+  blogPageContent as fallbackBlogPageContent,
 } from "@/lib/data/seed/site-content";
 
 /**
@@ -28,6 +29,13 @@ export async function getAboutPageContent(): Promise<AboutPageContent> {
   const [row] = await db.select().from(cmsBlocks).where(eq(cmsBlocks.key, "about"));
   if (!row) return fallbackAboutPageContent;
   return row.content as AboutPageContent;
+}
+
+/** Same CMS-block pattern as the homepage — backs the /blog hero banner. */
+export async function getBlogPageContent(): Promise<BlogPageContent> {
+  const [row] = await db.select().from(cmsBlocks).where(eq(cmsBlocks.key, "blog"));
+  if (!row) return fallbackBlogPageContent;
+  return row.content as BlogPageContent;
 }
 
 const LEGAL_FALLBACKS: Record<string, LegalPageContent> = {

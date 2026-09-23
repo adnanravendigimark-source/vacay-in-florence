@@ -205,11 +205,47 @@ export const blogPosts = pgTable(
     readingTimeMinutes: integer("reading_time_minutes").notNull().default(4),
     tags: jsonb("tags").$type<string[]>().notNull().default([]),
     publishedAt: timestamp("published_at", { mode: "date" }),
+
+    // Taxonomy + attribution — category drives the /blog/category/[slug]
+    // filter pills (grouped by this text column rather than a dedicated
+    // categories table: post volume doesn't justify the extra join, and
+    // this mirrors how the Amsterdam reference repo's blog models category
+    // too). Author is a display label, not a user/account FK — the blog
+    // has no per-author accounts yet.
+    category: text("category").notNull().default("Travel Tips"),
+    author: text("author").notNull().default("VACAY Florence Editorial"),
+
+    // Optional single-sentence callout rendered at the top of the article
+    // (an AI-search/snippet-friendly direct answer) — empty string means
+    // "don't render it".
+    quickAnswer: text("quick_answer").notNull().default(""),
+
+    // Per-post SEO overrides, all optional — resolved against sensible
+    // fallbacks (title/excerpt/cover image) by src/lib/seo.ts so existing
+    // posts with no overrides set still get correct metadata.
+    metaTitle: text("meta_title"),
+    metaDescription: text("meta_description"),
+    canonicalUrl: text("canonical_url"),
+    ogImage: text("og_image"),
+    noIndex: boolean("no_index").notNull().default(false),
+    noFollow: boolean("no_follow").notNull().default(false),
+
+    // Bottom-of-article conversion card — defaults point at the general
+    // catalog so every post has a working CTA even before anyone
+    // customizes it per post.
+    ctaHeading: text("cta_heading").notNull().default("Ready to plan your Florence trip?"),
+    ctaBody: text("cta_body")
+      .notNull()
+      .default("Browse skip-the-line tickets, guided tours, and day trips — booked in minutes, free cancellation up to 24h before."),
+    ctaButtonText: text("cta_button_text").notNull().default("Browse experiences"),
+    ctaButtonHref: text("cta_button_href").notNull().default("/experiences"),
+
     ...timestamps,
   },
   (t) => [
     uniqueIndex("blog_posts_slug_idx").on(t.slug),
     index("blog_posts_published_idx").on(t.publishedAt),
+    index("blog_posts_category_idx").on(t.category),
   ],
 );
 

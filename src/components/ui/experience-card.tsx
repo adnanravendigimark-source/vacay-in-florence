@@ -17,22 +17,25 @@ export function ExperienceCard({
   const primaryBadge = product.badges?.[0] || "skip-the-line";
 
   return (
-    <div className="group relative flex flex-col h-full overflow-hidden rounded-2xl bg-white border border-neutral-200/85 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+    <div className="group relative flex flex-col h-full overflow-hidden rounded-2xl bg-white border border-[#e8e3d8] shadow-[0_4px_20px_rgba(0,0,0,0.03)] hover:shadow-[0_16px_36px_rgba(0,0,0,0.09)] hover:-translate-y-1 transition-all duration-300">
       {/* Clickable Card Link covering whole card */}
       <Link href={`/experiences/${product.slug}`} className="absolute inset-0 z-0" aria-label={product.title}>
         <span className="sr-only">View {product.title}</span>
       </Link>
 
-      {/* Image Container */}
-      <div className="relative aspect-[4/3] w-full overflow-hidden bg-neutral-100">
+      {/* Image Container with Editorial Aspect Ratio */}
+      <div className="relative aspect-[4/3] w-full overflow-hidden bg-[#f4f2ec]">
         <Image
           src={product.image.src}
           alt={product.image.alt || product.title}
           fill
           priority={priority}
           sizes="(min-width: 1280px) 280px, (min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
-          className="object-cover transition-transform duration-500 group-hover:scale-105"
+          className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
         />
+
+        {/* Soft Vignette Overlay on Hover */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
 
         {/* Top-Left Category Badge */}
         <div className="absolute left-3 top-3 z-10 pointer-events-none">
@@ -50,7 +53,7 @@ export function ExperienceCard({
           className={`absolute right-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-full backdrop-blur-md transition-all cursor-pointer ${
             isLiked
               ? "bg-rose-500 text-white shadow-md scale-110"
-              : "bg-black/30 hover:bg-black/50 text-white border border-white/30"
+              : "bg-black/35 hover:bg-black/55 text-white border border-white/35"
           }`}
           aria-label="Add to wishlist"
         >
@@ -74,59 +77,62 @@ export function ExperienceCard({
       <div className="flex flex-1 flex-col p-4 sm:p-4.5 justify-between pointer-events-none">
         <div>
           {/* Category Tag */}
-          <div className="text-[10px] sm:text-[10.5px] font-bold tracking-[0.14em] uppercase text-neutral-400">
-            {product.categoryName || "MUSEUMS & GALLERIES"}
+          <div className="text-[10px] sm:text-[10.5px] font-bold tracking-[0.14em] uppercase text-[#738076]">
+            {product.categoryName}
           </div>
 
           {/* Title */}
-          <h3 className="font-display text-[16px] sm:text-[17px] font-semibold text-neutral-900 leading-snug line-clamp-2 mt-1 mb-2 group-hover:text-amber-900 transition-colors">
+          <h3 className="font-display text-[16px] sm:text-[17px] font-semibold text-neutral-900 leading-snug line-clamp-2 mt-1 mb-2 group-hover:text-[#142d22] transition-colors">
             {product.title}
           </h3>
 
-          {/* Star Rating & Review Count */}
+          {/* Star Rating & Review Count (honest empty state — never fabricates a rating) */}
           <div className="flex items-center gap-1.5 text-xs text-neutral-600 mb-2.5">
-            <span className="text-amber-500 text-sm">★</span>
-            <span className="font-bold text-neutral-900">
-              {product.ratingAverage ? product.ratingAverage.toFixed(1) : "4.8"}
-            </span>
-            <span className="text-neutral-400 text-[11px]">
-              ({product.reviewCount ? product.reviewCount.toLocaleString() : "1,240"} reviews)
-            </span>
+            {product.ratingAverage ? (
+              <>
+                <span className="text-amber-500 text-sm">★</span>
+                <span className="font-bold text-neutral-900">{product.ratingAverage.toFixed(1)}</span>
+                <span className="text-neutral-400 text-[11px]">
+                  ({product.reviewCount.toLocaleString()} reviews)
+                </span>
+              </>
+            ) : (
+              <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10.5px] font-bold text-emerald-700 border border-emerald-200/60">
+                New
+              </span>
+            )}
           </div>
 
-          {/* Meta Details: Duration & Group Type */}
-          <div className="flex items-center gap-3 text-xs text-neutral-500 pb-3">
+          {/* Meta Details: Duration & Free Cancellation */}
+          <div className="flex items-center gap-3 text-xs text-[#667268] pb-3">
             <div className="flex items-center gap-1">
               <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 fill-none stroke-current stroke-[1.85]">
                 <circle cx="12" cy="12" r="10" />
                 <polyline points="12 6 12 12 16 14" />
               </svg>
-              <span>{product.durationLabel || "2 hours"}</span>
+              <span>{product.durationLabel}</span>
             </div>
             <span className="text-neutral-300">•</span>
-            <div className="flex items-center gap-1">
-              <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 fill-none stroke-current stroke-[1.85]">
-                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                <circle cx="9" cy="7" r="4" />
-                <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+            <div className="flex items-center gap-1 text-emerald-700 font-medium">
+              <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 fill-none stroke-current stroke-[2]">
+                <polyline points="20 6 9 17 4 12" />
               </svg>
-              <span>Small group</span>
+              <span>Free Cancel</span>
             </div>
           </div>
         </div>
 
-        {/* Card Footer: Price & Arrow Button */}
-        <div className="mt-auto pt-3 border-t border-neutral-100 flex items-center justify-between">
+        {/* Card Footer: Price & Direct Arrow Button */}
+        <div className="mt-auto pt-3 border-t border-[#ede9e1] flex items-center justify-between">
           <div className="flex items-baseline gap-1 text-xs text-neutral-500">
-            <span>From</span>
+            <span className="text-[11px]">From</span>
             <span className="font-display text-lg sm:text-xl font-bold text-neutral-900">
               €{product.priceFrom.amount}
             </span>
-            <span className="text-[11px] text-neutral-400">per person</span>
+            <span className="text-[11px] text-neutral-400">/ person</span>
           </div>
 
-          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-neutral-100 text-neutral-600 group-hover:bg-[#132319] group-hover:text-white transition-colors duration-200">
+          <div className="flex h-7.5 w-7.5 items-center justify-center rounded-full bg-[#f4f2ec] text-[#142d22] group-hover:bg-[#142d22] group-hover:text-white transition-all duration-200 shadow-xs">
             <svg viewBox="0 0 20 20" className="h-3.5 w-3.5 fill-none stroke-current stroke-[2.2]">
               <path d="M4 10h12M11 5l5 5-5 5" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
