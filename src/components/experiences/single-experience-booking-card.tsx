@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect, useRef, useActionState } from "react";
-import { addToCartAction, type AddToCartState } from "@/app/experiences/[slug]/actions";
+import { addToCartAction, type AddToCartState } from "@/app/(public)/experiences/[slug]/actions";
 import type { ProductOptionSummary } from "@/lib/data/products";
 import { notifyCartUpdated } from "@/lib/cart-events";
 

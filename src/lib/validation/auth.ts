@@ -43,6 +43,16 @@ export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
 export const profileUpdateSchema = z.object({
   name: z.string().trim().min(2, "Enter your full name.").max(100),
   email: z.string().trim().toLowerCase().email("Enter a valid email address."),
+  // Set only via the real photo upload (Vercel Blob) — optional/nullable
+  // since not every account has uploaded a photo.
+  avatarUrl: z
+    .string()
+    .trim()
+    .url("Enter a valid image URL.")
+    .max(2000)
+    .optional()
+    .or(z.literal(""))
+    .transform((v) => (v ? v : null)),
 });
 
 export const changePasswordSchema = z

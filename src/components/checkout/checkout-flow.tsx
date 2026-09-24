@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { placeOrderAction } from "@/app/checkout/actions";
+import { placeOrderAction } from "@/app/(public)/checkout/actions";
 import type { CartSummary } from "@/lib/data/cart";
 
 const priceFormatter = new Intl.NumberFormat("en-IE", { style: "currency", currency: "EUR" });
@@ -29,10 +29,10 @@ export function CheckoutFlow({
 
   // Step 2: Payment state
   const [paymentMethod, setPaymentMethod] = useState<"card" | "paypal" | "apple_pay">("card");
-  const [cardNumber, setCardNumber] = useState("1234 5678 9012 3456");
-  const [cardExpiry, setCardExpiry] = useState("12/28");
-  const [cardCvv, setCardCvv] = useState("123");
-  const [cardholderName, setCardholderName] = useState(initialUser.name || "Adnan Khan");
+  const [cardNumber, setCardNumber] = useState("");
+  const [cardExpiry, setCardExpiry] = useState("");
+  const [cardCvv, setCardCvv] = useState("");
+  const [cardholderName, setCardholderName] = useState(initialUser.name ?? "");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleDetailsSubmit = (e: React.FormEvent) => {

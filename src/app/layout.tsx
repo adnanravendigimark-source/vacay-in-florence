@@ -1,10 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
-import { SiteHeader } from "@/components/layout/site-header";
-import { SiteFooter } from "@/components/layout/site-footer";
 import { AuthSessionProvider } from "@/components/auth/session-provider";
-import { AuthModalProvider } from "@/components/auth/auth-modal-context";
-import { AuthModal } from "@/components/auth/auth-modal";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.vacayinflorence.com";
 
@@ -43,26 +39,18 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
+// Trimmed to the bare shell every route needs (HTML/body, global metadata,
+// the NextAuth session provider). The public marketing chrome
+// (SiteHeader/SiteFooter/AuthModal*) previously lived here but moved to
+// src/app/(public)/layout.tsx so the admin panel (src/app/admin/*) can
+// render its own shell instead of inheriting the public site's header,
+// footer, and login modal. Route groups don't affect URLs, so every
+// public route keeps the exact same address it had before this split.
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en">
       <body className="flex min-h-screen flex-col antialiased">
-        <a
-          href="#main-content"
-          className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-terracotta focus:px-4 focus:py-2 focus:font-semibold focus:text-white"
-        >
-          Skip to content
-        </a>
-        <AuthSessionProvider>
-          <AuthModalProvider>
-            <SiteHeader />
-            <main id="main-content" className="flex-1">
-              {children}
-            </main>
-            <SiteFooter />
-            <AuthModal />
-          </AuthModalProvider>
-        </AuthSessionProvider>
+        <AuthSessionProvider>{children}</AuthSessionProvider>
       </body>
     </html>
   );

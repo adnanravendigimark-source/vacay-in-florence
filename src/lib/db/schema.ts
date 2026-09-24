@@ -59,6 +59,13 @@ export const categories = pgTable(
     parentId: text("parent_id"),
     featured: boolean("featured").notNull().default(false),
     sortOrder: integer("sort_order").notNull().default(0),
+    // Per-category SEO overrides — same pattern as products/blogPosts.
+    metaTitle: text("meta_title"),
+    metaDescription: text("meta_description"),
+    canonicalUrl: text("canonical_url"),
+    ogImage: text("og_image"),
+    noIndex: boolean("no_index").notNull().default(false),
+    noFollow: boolean("no_follow").notNull().default(false),
     ...timestamps,
   },
   (t) => [
@@ -73,15 +80,52 @@ export const categories = pgTable(
   ],
 );
 
+// pending | approved | rejected
 export const suppliers = pgTable(
   "suppliers",
   {
     id: id(),
     name: text("name").notNull(),
     slug: text("slug").notNull(),
+    // Existing seeded suppliers default to "approved" via the column
+    // default below (drizzle-kit backfills existing rows on migration) —
+    // no behavior change to the public site, which never reads this.
+    status: text("status").notNull().default("approved"),
+    contactName: text("contact_name"),
+    contactEmail: text("contact_email"),
+    contactPhone: text("contact_phone"),
+    website: text("website"),
+    taxId: text("tax_id"),
+    country: text("country"),
+    commissionRateOverride: doublePrecision("commission_rate_override"),
+    notes: text("notes"),
+    userId: text("user_id").references(() => users.id),
     createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
   },
-  (t) => [uniqueIndex("suppliers_slug_idx").on(t.slug)],
+  (t) => [uniqueIndex("suppliers_slug_idx").on(t.slug), index("suppliers_status_idx").on(t.status)],
+);
+
+// pending | approved | rejected | suspended
+export const affiliates = pgTable(
+  "affiliates",
+  {
+    id: id(),
+    name: text("name").notNull(),
+    email: text("email").notNull(),
+    referralCode: text("referral_code").notNull(),
+    status: text("status").notNull().default("pending"),
+    contactPhone: text("contact_phone"),
+    website: text("website"),
+    commissionRateOverride: doublePrecision("commission_rate_override"),
+    notes: text("notes"),
+    userId: text("user_id").references(() => users.id),
+    ...timestamps,
+  },
+  (t) => [
+    uniqueIndex("affiliates_referral_code_idx").on(t.referralCode),
+    uniqueIndex("affiliates_email_idx").on(t.email),
+    index("affiliates_status_idx").on(t.status),
+  ],
 );
 
 // draft | pending_review | live | paused
@@ -133,6 +177,16 @@ export const products = pgTable(
     // array rather than a join table since these are simple flags, not
     // entities with their own attributes.
     badges: jsonb("badges").$type<string[]>().notNull().default([]),
+    // Per-product SEO overrides, all optional — same pattern as
+    // blogPosts below, resolved against sensible fallbacks by
+    // src/lib/seo.ts so existing products with no overrides set still
+    // get correct metadata.
+    metaTitle: text("meta_title"),
+    metaDescription: text("meta_description"),
+    canonicalUrl: text("canonical_url"),
+    ogImage: text("og_image"),
+    noIndex: boolean("no_index").notNull().default(false),
+    noFollow: boolean("no_follow").notNull().default(false),
     ...timestamps,
   },
   (t) => [
@@ -276,6 +330,58 @@ export const cmsBlocks = pgTable("cms_blocks", {
 }, (t) => [uniqueIndex("cms_blocks_key_idx").on(t.key)]);
 
 // ---------------------------------------------------------------------------
+// Roles & permissions (RBAC) — Master Admin creates/edits roles and assigns
+// permissions to them entirely from the dashboard; nothing about "what a
+// role can do" is hardcoded in application code beyond the fixed catalog of
+// possible permission keys seeded into `permissions` itself. `users.roleId`
+// is null for an ordinary customer (today's only user type) and points at
+// a row here for any staff account. See src/lib/require-user.ts for the
+// enforcement side (requireAdmin/requirePermission).
+// ---------------------------------------------------------------------------
+
+export const roles = pgTable(
+  "roles",
+  {
+    id: id(),
+    name: text("name").notNull(),
+    description: text("description"),
+    // System roles (Super Admin) can be edited but not deleted from the UI —
+    // protects the platform from ever being left with zero admin access.
+    isSystem: boolean("is_system").notNull().default(false),
+    ...timestamps,
+  },
+  (t) => [uniqueIndex("roles_name_idx").on(t.name)],
+);
+
+// Fixed catalog of possible permissions (seeded once). Which ROLES have
+// which permissions is fully DB-editable; the catalog of what permissions
+// *exist* is a short, deliberately-curated list maintained in code/seed,
+// mirroring every admin module.
+export const permissions = pgTable(
+  "permissions",
+  {
+    id: id(),
+    key: text("key").notNull(),
+    label: text("label").notNull(),
+    category: text("category").notNull(),
+  },
+  (t) => [uniqueIndex("permissions_key_idx").on(t.key)],
+);
+
+export const rolePermissions = pgTable(
+  "role_permissions",
+  {
+    roleId: text("role_id")
+      .notNull()
+      .references(() => roles.id, { onDelete: "cascade" }),
+    permissionId: text("permission_id")
+      .notNull()
+      .references(() => permissions.id, { onDelete: "cascade" }),
+  },
+  (t) => [uniqueIndex("role_permissions_pair_idx").on(t.roleId, t.permissionId)],
+);
+
+// ---------------------------------------------------------------------------
 // Auth
 // ---------------------------------------------------------------------------
 
@@ -287,9 +393,24 @@ export const users = pgTable(
     passwordHash: text("password_hash").notNull(),
     name: text("name").notNull(),
     emailVerified: timestamp("email_verified", { mode: "date" }),
+    // Null = ordinary customer (every account before this column existed,
+    // and every new signup by default). Non-null = a staff account whose
+    // permissions come from the referenced role. See roles/permissions
+    // above and src/lib/require-user.ts.
+    roleId: text("role_id").references(() => roles.id),
+    // Real account-profile fields (src/app/(public)/account/profile) —
+    // all nullable/optional, since every existing account predates them.
+    // Stored as plain text rather than a typed `date` column for
+    // dateOfBirth: it's a simple "YYYY-MM-DD" from a <input type="date">,
+    // and a text column sidesteps timezone-shift surprises for a field
+    // nothing else in the app computes with.
+    phone: text("phone"),
+    dateOfBirth: text("date_of_birth"),
+    nationality: text("nationality"),
+    avatarUrl: text("avatar_url"),
     ...timestamps,
   },
-  (t) => [uniqueIndex("users_email_idx").on(t.email)],
+  (t) => [uniqueIndex("users_email_idx").on(t.email), index("users_role_idx").on(t.roleId)],
 );
 
 // email_verification | password_reset
@@ -418,4 +539,31 @@ export const leadSubmissions = pgTable(
     createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
   },
   (t) => [index("lead_submissions_type_status_idx").on(t.type, t.status)],
+);
+// ---------------------------------------------------------------------------
+// Governance: audit log
+// ---------------------------------------------------------------------------
+
+// Every admin mutation that changes catalog, booking, supplier/affiliate,
+// role, or content state writes one row here via src/lib/audit.ts's
+// logAudit() — actor + action + entity + before/after snapshot, so any
+// price change, approval, refund override, or permission edit is
+// reconstructable after the fact.
+export const auditLogs = pgTable(
+  "audit_logs",
+  {
+    id: id(),
+    actorUserId: text("actor_user_id").references(() => users.id),
+    action: text("action").notNull(),
+    entityType: text("entity_type").notNull(),
+    entityId: text("entity_id"),
+    before: jsonb("before"),
+    after: jsonb("after"),
+    createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("audit_logs_entity_idx").on(t.entityType, t.entityId),
+    index("audit_logs_created_idx").on(t.createdAt),
+    index("audit_logs_actor_idx").on(t.actorUserId),
+  ],
 );

@@ -98,8 +98,8 @@ export async function seedDatabase(targetDb: NodePgDatabase<typeof schema> = db)
       icon: "tour-guide",
       featured: true,
       sortOrder: 3,
-      image: "/images/ponte-vecchio.jpg",
-      imageAlt: "The Ponte Vecchio bridge over the Arno",
+      image: "/images/hero2-guided-tour.jpg",
+      imageAlt: "Professional local guide leading an authentic walking tour in Florence",
     },
     {
       slug: "food-wine-experiences",
@@ -205,7 +205,7 @@ export async function seedDatabase(targetDb: NodePgDatabase<typeof schema> = db)
       featured: true,
       featuredRank: 1,
       badges: ["skip-the-line", "instant-confirmation", "best-seller"],
-      images: ["/images/uffizi-corridor.jpg", "/images/botticelli-venus.jpg", "/images/uffizi-courtyard.jpg", "/images/hero2-uffizi-corridor.jpg"],
+      images: ["/images/experiences/uffizi-corridor-grand.jpg", "/images/experiences/uffizi-venus.jpg", "/images/experiences/uffizi-courtyard-piazza.jpg", "/images/experiences/uffizi-tribuna.jpg"],
       options: [
         { name: "Adult", description: "Ages 18+", priceAmount: 29 },
         { name: "Youth (18-25, EU citizen)", description: "Reduced-rate EU youth ticket", priceAmount: 15 },
@@ -241,7 +241,7 @@ export async function seedDatabase(targetDb: NodePgDatabase<typeof schema> = db)
       featured: true,
       featuredRank: 2,
       badges: ["top-rated", "instant-confirmation", "best-seller"],
-      images: ["/images/accademia-david.jpg", "/images/hero-david.jpg", "/images/florence-art-lives-here.jpg", "/images/pitti-palace.jpg"],
+      images: ["/images/experiences/accademia-david-tribune.jpg", "/images/experiences/accademia-david-closeup.jpg", "/images/experiences/accademia-hall-of-slaves.jpg", "/images/experiences/accademia-plaster-hall.jpg"],
       options: [
         { name: "Adult", description: "Ages 18+", priceAmount: 24 },
         { name: "Child (under 18)", description: "Free entry, ticket still required", priceAmount: 4 },
@@ -276,7 +276,7 @@ export async function seedDatabase(targetDb: NodePgDatabase<typeof schema> = db)
       featured: true,
       featuredRank: 3,
       badges: ["skip-the-line", "small-group", "best-seller"],
-      images: ["/images/duomo-tour.jpg", "/images/hero2-duomo-terrace.jpg", "/images/hero2-duomo-vertical.jpg", "/images/hero-florence-duomo.jpg"],
+      images: ["/images/experiences/duomo-facade.jpg", "/images/experiences/duomo-interior-climb.jpg", "/images/experiences/duomo-fresco.jpg", "/images/experiences/duomo-panoramic-view.jpg"],
       options: [
         { name: "Adult", description: "Ages 18+", priceAmount: 45 },
         { name: "Child (10-17)", description: "Accompanied by an adult", priceAmount: 23 },
@@ -311,7 +311,7 @@ export async function seedDatabase(targetDb: NodePgDatabase<typeof schema> = db)
       featured: true,
       featuredRank: 4,
       badges: ["free-cancellation", "best-seller"],
-      images: ["/images/chianti-hills.jpg", "/images/hero2-chianti-wine.jpg", "/images/auth-tuscany-balloons.jpg", "/images/hero2-florence-panorama.jpg"],
+      images: ["/images/experiences/chianti-vineyards.jpg", "/images/experiences/chianti-cellar.jpg", "/images/experiences/chianti-tasting.jpg", "/images/experiences/chianti-cypress-road.jpg"],
       options: [
         { name: "Adult (18+, wine tasting included)", description: "Includes all tastings", priceAmount: 89 },
         { name: "Child (6-17)", description: "Accompanied by an adult", priceAmount: 45 },
@@ -346,7 +346,7 @@ export async function seedDatabase(targetDb: NodePgDatabase<typeof schema> = db)
       featured: true,
       featuredRank: 5,
       badges: ["small-group", "free-cancellation"],
-      images: ["/images/ponte-vecchio.jpg", "/images/hero2-water-sky.jpg", "/images/adventure-banner.jpg", "/images/hero2-florence-inner.jpg"],
+      images: ["/images/experiences/bike-tour-lungarno.jpg", "/images/experiences/bike-tour-ponte-vecchio.jpg", "/images/experiences/bike-tour-viewpoint.jpg", "/images/experiences/bike-tour-twilight.jpg"],
       options: [
         { name: "Adult", description: "Ages 14+", priceAmount: 52 },
         { name: "Child (6-13)", description: "Accompanied by an adult", priceAmount: 26 },
@@ -381,7 +381,7 @@ export async function seedDatabase(targetDb: NodePgDatabase<typeof schema> = db)
       featured: true,
       featuredRank: 6,
       badges: ["food-wine", "small-group", "best-seller"],
-      images: ["/images/italian-cooking.jpg", "/images/tuscan-food.jpg", "/images/hero-food-wine.jpg", "/images/hero2-florence-gate.jpg"],
+      images: ["/images/experiences/cooking-class-pasta.jpg", "/images/experiences/cooking-class-market.jpg", "/images/experiences/cooking-class-dish.jpg", "/images/experiences/cooking-class-dining.jpg"],
       options: [
         { name: "Adult", description: "Ages 12+", priceAmount: 68 },
         { name: "Child (6-11)", description: "Accompanied by an adult", priceAmount: 34 },
@@ -416,7 +416,7 @@ export async function seedDatabase(targetDb: NodePgDatabase<typeof schema> = db)
       featured: true,
       featuredRank: 7,
       badges: ["popular", "free-cancellation", "instant-confirmation"],
-      images: ["/images/pisa-tower.jpg", "/images/hero-day-trips.jpg", "/images/hero2-portal-door.jpg", "/images/florence-hero.jpg"],
+      images: ["/images/experiences/daytrip-pisa-miracoli.jpg", "/images/pisa-tower.jpg", "/images/hero-day-trips.jpg", "/images/florence-hero.jpg"],
       options: [
         { name: "Adult", description: "Ages 18+", priceAmount: 62 },
         { name: "Child (6-17)", description: "Accompanied by an adult", priceAmount: 45 },
@@ -451,7 +451,7 @@ export async function seedDatabase(targetDb: NodePgDatabase<typeof schema> = db)
       featured: true,
       featuredRank: 8,
       badges: ["new", "small-group"],
-      images: ["/images/hero2-guided-tour.jpg", "/images/auth-florence-duomo.jpg", "/images/ponte-vecchio.jpg", "/images/duomo-tour.jpg"],
+      images: ["/images/hero2-guided-tour.jpg", "/images/experiences/bike-tour-viewpoint.jpg", "/images/experiences/bike-tour-ponte-vecchio.jpg", "/images/auth-florence-duomo.jpg"],
       options: [
         { name: "Adult", description: "Ages 18+", priceAmount: 38 },
         { name: "Child (6-17)", description: "Accompanied by an adult", priceAmount: 20 },

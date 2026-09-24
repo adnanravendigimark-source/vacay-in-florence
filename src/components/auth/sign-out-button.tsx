@@ -25,12 +25,12 @@ export function SignOutButton() {
         type="button"
         onClick={handleSignOut}
         disabled={status === "pending"}
-        className="w-full rounded-xl px-3.5 py-2.5 text-left text-sm font-medium text-terracotta-dark transition hover:bg-terracotta-light disabled:cursor-not-allowed disabled:opacity-60"
+        className="rounded-xl px-3 py-1.5 text-xs font-semibold text-[#850b9e] transition hover:bg-[#f7ecfb] hover:text-[#2b0934] disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
       >
         {status === "pending" ? "Signing out…" : "Sign out"}
       </button>
       {status === "error" ? (
-        <p role="alert" className="px-3.5 pb-1 text-xs text-terracotta-dark">
+        <p role="alert" className="px-3.5 pb-1 text-xs text-rose-600">
           Couldn&apos;t sign out — check your connection and try again.
         </p>
       ) : null}

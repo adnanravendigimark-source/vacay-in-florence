@@ -18,7 +18,7 @@ const CATEGORY_META: Record<
 > = {
   "skip-the-line-attractions": {
     tag: "Essential Sightseeing",
-    image: "/images/hero-florence-duomo.jpg",
+    image: "/images/experiences/duomo-facade.jpg",
     bestFor: "First-time visitors & time-conscious travelers",
     highlights: [
       "Brunelleschi Dome Climb & Terrace Access",
@@ -29,7 +29,7 @@ const CATEGORY_META: Record<
   },
   "museums-galleries": {
     tag: "Renaissance Masterpieces",
-    image: "/images/hero-david.jpg",
+    image: "/images/experiences/accademia-david-tribune.jpg",
     bestFor: "Art connoisseurs & Renaissance history enthusiasts",
     highlights: [
       "Michelangelo's Original David at the Accademia",
