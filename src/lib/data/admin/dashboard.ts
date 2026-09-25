@@ -20,7 +20,7 @@ const FALLBACK_IMAGE = { src: "/images/florence-hero.jpg", alt: "Florence, Italy
  * compare against — a real, honest "not enough history yet" case rather
  * than a fabricated trend.
  */
-function pctChange(current: number, previous: number): number | null {
+export function pctChange(current: number, previous: number): number | null {
   if (previous <= 0) return null;
   return Math.round(((current - previous) / previous) * 100);
 }

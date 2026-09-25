@@ -42,22 +42,44 @@ const ICONS: Record<CategoryIcon, React.ReactNode> = {
   ),
 };
 
-export async function QuickCategoryRibbon() {
-  const categories = await getFeaturedCategories(6);
+interface QuickCategoryRibbonProps {
+  content?: {
+    categoriesBadge?: string;
+    categoriesTitle?: string;
+    categoriesSubtitle?: string;
+    categoriesLimit?: number;
+  };
+}
+
+export async function QuickCategoryRibbon({ content }: QuickCategoryRibbonProps) {
+  const categories = await getFeaturedCategories(content?.categoriesLimit || 6);
+  const title = content?.categoriesTitle || "Explore Florence by Theme";
+  const badge = content?.categoriesBadge;
+  const subtitle = content?.categoriesSubtitle;
 
   return (
     <section className="border-b border-neutral-200/80 bg-[#faf9f6] py-6 sm:py-8">
       <Container>
         <div className="flex items-center justify-between gap-4 mb-4">
-          <div className="flex items-center gap-2">
-            <span className="h-2 w-2 rounded-full bg-[#2b0934]" />
-            <span className="text-xs font-bold uppercase tracking-wider text-neutral-800">
-              Browse by Category
-            </span>
+          <div>
+            {badge ? (
+              <span className="inline-block mb-1 text-[10px] font-bold uppercase tracking-widest text-[#2b0934]/70">
+                {badge}
+              </span>
+            ) : null}
+            <div className="flex items-center gap-2">
+              <span className="h-2 w-2 rounded-full bg-[#2b0934]" />
+              <span className="text-xs font-bold uppercase tracking-wider text-neutral-800">
+                {title}
+              </span>
+            </div>
+            {subtitle ? (
+              <p className="mt-1 text-[11px] text-neutral-500 max-w-md">{subtitle}</p>
+            ) : null}
           </div>
           <Link
             href="/experiences"
-            className="text-xs font-semibold text-[#2b0934] hover:underline"
+            className="text-xs font-semibold text-[#2b0934] hover:underline shrink-0"
           >
             All Categories &rarr;
           </Link>

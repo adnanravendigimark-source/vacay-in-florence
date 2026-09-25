@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getProductBySlug, getRelatedProducts, searchProducts } from "@/lib/data/products";
+import { getStaffContext } from "@/lib/require-user";
 import { Container } from "@/components/ui/container";
 import { SingleExperienceBookingCard } from "@/components/experiences/single-experience-booking-card";
 import { ExperienceCard } from "@/components/ui/experience-card";
@@ -15,10 +16,29 @@ export async function generateStaticParams() {
 }
 
 type Params = { slug: string };
+type SearchParams = { preview?: string };
 
-export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
+// A logged-in staff member visiting `?preview=1` sees the page exactly
+// as it will look once published (draft/paused/pending_review — any
+// status), so "Preview" in the Admin Experience Editor works before an
+// experience goes live. Anyone else always gets the normal status="live"
+// filter inside getProductBySlug.
+async function isStaffPreview(searchParams: Promise<SearchParams>): Promise<boolean> {
+  const { preview } = await searchParams;
+  if (preview !== "1") return false;
+  const staff = await getStaffContext();
+  return staff !== null;
+}
+
+export async function generateMetadata({
+  params,
+  searchParams,
+}: {
+  params: Promise<Params>;
+  searchParams: Promise<SearchParams>;
+}): Promise<Metadata> {
   const { slug } = await params;
-  const product = await getProductBySlug(slug);
+  const product = await getProductBySlug(slug, { anyStatus: await isStaffPreview(searchParams) });
   if (!product) return {};
 
   return {
@@ -152,9 +172,15 @@ const HIGHLIGHT_ICONS: React.ReactNode[] = [
   </svg>,
 ];
 
-export default async function ProductDetailPage({ params }: { params: Promise<Params> }) {
+export default async function ProductDetailPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<Params>;
+  searchParams: Promise<SearchParams>;
+}) {
   const { slug } = await params;
-  const product = await getProductBySlug(slug);
+  const product = await getProductBySlug(slug, { anyStatus: await isStaffPreview(searchParams) });
   if (!product) notFound();
 
   const related = await getRelatedProducts(product.id, product.categorySlug, 4);
@@ -423,7 +449,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<Pa
                     </div>
                   </div>
 
-                  {galleryThumbs.length > 0 && (
+                  {(galleryThumbs.length > 0 || product.videoUrl) && (
                     <div className="col-span-5 flex flex-col gap-3 sm:gap-4">
                       {galleryThumbs.map((img, index) => (
                         <div
@@ -439,6 +465,13 @@ export default async function ProductDetailPage({ params }: { params: Promise<Pa
                           />
                         </div>
                       ))}
+                      {product.videoUrl && (
+                        <div className="relative aspect-[16/10] rounded-xl sm:rounded-2xl overflow-hidden bg-neutral-900 shadow-2xs">
+                          <video controls preload="none" poster={galleryMain?.src} className="h-full w-full object-cover">
+                            <source src={product.videoUrl} type="video/mp4" />
+                          </video>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>

@@ -339,7 +339,7 @@ export default async function AdminDashboardPage() {
             <div className="space-y-2 mt-3.5">
               {[
                 {
-                  href: "/admin/experiences",
+                  href: "/admin/experiences/new",
                   title: "Add Experience",
                   subtitle: "Create a new experience",
                   icon: (

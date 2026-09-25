@@ -29,6 +29,10 @@ interface PublicPageItem {
   href: string;
   label: string;
   icon: React.ReactNode;
+  /** true = this page's admin content editor hasn't been built yet. Shown
+   * as a disabled row with a "Soon" badge instead of a clickable link — this
+   * dropdown only ever holds admin editors, never live-site redirects. */
+  comingSoon?: boolean;
 }
 
 // ---------------------------------------------------------------------------
@@ -155,28 +159,19 @@ function IconAuditLog({ className }: { className?: string }) {
 
 const PUBLIC_PAGES: PublicPageItem[] = [
   {
-    href: "/",
-    label: "Home",
+    href: "/admin/content/homepage",
+    label: "Homepage Editor",
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 shrink-0 text-neutral-400 group-hover:text-[#2b0934]">
-        <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
-        <polyline points="9 22 9 12 15 12 15 22" />
+        <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
+        <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
       </svg>
     ),
   },
   {
-    href: "/experiences",
-    label: "Experiences",
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 shrink-0 text-neutral-400 group-hover:text-[#2b0934]">
-        <circle cx="12" cy="12" r="10" />
-        <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
-      </svg>
-    ),
-  },
-  {
-    href: "/about",
+    href: "/admin/content/about",
     label: "About Us",
+    comingSoon: true,
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 shrink-0 text-neutral-400 group-hover:text-[#2b0934]">
         <circle cx="12" cy="12" r="10" />
@@ -186,8 +181,9 @@ const PUBLIC_PAGES: PublicPageItem[] = [
     ),
   },
   {
-    href: "/contact",
+    href: "/admin/content/contact",
     label: "Contact Us",
+    comingSoon: true,
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 shrink-0 text-neutral-400 group-hover:text-[#2b0934]">
         <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
@@ -196,8 +192,9 @@ const PUBLIC_PAGES: PublicPageItem[] = [
     ),
   },
   {
-    href: "/privacy",
+    href: "/admin/content/legal/privacy-policy",
     label: "Privacy Policy",
+    comingSoon: true,
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 shrink-0 text-neutral-400 group-hover:text-[#2b0934]">
         <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
@@ -205,8 +202,9 @@ const PUBLIC_PAGES: PublicPageItem[] = [
     ),
   },
   {
-    href: "/terms",
+    href: "/admin/content/legal/terms-conditions",
     label: "Terms & Conditions",
+    comingSoon: true,
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 shrink-0 text-neutral-400 group-hover:text-[#2b0934]">
         <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
@@ -217,8 +215,9 @@ const PUBLIC_PAGES: PublicPageItem[] = [
     ),
   },
   {
-    href: "/cancellation-policy",
+    href: "/admin/content/legal/cancellation-policy",
     label: "Cancellation & Refunds",
+    comingSoon: true,
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 shrink-0 text-neutral-400 group-hover:text-[#2b0934]">
         <polyline points="1 4 1 10 7 10" />
@@ -228,8 +227,9 @@ const PUBLIC_PAGES: PublicPageItem[] = [
     ),
   },
   {
-    href: "/become-a-supplier",
+    href: "/admin/content/become-a-supplier",
     label: "Become a Supplier",
+    comingSoon: true,
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 shrink-0 text-neutral-400 group-hover:text-[#2b0934]">
         <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
@@ -239,8 +239,9 @@ const PUBLIC_PAGES: PublicPageItem[] = [
     ),
   },
   {
-    href: "/affiliates",
+    href: "/admin/content/affiliates",
     label: "Become an Affiliate",
+    comingSoon: true,
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 shrink-0 text-neutral-400 group-hover:text-[#2b0934]">
         <circle cx="18" cy="5" r="3" />
@@ -353,7 +354,7 @@ function SidebarContent({
   onToggleCollapse?: () => void;
 }) {
   const pathname = usePathname();
-  const [publicPagesOpen, setPublicPagesOpen] = useState(false);
+  const [publicPagesOpen, setPublicPagesOpen] = useState(() => pathname.startsWith("/admin/content/homepage"));
 
   const isDashboardActive = isPathActive(pathname, "/admin");
 
@@ -458,7 +459,7 @@ function SidebarContent({
             <button
               type="button"
               onClick={() => setPublicPagesOpen((prev) => !prev)}
-              title={collapsed ? "Public Pages" : undefined}
+              title={collapsed ? "Page Editors" : undefined}
               className={`w-full flex items-center ${
                 collapsed ? "justify-center px-2" : "justify-between px-3.5"
               } py-2 rounded-xl text-[13px] font-medium text-neutral-600 hover:text-neutral-900 hover:bg-[#FAF8F5] transition-colors cursor-pointer group`}
@@ -469,7 +470,7 @@ function SidebarContent({
                   <line x1="2" y1="12" x2="22" y2="12" />
                   <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
                 </svg>
-                {!collapsed ? <span>Public Pages</span> : null}
+                {!collapsed ? <span>Page Editors</span> : null}
               </div>
               {!collapsed ? (
                 <svg
@@ -490,33 +491,43 @@ function SidebarContent({
 
             {publicPagesOpen && !collapsed ? (
               <div className="mt-1 ml-3 pl-2.5 border-l border-[#EAE6DF] space-y-0.5 animate-in fade-in slide-in-from-top-1 duration-150">
-                {PUBLIC_PAGES.map((page) => (
-                  <Link
-                    key={page.href}
-                    href={page.href}
-                    target="_blank"
-                    onClick={onClose}
-                    className="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-lg text-xs font-medium text-neutral-600 hover:text-neutral-900 hover:bg-[#FAF8F5] transition-colors group"
-                  >
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      {page.icon}
-                      <span className="truncate">{page.label}</span>
-                    </div>
-                    <svg
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="w-3 h-3 text-neutral-300 group-hover:text-neutral-600 shrink-0 transition"
+                {PUBLIC_PAGES.map((page) => {
+                  if (page.comingSoon) {
+                    return (
+                      <div
+                        key={page.href}
+                        title="Editor coming soon"
+                        className="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-lg text-xs font-medium text-neutral-400 opacity-70 cursor-default select-none"
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          {page.icon}
+                          <span className="truncate">{page.label}</span>
+                        </div>
+                        <span className="shrink-0 text-[9px] font-bold uppercase tracking-wider text-neutral-400 bg-neutral-100 px-1.5 py-0.5 rounded">
+                          Soon
+                        </span>
+                      </div>
+                    );
+                  }
+                  const isActive = isPathActive(pathname, page.href);
+                  return (
+                    <Link
+                      key={page.href}
+                      href={page.href}
+                      onClick={onClose}
+                      className={`flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors group ${
+                        isActive
+                          ? "bg-[#2b0934] text-white font-semibold"
+                          : "text-neutral-600 hover:text-neutral-900 hover:bg-[#FAF8F5]"
+                      }`}
                     >
-                      <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6" />
-                      <polyline points="15 3 21 3 21 9" />
-                      <line x1="10" y1="14" x2="21" y2="3" />
-                    </svg>
-                  </Link>
-                ))}
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        {page.icon}
+                        <span className="truncate">{page.label}</span>
+                      </div>
+                    </Link>
+                  );
+                })}
               </div>
             ) : null}
           </div>

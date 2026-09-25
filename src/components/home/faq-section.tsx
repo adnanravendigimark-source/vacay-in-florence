@@ -4,36 +4,47 @@ import { useState } from "react";
 import { Container } from "@/components/ui/container";
 import Link from "next/link";
 
-const FAQS = [
+interface FaqSectionProps {
+  content?: {
+    faqBadge?: string;
+    faqTitle?: string;
+    faqSubtitle?: string;
+    faqItems?: { question: string; answer: string }[] | null;
+  };
+}
+
+const DEFAULT_FAQS = [
   {
-    question: "How do skip-the-line tickets work in Florence?",
+    question: "How do I receive my tickets after booking?",
     answer:
-      "When you book with VACAY Florence, you receive a confirmed timed-entry slot. On the day of your visit, head directly to the designated Fast-Track / Priority Entry door at the monument (e.g. Door #3 at the Uffizi or the Porta dei Canonici at the Duomo) and show the QR barcode on your phone for instant gate scanning.",
+      "Your official barcode vouchers are emailed instantly and accessible in your digital wallet or VACAY account dashboard. Simply show your phone screen at the priority entry line.",
   },
   {
-    question: "When and how do I receive my tickets?",
+    question: "What is the cancellation policy?",
     answer:
-      "Your official vouchers and mobile barcodes are sent instantly to your email upon checkout confirmation. You can also access them anytime from your VACAY Account page or save them directly to your Apple Wallet / Google Wallet.",
+      "You can cancel any standard experience up to 24 hours before the scheduled start time for a 100% full refund with zero processing fees.",
   },
   {
-    question: "What is your cancellation and refund policy?",
+    question: "Is there a dress code for Florentine churches like the Duomo?",
     answer:
-      "Every single experience and ticket on VACAY Florence includes 100% Free Cancellation up to 24 hours prior to your booked start time. If your travel plans change, you can cancel with one click from your account for a full immediate refund.",
+      "Yes, shoulders and knees must be covered when entering the Santa Maria del Fiore Cathedral and crypts. Shawls and scarves are recommended.",
   },
   {
-    question: "Is there a dress code for Florence churches (Duomo, Santa Croce)?",
+    question: "Are audio headsets provided on guided tours?",
     answer:
-      "Yes. Active places of worship in Florence require knees and shoulders to be covered for both men and women. Shorts and skirts must reach below the knee, and sleeveless tops are not permitted. Light scarves or shawls can be draped over shoulders.",
-  },
-  {
-    question: "Can I book for today or tomorrow?",
-    answer:
-      "Yes! Same-day and next-day availability is updated in real time. We recommend booking early for high-demand sights like Brunelleschi's Dome Climb and Michelangelo's David, which frequently sell out days in advance during peak season.",
+      "Yes, all small-group tours include sanitized personal wireless headsets so you can hear your expert guide clearly without crowding.",
   },
 ];
 
-export function FaqSection() {
+export function FaqSection({ content }: FaqSectionProps) {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
+
+  const badge = content?.faqBadge || "HELPFUL INFORMATION";
+  const title = content?.faqTitle || "Frequently Asked Questions";
+  const subtitle =
+    content?.faqSubtitle ||
+    "Everything you need to know about tickets, meeting points, dress codes, and cancellations.";
+  const faqs = content?.faqItems && content.faqItems.length > 0 ? content.faqItems : DEFAULT_FAQS;
 
   const toggle = (idx: number) => {
     setOpenIndex(openIndex === idx ? null : idx);
@@ -46,13 +57,13 @@ export function FaqSection() {
           {/* Left Column: Heading & Support Card */}
           <div className="lg:col-span-5">
             <div className="inline-flex items-center gap-2 rounded-full bg-[#2b0934]/10 px-3 py-1 text-xs font-semibold text-[#2b0934] mb-3">
-              <span>TRAVELER SUPPORT &amp; HELP</span>
+              <span>{badge}</span>
             </div>
             <h2 className="font-display text-3xl sm:text-4xl font-medium tracking-tight text-neutral-900 leading-tight">
-              Frequently Asked Questions
+              {title}
             </h2>
             <p className="mt-3 text-sm sm:text-base text-neutral-600 leading-relaxed">
-              Everything you need to know about booking official entrance tickets, entry procedures, and local Florence travel guidelines.
+              {subtitle}
             </p>
 
             {/* Need More Help Card */}
@@ -81,13 +92,14 @@ export function FaqSection() {
 
           {/* Right Column: FAQ Accordion */}
           <div className="lg:col-span-7 flex flex-col gap-3">
-            {FAQS.map((faq, idx) => {
+            {faqs.map((faq, idx) => {
               const isOpen = openIndex === idx;
               return (
                 <div
                   key={idx}
-                  className={`rounded-2xl border transition-all duration-200 overflow-hidden ${isOpen ? "border-[#2b0934] bg-emerald-50/20 shadow-sm" : "border-neutral-200 bg-white hover:border-neutral-300"
-                    }`}
+                  className={`rounded-2xl border transition-all duration-200 overflow-hidden ${
+                    isOpen ? "border-[#2b0934] bg-purple-50/20 shadow-sm" : "border-neutral-200 bg-white hover:border-neutral-300"
+                  }`}
                 >
                   <button
                     type="button"
@@ -96,8 +108,9 @@ export function FaqSection() {
                   >
                     <span>{faq.question}</span>
                     <span
-                      className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-neutral-700 text-sm font-bold transition-transform duration-200 ${isOpen ? "rotate-45 bg-[#2b0934] text-white" : ""
-                        }`}
+                      className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-neutral-700 text-sm font-bold transition-transform duration-200 ${
+                        isOpen ? "rotate-45 bg-[#2b0934] text-white" : ""
+                      }`}
                     >
                       +
                     </span>

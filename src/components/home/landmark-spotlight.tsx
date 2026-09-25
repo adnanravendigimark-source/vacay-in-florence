@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Container } from "@/components/ui/container";
 
-const LANDMARKS = [
+const DEFAULT_LANDMARKS = [
   {
     id: "duomo",
     name: "Santa Maria del Fiore (The Duomo)",
@@ -12,6 +12,7 @@ const LANDMARKS = [
     description: "Brunelleschi's red-tiled dome dominates the Florence skyline. Climb 463 steps to the lantern for 360° panoramic views.",
     href: "/experiences/duomo-and-brunelleschis-dome-climb",
     image: "/images/experiences/duomo-facade.jpg",
+    imageAlt: "The Duomo cathedral facade in Florence",
     price: "From €45",
     rating: "4.9",
     reviews: "6,340",
@@ -25,6 +26,7 @@ const LANDMARKS = [
     description: "Home to Botticelli's 'Birth of Venus', Leonardo's 'Annunciation', Caravaggio, Raphael, and the Medici art collection.",
     href: "/experiences/uffizi-gallery-skip-the-line-ticket",
     image: "/images/experiences/uffizi-corridor-grand.jpg",
+    imageAlt: "Uffizi Gallery grand corridor",
     price: "From €29",
     rating: "4.7",
     reviews: "12,480",
@@ -38,6 +40,7 @@ const LANDMARKS = [
     description: "Gaze up at the 17-foot original marble statue of David, carved by 26-year-old Michelangelo from a single marble block.",
     href: "/experiences/accademia-gallery-michelangelos-david-ticket",
     image: "/images/experiences/accademia-david-tribune.jpg",
+    imageAlt: "Michelangelo's David statue at the Accademia Gallery",
     price: "From €24",
     rating: "4.8",
     reviews: "9,210",
@@ -51,13 +54,31 @@ const LANDMARKS = [
     description: "Stroll the lush Renaissance gardens, Grotta Grande, and grand royal apartments across the Arno River.",
     href: "/experiences/boboli-gardens-and-pitti-palace-entry",
     image: "/images/pitti-palace.jpg",
+    imageAlt: "Pitti Palace and Boboli Gardens",
     price: "From €22",
     rating: "4.5",
     reviews: "1,980",
   },
 ];
 
-export function LandmarkSpotlight() {
+interface LandmarkSpotlightProps {
+  content?: {
+    landmarkBadge?: string;
+    landmarkTitle?: string;
+    landmarkSubtitle?: string;
+    landmarkItems?: (typeof DEFAULT_LANDMARKS)[number][] | null;
+  };
+}
+
+export function LandmarkSpotlight({ content }: LandmarkSpotlightProps) {
+  const badge = content?.landmarkBadge || "FLORENTINE MONUMENTS";
+  const title = content?.landmarkTitle || "Four Must-Experience Monuments in Florence";
+  const subtitle =
+    content?.landmarkSubtitle ||
+    "From the heights of Brunelleschi's dome to Michelangelo's David, discover the crown jewels of the Renaissance with reserved priority entry.";
+  const landmarks =
+    content?.landmarkItems && content.landmarkItems.length > 0 ? content.landmarkItems : DEFAULT_LANDMARKS;
+
   return (
     <section className="bg-[#fbfaf8] py-18 sm:py-24 border-b border-neutral-200/80">
       <Container>
@@ -65,13 +86,13 @@ export function LandmarkSpotlight() {
         <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-12">
           <div className="max-w-2xl">
             <div className="inline-flex items-center gap-2 rounded-full bg-terracotta/10 px-3 py-1 text-xs font-semibold text-terracotta mb-3">
-              <span>ICONIC FLORENCE MONUMENTS</span>
+              <span>{badge}</span>
             </div>
             <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl font-medium tracking-tight text-neutral-900 leading-[1.15]">
-              Guaranteed Entry to Florence&apos;s Crown Jewels
+              {title}
             </h2>
             <p className="mt-3 text-sm sm:text-base text-neutral-600 leading-relaxed">
-              Don&apos;t waste your vacation standing in 2-hour queues under the Tuscan sun. Book official skip-the-line vouchers before tickets sell out.
+              {subtitle}
             </p>
           </div>
 
@@ -84,9 +105,9 @@ export function LandmarkSpotlight() {
           </Link>
         </div>
 
-        {/* 4 Landmark Feature Cards */}
+        {/* Landmark Feature Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {LANDMARKS.map((landmark) => (
+          {landmarks.map((landmark) => (
             <div
               key={landmark.id}
               className="group flex flex-col sm:flex-row overflow-hidden rounded-3xl bg-white border border-neutral-200 shadow-sm transition-all duration-300 hover:shadow-xl hover:border-neutral-300"
@@ -95,7 +116,7 @@ export function LandmarkSpotlight() {
               <div className="relative aspect-[4/3] sm:aspect-auto sm:w-2/5 overflow-hidden shrink-0">
                 <Image
                   src={landmark.image}
-                  alt={landmark.name}
+                  alt={landmark.imageAlt || landmark.name}
                   fill
                   sizes="(min-width: 1024px) 25vw, 50vw"
                   className="object-cover transition-transform duration-700 ease-out group-hover:scale-108"

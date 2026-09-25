@@ -11,10 +11,22 @@ import { getLatestBlogPosts } from "@/lib/data/blog";
 
 const dateFormatter = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric" });
 
-export async function TravelGuide() {
+interface TravelGuideProps {
+  content?: {
+    travelGuideBadge?: string;
+    travelGuideTitle?: string;
+    travelGuideSubtitle?: string;
+  };
+}
+
+export async function TravelGuide({ content }: TravelGuideProps = {}) {
   const posts = await getLatestBlogPosts(3);
 
   if (posts.length === 0) return null;
+
+  const badge = content?.travelGuideBadge || "TRAVEL GUIDE & BLOG";
+  const title = content?.travelGuideTitle || "Plan Your Perfect Florence Trip";
+  const subtitle = content?.travelGuideSubtitle || "Travel tips, city guides, hidden gems and more.";
 
   return (
     <section className="bg-white py-16 sm:py-20 border-t border-neutral-200/70">
@@ -24,13 +36,13 @@ export async function TravelGuide() {
           <div className="lg:col-span-4 flex flex-col justify-between h-full pr-0 lg:pr-6">
             <div>
               <p className="text-xs font-bold uppercase tracking-[0.2em] text-terracotta mb-3">
-                TRAVEL GUIDE &amp; BLOG
+                {badge}
               </p>
               <h2 className="font-display text-3xl sm:text-4xl font-normal text-neutral-900 leading-tight">
-                Plan Your Perfect Florence Trip
+                {title}
               </h2>
               <p className="mt-4 text-sm sm:text-base text-neutral-600 leading-relaxed max-w-md">
-                Travel tips, city guides, hidden gems and more.
+                {subtitle}
               </p>
             </div>
 

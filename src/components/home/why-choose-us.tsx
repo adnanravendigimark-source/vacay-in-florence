@@ -1,7 +1,19 @@
 import { Container } from "@/components/ui/container";
 import Link from "next/link";
 
-const COMPARISON_ROWS = [
+interface WhyChooseUsProps {
+  content?: {
+    whyUsBadge?: string;
+    whyUsTitle?: string;
+    whyUsSubtitle?: string;
+    whyUsComparisonRows?: { feature: string; gate: string; vacay: string; highlight: boolean }[] | null;
+    whyUsStats?: { value: string; label: string }[] | null;
+    whyUsCtaText?: string;
+    whyUsCtaLink?: string;
+  };
+}
+
+const DEFAULT_COMPARISON_ROWS = [
   {
     feature: "Queue Time at Iconic Landmarks",
     gate: "Up to 2 to 3 hours under hot sun",
@@ -34,14 +46,28 @@ const COMPARISON_ROWS = [
   },
 ];
 
-const STATS = [
+const DEFAULT_STATS = [
   { value: "98,000+", label: "Happy Travelers Welcomed" },
   { value: "4.9 / 5.0", label: "Average Experience Rating" },
   { value: "100%", label: "Verified Authentic Tickets" },
   { value: "24h", label: "Free Cancellation Guarantee" },
 ];
 
-export function WhyChooseUs() {
+export function WhyChooseUs({ content }: WhyChooseUsProps) {
+  const badge = content?.whyUsBadge || "THE VACAY FLORENCE DIFFERENCE";
+  const title = content?.whyUsTitle || "Why Travelers Choose VACAY Over the Ticket Box Office";
+  const subtitle =
+    content?.whyUsSubtitle ||
+    "Skip the stress, bypass the lines, and enjoy guaranteed entry to Florence's world-renowned museums and sights.";
+  const comparisonRows =
+    content?.whyUsComparisonRows && content.whyUsComparisonRows.length > 0
+      ? content.whyUsComparisonRows
+      : DEFAULT_COMPARISON_ROWS;
+  const stats =
+    content?.whyUsStats && content.whyUsStats.length > 0 ? content.whyUsStats : DEFAULT_STATS;
+  const ctaText = content?.whyUsCtaText || "Browse All Fast-Pass Tickets";
+  const ctaLink = content?.whyUsCtaLink || "/experiences";
+
   return (
     <section className="bg-cream text-ink py-18 sm:py-24 overflow-hidden relative">
       {/* Subtle Background Ambience Glow */}
@@ -52,13 +78,13 @@ export function WhyChooseUs() {
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-14">
           <div className="inline-flex items-center gap-2 rounded-full bg-cypress-light px-3.5 py-1 text-xs font-semibold text-cypress mb-3">
-            <span>THE VACAY FLORENCE DIFFERENCE</span>
+            <span>{badge}</span>
           </div>
           <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl font-medium tracking-tight text-ink leading-[1.15]">
-            Why Travelers Choose VACAY Over the Ticket Box Office
+            {title}
           </h2>
           <p className="mt-3 text-sm sm:text-base text-ink-soft leading-relaxed">
-            Skip the stress, bypass the lines, and enjoy guaranteed entry to Florence&apos;s world-renowned museums and sights.
+            {subtitle}
           </p>
         </div>
 
@@ -77,11 +103,12 @@ export function WhyChooseUs() {
 
           {/* Comparison Rows */}
           <div className="divide-y divide-stone">
-            {COMPARISON_ROWS.map((row, idx) => (
+            {comparisonRows.map((row, idx) => (
               <div
                 key={idx}
-                className={`grid grid-cols-12 gap-3 py-4 text-xs sm:text-sm items-center ${row.highlight ? "bg-cream rounded-xl px-2 -mx-2" : ""
-                  }`}
+                className={`grid grid-cols-12 gap-3 py-4 text-xs sm:text-sm items-center ${
+                  row.highlight ? "bg-cream rounded-xl px-2 -mx-2" : ""
+                }`}
               >
                 <div className="col-span-5 font-medium text-ink">{row.feature}</div>
                 <div className="col-span-3 text-ink-faint text-xs sm:text-[13px]">{row.gate}</div>
@@ -99,18 +126,18 @@ export function WhyChooseUs() {
               ⚡ Over 14,000+ verified tickets issued this season with zero hassle.
             </div>
             <Link
-              href="/experiences"
+              href={ctaLink}
               className="inline-flex items-center gap-2 rounded-full bg-cypress px-6 py-2.5 text-xs sm:text-sm font-bold text-white hover:bg-cypress/90 transition-all active:scale-95 shadow-lg"
             >
-              <span>Browse All Fast-Pass Tickets</span>
+              <span>{ctaText}</span>
               <span>&rarr;</span>
             </Link>
           </div>
         </div>
 
-        {/* 4 Stats Grid */}
+        {/* Stats Grid */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mt-14 max-w-4xl mx-auto text-center">
-          {STATS.map((stat, idx) => (
+          {stats.map((stat, idx) => (
             <div key={idx} className="p-4 rounded-2xl bg-white border border-stone shadow-sm">
               <div className="text-2xl sm:text-3xl font-black font-display text-gold">
                 {stat.value}

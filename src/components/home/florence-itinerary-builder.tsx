@@ -20,15 +20,17 @@ type ItineraryPlan = {
   title: string;
   subtitle: string;
   badge: string;
+  pillLabel: string;
   steps: ItineraryStep[];
 };
 
-const PLANS: ItineraryPlan[] = [
+const DEFAULT_PLANS: ItineraryPlan[] = [
   {
     id: "1-day",
     title: "24 Hours: The Florence Express",
     subtitle: "See the absolute iconic highlights without wasting hours in lines.",
     badge: "⚡ Most Popular for Short Stays",
+    pillLabel: "1 Day (Express)",
     steps: [
       {
         time: "08:30 AM",
@@ -73,6 +75,7 @@ const PLANS: ItineraryPlan[] = [
     title: "48 Hours: The Classic Renaissance",
     subtitle: "The definitive Florence trip balancing art, food, palaces, and scenic views.",
     badge: "⭐ Recommended by Locals",
+    pillLabel: "2 Days (Classic)",
     steps: [
       {
         time: "Day 1 - Morning",
@@ -117,6 +120,7 @@ const PLANS: ItineraryPlan[] = [
     title: "72 Hours: Florence & Tuscan Hills",
     subtitle: "Immersion in Florence's deep history followed by a day trip to medieval Tuscan hill towns.",
     badge: "🍷 The Ultimate Tuscan Escape",
+    pillLabel: "3 Days (Tuscany Hills)",
     steps: [
       {
         time: "Days 1 & 2",
@@ -140,9 +144,27 @@ const PLANS: ItineraryPlan[] = [
   },
 ];
 
-export function FlorenceItineraryBuilder() {
-  const [selectedPlanId, setSelectedPlanId] = useState("1-day");
-  const currentPlan = PLANS.find((p) => p.id === selectedPlanId) || PLANS[0];
+interface FlorenceItineraryBuilderProps {
+  content?: {
+    itineraryBadge?: string;
+    itineraryTitle?: string;
+    itinerarySubtitle?: string;
+    itineraryPlans?: ItineraryPlan[] | null;
+  };
+}
+
+export function FlorenceItineraryBuilder({ content }: FlorenceItineraryBuilderProps) {
+  const badge = content?.itineraryBadge || "VACATION PLANNER";
+  const title = content?.itineraryTitle || "Build Your Florence Day-by-Day";
+  const subtitle =
+    content?.itinerarySubtitle ||
+    "Select your trip length and travel style to see curated morning, afternoon, and evening recommendations.";
+  const plans = content?.itineraryPlans && content.itineraryPlans.length > 0 ? content.itineraryPlans : DEFAULT_PLANS;
+
+  const [selectedPlanId, setSelectedPlanId] = useState(plans[0]?.id ?? "1-day");
+  const currentPlan = plans.find((p) => p.id === selectedPlanId) || plans[0];
+
+  if (!currentPlan) return null;
 
   return (
     <section className="bg-white py-18 sm:py-24 border-b border-neutral-200/80">
@@ -150,18 +172,18 @@ export function FlorenceItineraryBuilder() {
         {/* Section Title */}
         <div className="text-center max-w-3xl mx-auto mb-10">
           <div className="inline-flex items-center gap-2 rounded-full bg-[#2b0934]/10 px-3.5 py-1 text-xs font-semibold text-[#2b0934] mb-3">
-            <span>INTERACTIVE FLORENCE TRIP PLANNER</span>
+            <span>{badge}</span>
           </div>
           <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl font-medium tracking-tight text-neutral-900 leading-[1.15]">
-            Plan Your Florence Days in Minutes
+            {title}
           </h2>
           <p className="mt-3 text-sm sm:text-base text-neutral-600 leading-relaxed">
-            Select your stay duration to see curated schedules with fast-track entry timeslots perfectly timed to avoid peak lines.
+            {subtitle}
           </p>
 
           {/* Plan Duration Switcher */}
-          <div className="inline-flex p-1.5 rounded-full bg-neutral-100 border border-neutral-200 mt-8 shadow-inner">
-            {PLANS.map((plan) => {
+          <div className="inline-flex flex-wrap justify-center p-1.5 rounded-full bg-neutral-100 border border-neutral-200 mt-8 shadow-inner">
+            {plans.map((plan) => {
               const active = plan.id === selectedPlanId;
               return (
                 <button
@@ -173,7 +195,7 @@ export function FlorenceItineraryBuilder() {
                       : "text-neutral-700 hover:text-neutral-950 hover:bg-neutral-200/60"
                     }`}
                 >
-                  {plan.id === "1-day" ? "1 Day (Express)" : plan.id === "2-days" ? "2 Days (Classic)" : "3 Days (Tuscany Hills)"}
+                  {plan.pillLabel || plan.title}
                 </button>
               );
             })}

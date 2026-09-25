@@ -22,6 +22,24 @@ const SEARCH_STOPWORDS = new Set([
   "what", "where", "best", "top", "some", "me", "find", "show",
 ]);
 
+let productsSchemaEnsured = false;
+
+/**
+ * Additive column migration for the `products` table, run lazily and
+ * idempotently (like ensureHomepageTableExists() in ./homepage.ts) since
+ * this environment cannot run `drizzle-kit push` against the live Neon
+ * DB directly. Cached per process so it is a no-op after the first call.
+ */
+export async function ensureProductsSchemaUpToDate() {
+  if (productsSchemaEnsured) return;
+  try {
+    await db.execute(sql`ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "video_url" text;`);
+    productsSchemaEnsured = true;
+  } catch (err) {
+    console.error("Error migrating products columns:", err);
+  }
+}
+
 export function tokenizeSearchQuery(raw: string): string[] {
   const words = raw
     .toLowerCase()
@@ -388,6 +406,7 @@ export interface ProductDetail {
   ratingAverage: number | null;
   reviewCount: number;
   badges: ProductBadge[];
+  videoUrl: string | null;
   categorySlug: string;
   categoryName: string;
   supplierName: string;
@@ -441,7 +460,12 @@ async function resolveMeetingLocation(
   return geocoded;
 }
 
-export async function getProductBySlug(slug: string): Promise<ProductDetail | null> {
+export async function getProductBySlug(
+  slug: string,
+  previewOptions?: { anyStatus?: boolean },
+): Promise<ProductDetail | null> {
+  await ensureProductsSchemaUpToDate();
+
   const [row] = await db
     .select({
       id: products.id,
@@ -464,6 +488,7 @@ export async function getProductBySlug(slug: string): Promise<ProductDetail | nu
       ratingAverage: products.ratingAverage,
       reviewCount: products.reviewCount,
       badges: products.badges,
+      videoUrl: products.videoUrl,
       categorySlug: categories.slug,
       categoryName: categories.name,
       supplierName: suppliers.name,
@@ -471,7 +496,15 @@ export async function getProductBySlug(slug: string): Promise<ProductDetail | nu
     .from(products)
     .innerJoin(categories, eq(products.categoryId, categories.id))
     .innerJoin(suppliers, eq(products.supplierId, suppliers.id))
-    .where(and(eq(products.slug, slug), eq(products.status, "live")));
+    // anyStatus is set only by the staff-authenticated admin preview
+    // route (src/app/(public)/experiences/[slug]/page.tsx), so a draft
+    // or paused experience can be reviewed before it goes live — an
+    // ordinary visitor always gets the status="live" filter below.
+    .where(
+      previewOptions?.anyStatus
+        ? eq(products.slug, slug)
+        : and(eq(products.slug, slug), eq(products.status, "live")),
+    );
 
   if (!row) return null;
 
@@ -514,6 +547,7 @@ export async function getProductBySlug(slug: string): Promise<ProductDetail | nu
     ratingAverage: row.ratingAverage,
     reviewCount: row.reviewCount,
     badges: row.badges as ProductBadge[],
+    videoUrl: row.videoUrl,
     categorySlug: row.categorySlug,
     categoryName: row.categoryName,
     supplierName: row.supplierName,

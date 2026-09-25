@@ -10,9 +10,9 @@ import { useToast } from "./toast";
 // infrastructure, PLUS a real upload button that fills the same field.
 // Per the approved plan, both must exist side by side rather than
 // picking one — the URL path never depends on the upload path working.
-// The upload button posts to /api/admin/upload (wired for real in
-// Phase 8 with Vercel Blob); until then it fails gracefully with a
-// toast and the URL field keeps working on its own.
+// The upload button posts to /api/admin/upload (Vercel Blob-backed); if
+// that ever fails (e.g. no BLOB_READ_WRITE_TOKEN configured), it fails
+// gracefully with a toast and the URL field keeps working on its own.
 export function ImageField({
   label,
   value,

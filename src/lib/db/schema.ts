@@ -177,6 +177,10 @@ export const products = pgTable(
     // array rather than a join table since these are simple flags, not
     // entities with their own attributes.
     badges: jsonb("badges").$type<string[]>().notNull().default([]),
+    // Optional promo/walkthrough video for the product detail page's
+    // gallery — same plain-mp4-URL convention as the homepage hero's
+    // heroVideoUrl (src/lib/db/schema.ts homepageContent), not an embed.
+    videoUrl: text("video_url"),
     // Per-product SEO overrides, all optional — same pattern as
     // blogPosts below, resolved against sensible fallbacks by
     // src/lib/seo.ts so existing products with no overrides set still
@@ -541,14 +545,165 @@ export const leadSubmissions = pgTable(
   (t) => [index("lead_submissions_type_status_idx").on(t.type, t.status)],
 );
 // ---------------------------------------------------------------------------
+// CMS: Homepage Content
+// ---------------------------------------------------------------------------
+
+export const homepageContent = pgTable(
+  "homepage_content",
+  {
+    id: text("id").primaryKey().default("default"),
+
+    // 1. Hero Section
+    heroEnabled: boolean("hero_enabled").notNull().default(true),
+    heroBadge: text("hero_badge").notNull().default("OFFICIAL FLORENCE TICKETS & TOURS"),
+    heroHeading: text("hero_heading").notNull().default("Unforgettable Experiences in Florence"),
+    heroSubheading: text("hero_subheading").notNull().default("Skip the 2-hour queues at the Duomo and Uffizi. Guaranteed entrance timeslots, expert local guides, and 100% free 24-hour cancellation."),
+    heroPrimaryButtonText: text("hero_primary_button_text").notNull().default("Explore Experiences"),
+    heroPrimaryButtonLink: text("hero_primary_button_link").notNull().default("/experiences"),
+    heroSecondaryButtonText: text("hero_secondary_button_text").notNull().default("Todays Availability"),
+    heroSecondaryButtonLink: text("hero_secondary_button_link").notNull().default("/experiences"),
+    heroBackgroundImage: text("hero_background_image").notNull().default("/images/florence-hero.jpg"),
+    heroImageAlt: text("hero_image_alt").notNull().default("Florence cathedral panorama"),
+    heroVideoUrl: text("hero_video_url").default("/video/hero-florence.mp4"),
+    heroTrendingTags: jsonb("hero_trending_tags").$type<{ label: string; href: string }[]>(),
+
+    // 2. Top Categories Section
+    categoriesEnabled: boolean("categories_enabled").notNull().default(true),
+    categoriesBadge: text("categories_badge").notNull().default("TOP CATEGORIES"),
+    categoriesTitle: text("categories_title").notNull().default("Explore Florence by Theme"),
+    categoriesSubtitle: text("categories_subtitle").notNull().default("Find skip-the-line museum admissions, walking tours, Tuscan day trips, and culinary masterclasses."),
+    categoriesItems: jsonb("categories_items").$type<{ id: string; name: string; slug: string; imageUrl: string; enabled: boolean }[]>(),
+    categoriesLimit: integer("categories_limit").notNull().default(6),
+
+    // 3. Featured Experiences Section
+    experiencesEnabled: boolean("experiences_enabled").notNull().default(true),
+    experiencesBadge: text("experiences_badge").notNull().default("CURATED EXPERIENCES"),
+    experiencesTitle: text("experiences_title").notNull().default("Handcrafted Tours & Skip-The-Line Admissions"),
+    experiencesSubtitle: text("experiences_subtitle").notNull().default("Handcrafted tours and skip-the-line admissions chosen by local Florentines."),
+    experiencesItems: jsonb("experiences_items").$type<{ id: string; title: string; slug: string; imageUrl: string; badgeText: string; duration: string; priceFrom: string; enabled: boolean }[]>(),
+
+    // 4. Landmark Spotlight Section
+    landmarkEnabled: boolean("landmark_enabled").notNull().default(true),
+    landmarkBadge: text("landmark_badge").notNull().default("FLORENTINE MONUMENTS"),
+    landmarkTitle: text("landmark_title").notNull().default("Four Must-Experience Monuments in Florence"),
+    landmarkSubtitle: text("landmark_subtitle").notNull().default("From the heights of Brunelleschi dome to Michelangelo David, discover the crown jewels of the Renaissance with reserved priority entry."),
+
+    // 5. Itinerary Builder Section
+    itineraryEnabled: boolean("itinerary_enabled").notNull().default(true),
+    itineraryBadge: text("itinerary_badge").notNull().default("VACATION PLANNER"),
+    itineraryTitle: text("itinerary_title").notNull().default("Build Your Florence Day-by-Day"),
+    itinerarySubtitle: text("itinerary_subtitle").notNull().default("Select your trip length and travel style to see curated morning, afternoon, and evening recommendations."),
+
+    // 6. Why Choose Us Section
+    whyUsEnabled: boolean("why_us_enabled").notNull().default(true),
+    whyUsBadge: text("why_us_badge").notNull().default("THE VACAY FLORENCE DIFFERENCE"),
+    whyUsTitle: text("why_us_title").notNull().default("Why Travelers Choose VACAY Over the Ticket Box Office"),
+    whyUsSubtitle: text("why_us_subtitle").notNull().default("Skip the stress, bypass the lines, and enjoy guaranteed entry to Florence museums and sights."),
+    whyUsComparisonRows: jsonb("why_us_comparison_rows").$type<{ feature: string; gate: string; vacay: string; highlight: boolean }[]>(),
+    whyUsStats: jsonb("why_us_stats").$type<{ value: string; label: string }[]>(),
+    whyUsCtaText: text("why_us_cta_text").notNull().default("Browse All Fast-Pass Tickets"),
+    whyUsCtaLink: text("why_us_cta_link").notNull().default("/experiences"),
+
+    // 7. Traveler Reviews / Testimonials Section
+    testimonialsEnabled: boolean("testimonials_enabled").notNull().default(true),
+    testimonialsBadge: text("testimonials_badge").notNull().default("VERIFIED TRAVELER FEEDBACK"),
+    testimonialsTitle: text("testimonials_title").notNull().default("Loved by Over 45,000 Visitors"),
+    testimonialsSubtitle: text("testimonials_subtitle").notNull().default("Read candid reviews from culture lovers, families, and solo explorers who discovered Florence through VACAY."),
+    testimonialsItems: jsonb("testimonials_items").$type<{ name: string; location: string; rating: number; experienceTitle: string; quote: string; date: string }[]>(),
+
+    // 8. VIP Conversion / CTA Section
+    ctaEnabled: boolean("cta_enabled").notNull().default(true),
+    ctaBadge: text("cta_badge").notNull().default("LIMITED SUMMER AVAILABILITY"),
+    ctaTitle: text("cta_title").notNull().default("Do Not Risk Sold-Out Florentine Museums"),
+    ctaSubtitle: text("cta_subtitle").notNull().default("Uffizi and Accademia peak tickets sell out up to 3 weeks in advance. Reserve your priority time slot today with free cancellation protection."),
+    ctaButtonText: text("cta_button_text").notNull().default("Check Live Availability"),
+    ctaButtonLink: text("cta_button_link").notNull().default("/experiences"),
+    ctaSecondaryButtonText: text("cta_secondary_button_text").notNull().default("Browse Day Trips"),
+    ctaSecondaryButtonLink: text("cta_secondary_button_link").notNull().default("/experiences/category/day-trips"),
+    ctaBackgroundImage: text("cta_background_image").notNull().default("/images/florence-hero.jpg"),
+
+    // 9. FAQ Section
+    faqEnabled: boolean("faq_enabled").notNull().default(true),
+    faqBadge: text("faq_badge").notNull().default("HELPFUL INFORMATION"),
+    faqTitle: text("faq_title").notNull().default("Frequently Asked Questions"),
+    faqSubtitle: text("faq_subtitle").notNull().default("Everything you need to know about tickets, meeting points, dress codes, and cancellations."),
+    faqItems: jsonb("faq_items").$type<{ question: string; answer: string }[]>(),
+
+    // 10. SEO & Meta
+    seoMetaTitle: text("seo_meta_title").notNull().default("VACAY Florence — Skip-the-Line Tickets, Tours & Experiences"),
+    seoMetaDescription: text("seo_meta_description").notNull().default("Book skip-the-line tickets, guided tours, and day trips in Florence with instant confirmation, free cancellation, and verified reviews."),
+    seoCanonicalUrl: text("seo_canonical_url").notNull().default("/"),
+    seoOgImage: text("seo_og_image").notNull().default("/images/florence-hero.jpg"),
+
+    // 11. Popular Destinations (Landmark) cards — curated list shown in the
+    // Landmark Spotlight section. Admin-owned editorial content (rating/
+    // review figures are values the admin explicitly sets, same pattern as
+    // whyUsStats/testimonialsItems below), not automated/fabricated stats.
+    landmarkItems: jsonb("landmark_items").$type<
+      {
+        id: string;
+        name: string;
+        tag: string;
+        description: string;
+        image: string;
+        imageAlt: string;
+        href: string;
+        price: string;
+        rating: string;
+        reviews: string;
+        queueWithout: string;
+        queueWithUs: string;
+      }[]
+    >(),
+
+    // 12. Florence Itinerary Builder — multi-day trip plans, each with an
+    // hour-by-hour list of steps.
+    itineraryPlans: jsonb("itinerary_plans").$type<
+      {
+        id: string;
+        title: string;
+        subtitle: string;
+        badge: string;
+        pillLabel: string;
+        steps: {
+          time: string;
+          title: string;
+          description: string;
+          tag: string;
+          href?: string;
+          actionText?: string;
+          image: string;
+        }[];
+      }[]
+    >(),
+
+    // 13. Mobile Ticket / Digital Pass Showcase Section
+    mobileEnabled: boolean("mobile_enabled").notNull().default(true),
+    mobileBadge: text("mobile_badge").notNull().default("INSTANT DIGITAL WALLET VOUCHERS"),
+    mobileTitle: text("mobile_title").notNull().default("No Printing. No Lines. Scan & Walk Right In."),
+    mobileSubtitle: text("mobile_subtitle").notNull().default("Every booking instantly generates an official digital fast-pass for your Apple Wallet or Google Wallet. Simply hold your phone to the scanner at the monument gate and bypass hundreds waiting in line."),
+
+    // 14. Travel Guide / Blog Teaser Section
+    travelGuideEnabled: boolean("travel_guide_enabled").notNull().default(true),
+    travelGuideBadge: text("travel_guide_badge").notNull().default("TRAVEL GUIDE & BLOG"),
+    travelGuideTitle: text("travel_guide_title").notNull().default("Plan Your Perfect Florence Trip"),
+    travelGuideSubtitle: text("travel_guide_subtitle").notNull().default("Travel tips, city guides, hidden gems and more."),
+
+    // Extra testimonial trust badge (the "4.9 / 5.0 (14,200+ Reviews)" pill)
+    testimonialsRatingValue: text("testimonials_rating_value").notNull().default("4.9 / 5.0"),
+    testimonialsRatingCount: text("testimonials_rating_count").notNull().default("14,200+ Reviews"),
+
+    // Promo code shown/copied in the VIP Conversion Banner
+    ctaPromoCode: text("cta_promo_code").notNull().default("FLORENCE10"),
+
+    ...timestamps,
+  }
+);
+
+// ---------------------------------------------------------------------------
 // Governance: audit log
 // ---------------------------------------------------------------------------
 
-// Every admin mutation that changes catalog, booking, supplier/affiliate,
-// role, or content state writes one row here via src/lib/audit.ts's
-// logAudit() — actor + action + entity + before/after snapshot, so any
-// price change, approval, refund override, or permission edit is
-// reconstructable after the fact.
 export const auditLogs = pgTable(
   "audit_logs",
   {
@@ -567,3 +722,4 @@ export const auditLogs = pgTable(
     index("audit_logs_actor_idx").on(t.actorUserId),
   ],
 );
+

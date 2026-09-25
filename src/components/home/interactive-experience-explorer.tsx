@@ -37,17 +37,31 @@ const TABS = [
   { id: "day-trips", label: "🌄 Day Trips from Florence", filter: "day-trips-from-florence" },
 ];
 
+interface InteractiveExperienceExplorerProps {
+  experiences: ProductCardSummary[];
+  content?: {
+    experiencesBadge?: string;
+    experiencesTitle?: string;
+    experiencesSubtitle?: string;
+  };
+}
+
 export function InteractiveExperienceExplorer({
   experiences,
-}: {
-  experiences: ProductCardSummary[];
-}) {
+  content,
+}: InteractiveExperienceExplorerProps) {
   const [activeTab, setActiveTab] = useState("all");
 
   const filteredExperiences = experiences.filter((exp) => {
     if (activeTab === "all") return true;
     return exp.categorySlug === activeTab;
   });
+
+  const badge = content?.experiencesBadge || "CURATED EXPERIENCES";
+  const title = content?.experiencesTitle || "Handcrafted Tours & Skip-The-Line Admissions";
+  const subtitle =
+    content?.experiencesSubtitle ||
+    "Handcrafted tours and skip-the-line admissions chosen by local Florentines.";
 
   return (
     <section className="bg-white py-16 sm:py-24 border-b border-neutral-200/80">
@@ -57,13 +71,13 @@ export function InteractiveExperienceExplorer({
           <div className="max-w-2xl">
             <div className="inline-flex items-center gap-2 rounded-full bg-[#2b0934]/10 px-3 py-1 text-xs font-semibold text-[#2b0934] mb-3">
               <span className="h-1.5 w-1.5 rounded-full bg-[#2b0934] animate-ping" />
-              <span>DIRECT TICKET RESERVATIONS & TOURS</span>
+              <span>{badge}</span>
             </div>
             <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl font-medium tracking-tight text-neutral-900 leading-[1.15]">
-              Top-Rated Experiences in Florence
+              {title}
             </h2>
             <p className="mt-3 text-sm sm:text-base text-neutral-600 leading-relaxed">
-              Official entrance tickets, expert local guides, and authentic Tuscan adventures — with 100% free 24-hour cancellation.
+              {subtitle}
             </p>
           </div>
 

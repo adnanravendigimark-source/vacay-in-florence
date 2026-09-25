@@ -12,24 +12,40 @@ import { FaqSection } from "@/components/home/faq-section";
 import { ConversionVipBanner } from "@/components/home/conversion-vip-banner";
 import { getAllCategories } from "@/lib/data/categories";
 import { searchProducts } from "@/lib/data/products";
+import { getHomepageContent } from "@/lib/data/homepage";
 
-export const metadata: Metadata = {
-  title: "VACAY Florence — Skip-the-Line Tickets, Tours & Experiences",
-  description:
-    "Book skip-the-line tickets, guided tours, and day trips in Florence with instant confirmation, free cancellation, and verified reviews.",
-  alternates: { canonical: "/" },
-  openGraph: {
-    title: "VACAY Florence — Skip-the-Line Tickets, Tours & Experiences",
+export async function generateMetadata(): Promise<Metadata> {
+  const content = await getHomepageContent();
+
+  return {
+    title: content.seoMetaTitle || "VACAY Florence — Skip-the-Line Tickets, Tours & Experiences",
     description:
+      content.seoMetaDescription ||
       "Book skip-the-line tickets, guided tours, and day trips in Florence with instant confirmation, free cancellation, and verified reviews.",
-    url: "/",
-  },
-};
+    alternates: { canonical: content.seoCanonicalUrl || "/" },
+    openGraph: {
+      title: content.seoMetaTitle || "VACAY Florence — Skip-the-Line Tickets, Tours & Experiences",
+      description:
+        content.seoMetaDescription ||
+        "Book skip-the-line tickets, guided tours, and day trips in Florence with instant confirmation, free cancellation, and verified reviews.",
+      url: content.seoCanonicalUrl || "/",
+      images: [
+        {
+          url: content.seoOgImage || "/images/florence-hero.jpg",
+          width: 1200,
+          height: 630,
+          alt: "VACAY Florence",
+        },
+      ],
+    },
+  };
+}
 
 export default async function HomePage() {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.vacayinflorence.com";
 
-  const [categories, productsResult] = await Promise.all([
+  const [content, categories, productsResult] = await Promise.all([
+    getHomepageContent(),
     getAllCategories(),
     searchProducts({ pageSize: 50 }),
   ]);
@@ -69,17 +85,19 @@ export default async function HomePage() {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      <Hero />
-      <QuickCategoryRibbon />
-      <InteractiveExperienceExplorer experiences={productsResult.items} />
-      <LandmarkSpotlight />
-      <FlorenceItineraryBuilder />
-      <MobileTicketShowcase />
-      <WhyChooseUs />
-      <TravelerReviews />
-      <TravelGuide />
-      <FaqSection />
-      <ConversionVipBanner />
+      {content.heroEnabled !== false && <Hero content={content} />}
+      {content.categoriesEnabled !== false && <QuickCategoryRibbon content={content} />}
+      {content.experiencesEnabled !== false && (
+        <InteractiveExperienceExplorer experiences={productsResult.items} content={content} />
+      )}
+      {content.landmarkEnabled !== false && <LandmarkSpotlight content={content} />}
+      {content.itineraryEnabled !== false && <FlorenceItineraryBuilder content={content} />}
+      {content.mobileEnabled !== false && <MobileTicketShowcase content={content} />}
+      {content.whyUsEnabled !== false && <WhyChooseUs content={content} />}
+      {content.testimonialsEnabled !== false && <TravelerReviews content={content} />}
+      {content.travelGuideEnabled !== false && <TravelGuide content={content} />}
+      {content.faqEnabled !== false && <FaqSection content={content} />}
+      {content.ctaEnabled !== false && <ConversionVipBanner content={content} />}
     </>
   );
 }

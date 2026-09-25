@@ -43,8 +43,29 @@ const SAMPLE_PASSES = [
   },
 ];
 
-export function MobileTicketShowcase() {
+interface MobileTicketShowcaseProps {
+  content?: {
+    mobileBadge?: string;
+    mobileTitle?: string;
+    mobileSubtitle?: string;
+  };
+}
+
+export function MobileTicketShowcase({ content }: MobileTicketShowcaseProps) {
   const [selectedPass, setSelectedPass] = useState(SAMPLE_PASSES[0]);
+
+  const badge = content?.mobileBadge || "INSTANT DIGITAL WALLET VOUCHERS";
+  const title = content?.mobileTitle || "No Printing. No Lines. Scan & Walk Right In.";
+  const subtitle =
+    content?.mobileSubtitle ||
+    "Every booking instantly generates an official digital fast-pass for your Apple Wallet or Google Wallet. Simply hold your phone to the scanner at the monument gate and bypass hundreds waiting in line.";
+
+  // Admin can edit the title as one line; split it on the last sentence
+  // break so the italic accent line still renders when it matches the
+  // default copy's two-sentence shape, and falls back to one line otherwise.
+  const titleParts = title.split(/(?<=\.)\s+/);
+  const titleLine1 = titleParts[0];
+  const titleLine2 = titleParts.length > 1 ? titleParts.slice(1).join(" ") : null;
 
   return (
     <section className="bg-cream text-ink py-18 sm:py-24 overflow-hidden relative border-b border-stone">
@@ -58,16 +79,21 @@ export function MobileTicketShowcase() {
           <div className="lg:col-span-6 flex flex-col justify-center">
             <div className="inline-flex items-center gap-2 rounded-full bg-cypress-light px-3.5 py-1 text-xs font-semibold text-cypress mb-4 self-start">
               <span className="h-1.5 w-1.5 rounded-full bg-cypress animate-ping" />
-              <span>INSTANT DIGITAL WALLET VOUCHERS</span>
+              <span>{badge}</span>
             </div>
 
             <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl font-medium tracking-tight text-ink leading-[1.12]">
-              No Printing. No Lines.<br />
-              <span className="text-gold italic font-light">Scan &amp; Walk Right In.</span>
+              {titleLine1}
+              {titleLine2 ? (
+                <>
+                  <br />
+                  <span className="text-gold italic font-light">{titleLine2}</span>
+                </>
+              ) : null}
             </h2>
 
             <p className="mt-4 text-sm sm:text-base text-ink-soft leading-relaxed max-w-lg">
-              Every booking instantly generates an official digital fast-pass for your Apple Wallet or Google Wallet. Simply hold your phone to the scanner at the monument gate and bypass hundreds waiting in line.
+              {subtitle}
             </p>
 
             {/* Interactive Pass Selector Buttons */}
