@@ -22,6 +22,8 @@ export type CategoryIcon =
   | "day-trip"
   | "outdoor";
 
+export type CategoryStatus = "draft" | "published";
+
 export interface CategorySummary {
   id: string;
   slug: string;
@@ -29,9 +31,22 @@ export interface CategorySummary {
   shortDescription: string;
   icon: CategoryIcon;
   image: PlaceholderImage;
+  /** Falls back to `image` on the public site when not set. */
+  heroImage: PlaceholderImage | null;
   productCount: number;
   featured: boolean;
   sortOrder: number;
+  status: CategoryStatus;
+  highlights: string[];
+  badgeText: string | null;
+  ctaLabel: string | null;
+  ctaHref: string | null;
+  metaTitle: string | null;
+  metaDescription: string | null;
+  canonicalUrl: string | null;
+  ogImage: string | null;
+  noIndex: boolean;
+  noFollow: boolean;
 }
 
 export type ProductBadge =
@@ -147,6 +162,17 @@ export interface LegalPageContent {
 }
 
 /** Contact Us — a mailto card + info cards, intentionally no live form. */
+export interface SiteSettingsContent {
+  tagline: string;
+  copyrightName: string;
+  social: {
+    facebook: string;
+    instagram: string;
+    youtube: string;
+    pinterest: string;
+  };
+}
+
 export interface ContactPageContent {
   hero: { badge: string; headline: string; subheadline: string };
   email: string;

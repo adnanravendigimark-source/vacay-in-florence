@@ -222,11 +222,12 @@ function toDetail(row: typeof blogPosts.$inferSelect): BlogPostDetail {
   };
 }
 
-export async function getBlogPostBySlug(slug: string): Promise<BlogPostDetail | null> {
-  const [row] = await db
-    .select()
-    .from(blogPosts)
-    .where(and(eq(blogPosts.slug, slug), published()));
+export async function getBlogPostBySlug(
+  slug: string,
+  options?: { anyStatus?: boolean },
+): Promise<BlogPostDetail | null> {
+  const condition = options?.anyStatus ? eq(blogPosts.slug, slug) : and(eq(blogPosts.slug, slug), published());
+  const [row] = await db.select().from(blogPosts).where(condition);
   if (!row) return null;
   return toDetail(row);
 }

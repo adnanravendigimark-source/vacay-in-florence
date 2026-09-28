@@ -33,9 +33,13 @@ export const useAdminSidebar = () => useContext(AdminShellContext);
 
 export function AdminShell({
   staff,
+  permissionKeys,
   children,
 }: {
   staff?: StaffInfo;
+  /** StaffContext.permissionKeys, serialized to an array server-side —
+   * filters which sidebar sections this staff member sees. */
+  permissionKeys?: string[];
   children: React.ReactNode;
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -72,7 +76,7 @@ export function AdminShell({
     >
       <div className="min-h-screen flex bg-[#FAF8F5]">
         {/* Full-Height Left Navigation Sidebar (Desktop + Mobile Drawer) */}
-        <AdminSidebar staff={staff} />
+        <AdminSidebar staff={staff} permissionKeys={permissionKeys} />
 
         {/* Main Content Area */}
         <div className="flex-1 flex flex-col min-w-0">

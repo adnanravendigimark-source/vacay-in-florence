@@ -153,12 +153,40 @@ export function ExperienceListing({
                 {total} {total === 1 ? "Experience Available" : "Experiences Available"}
               </span>
             </div>
-            <h2 className="font-display text-2xl sm:text-3xl lg:text-[34px] font-normal text-[#2b0934] leading-tight">
-              {sectionTitle}
-            </h2>
+            <div className="flex flex-wrap items-center gap-2">
+              <h2 className="font-display text-2xl sm:text-3xl lg:text-[34px] font-normal text-[#2b0934] leading-tight">
+                {sectionTitle}
+              </h2>
+              {activeCategory?.badgeText ? (
+                <span className="rounded-full bg-[#a813c9] px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-white">
+                  {activeCategory.badgeText}
+                </span>
+              ) : null}
+            </div>
             <p className="mt-1.5 text-xs sm:text-sm text-[#5f6b61] max-w-xl leading-relaxed">
               {sectionSubtitle}
             </p>
+            {activeCategory && activeCategory.highlights.length > 0 ? (
+              <ul className="mt-2.5 flex flex-wrap gap-x-4 gap-y-1.5">
+                {activeCategory.highlights.map((h) => (
+                  <li key={h} className="flex items-center gap-1.5 text-xs font-medium text-[#3d4a41]">
+                    <svg viewBox="0 0 20 20" className="h-3 w-3 shrink-0 fill-none stroke-emerald-600 stroke-[2.5]">
+                      <path d="M4 10l4 4 8-8" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                    {h}
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+            {activeCategory?.ctaLabel && activeCategory?.ctaHref ? (
+              <a
+                href={activeCategory.ctaHref}
+                className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-[#2b0934] px-5 py-2.5 text-xs font-bold text-white shadow-sm transition hover:bg-[#3d0d4a]"
+              >
+                {activeCategory.ctaLabel}
+                <span>&rarr;</span>
+              </a>
+            ) : null}
           </div>
 
           {/* Sort Selector */}

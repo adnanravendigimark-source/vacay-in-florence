@@ -206,8 +206,35 @@ export const DEFAULT_HOMEPAGE_CONTENT: HomepageContentInsert = {
 
 /**
  * Ensures the homepage_content table exists in PostgreSQL.
+ *
+ * This runs two DDL statements (a multi-column CREATE TABLE and an ALTER
+ * TABLE ... ADD COLUMN IF NOT EXISTS migration) — cheap as a one-time
+ * check, but expensive to pay on every single request: every homepage
+ * load and every editor save was re-running both statements against the
+ * live DB, each a full network round trip, which is what made ordinary
+ * page loads take several seconds. Cache the in-flight/completed promise
+ * on `globalThis` (same pattern `src/lib/db/index.ts` uses for the pool
+ * singleton) so this only actually runs once per server process — and
+ * still once per process after a dev-mode hot reload, not once per
+ * request.
  */
-async function ensureHomepageTableExists() {
+const globalForHomepageMigration = globalThis as unknown as {
+  __homepageTableEnsured__?: Promise<void>;
+};
+
+function ensureHomepageTableExists(): Promise<void> {
+  if (!globalForHomepageMigration.__homepageTableEnsured__) {
+    globalForHomepageMigration.__homepageTableEnsured__ = ensureHomepageTableExistsUncached().catch((err) => {
+      // Let a failed attempt be retried on the next call instead of
+      // permanently caching a rejected promise.
+      globalForHomepageMigration.__homepageTableEnsured__ = undefined;
+      throw err;
+    });
+  }
+  return globalForHomepageMigration.__homepageTableEnsured__;
+}
+
+async function ensureHomepageTableExistsUncached() {
   try {
     await db.execute(sql`
       CREATE TABLE IF NOT EXISTS "homepage_content" (

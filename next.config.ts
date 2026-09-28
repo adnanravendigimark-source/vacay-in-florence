@@ -1,6 +1,15 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // jsdom (pulled in by isomorphic-dompurify, used server-side to sanitize
+  // rich blog-post HTML — see src/lib/blog/rich-content.ts) does dynamic,
+  // environment-sensing requires that Turbopack's bundler doesn't handle
+  // correctly; bundling it broke module evaluation under `next dev` with
+  // "webidl.util.markAsUncloneable is not a function". Marking it (and its
+  // wrapper) external makes Next.js load it via plain Node `require()`
+  // instead of bundling it — jsdom's own docs recommend exactly this for
+  // any bundler. See https://nextjs.org/docs/app/api-reference/config/next-config-js/serverExternalPackages
+  serverExternalPackages: ["jsdom", "isomorphic-dompurify"],
   images: {
     // Admin experience images are entered as freeform URLs (no upload/CDN
     // yet), so any HTTPS host must be allowed here or next/image throws

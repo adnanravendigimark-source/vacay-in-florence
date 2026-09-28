@@ -1,3 +1,5 @@
+import { isRichHtmlBody, renderRichBlogBody } from "./rich-content";
+
 export interface TocItem {
   id: string;
   text: string;
@@ -8,6 +10,7 @@ export interface RenderedBlogBody {
   html: string;
   toc: TocItem[];
 }
+
 
 function escapeHtml(value: string): string {
   return value
@@ -36,20 +39,33 @@ function renderInline(text: string): string {
 }
 
 /**
- * Renders a blog post's plain-text `body` column into safe article HTML,
- * extracting a table of contents from any "## Heading" / "### Subheading"
- * lines along the way.
+ * Renders a blog post's `body` column into safe article HTML, extracting
+ * a table of contents along the way. `body` holds one of two formats,
+ * detected automatically so every caller (this function's signature is
+ * unchanged) keeps working with either:
  *
- * Deliberately NOT a full markdown parser or a structured content-block
- * model (contrast with the Amsterdam reference repo's ContentBlock[] JSON
- * schema stored per-post) — `body` stays a single plain-text column, so
- * every post written before this feature existed keeps rendering exactly
- * as it always did: plain "\n\n"-separated paragraphs, no headings, no
- * TOC entries. A post opts into richer structure just by adding "## " /
- * "### " lines or "- " bullet lines; nothing else about the pipeline
- * changes, and nothing is ever interpreted as raw HTML.
+ * - Rich HTML, written by the Admin Blog Editor's Tiptap-based rich text
+ *   editor (src/components/admin/rich-text-editor.tsx) — real headings,
+ *   bold/italic/underline, links, ordered/unordered lists, tables,
+ *   images, blockquotes, and text alignment. Delegated to
+ *   rich-content.ts's renderRichBlogBody, which re-sanitizes on the way
+ *   out (defense in depth) and injects heading ids for the TOC.
+ * - The original plain-text/mini-markdown format every post written
+ *   before the rich editor existed already uses: plain "\n\n"-separated
+ *   paragraphs, "## "/"### " headings, "- " bullet lines. Handled by the
+ *   parser below exactly as before — nothing about it changed, so every
+ *   old post keeps rendering exactly as it always did.
+ *
+ * A body is treated as rich HTML only when it starts with a real HTML
+ * tag (see isRichHtmlBody) — something plain prose or the mini-markdown
+ * syntax never does — so detection can't misfire on old content.
  */
 export function renderBlogBody(body: string): RenderedBlogBody {
+  if (isRichHtmlBody(body)) return renderRichBlogBody(body);
+  return renderLegacyBlogBody(body);
+}
+
+function renderLegacyBlogBody(body: string): RenderedBlogBody {
   const toc: TocItem[] = [];
   const seen = new Map<string, number>();
   const blocks = (body || "")

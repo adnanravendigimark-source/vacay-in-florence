@@ -13,7 +13,7 @@ import type { NextRequest } from "next/server";
  * real pathname onto a header so those layouts can build the correct
  * redirectTo.
  */
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-pathname", request.nextUrl.pathname);
   return NextResponse.next({ request: { headers: requestHeaders } });

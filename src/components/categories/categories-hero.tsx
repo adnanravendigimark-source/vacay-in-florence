@@ -8,19 +8,6 @@ interface CategoriesHeroProps {
   categories: CategorySummary[];
 }
 
-// Curated hero imagery per category, kept distinct from the photos already
-// used on /experiences (hero-david.jpg, hero-food-wine.jpg, hero-day-trips.jpg,
-// hero-florence-duomo.jpg) so the two hero sections don't look like copies of
-// each other. Falls back to the category's own DB image for anything not
-// listed here.
-const MOSAIC_IMAGE: Record<string, string> = {
-  "skip-the-line-attractions": "/images/hero2-duomo-terrace.jpg",
-  "museums-galleries": "/images/hero2-uffizi-corridor.jpg",
-  "guided-tours": "/images/hero2-guided-tour.jpg",
-  "food-wine-experiences": "/images/hero2-chianti-wine.jpg",
-  "day-trips-from-florence": "/images/hero2-florence-panorama.jpg",
-};
-
 export function CategoriesHero({ categories }: CategoriesHeroProps) {
   const mosaicCategories = categories.slice(0, 5);
   const mobileCategory = categories[0];
@@ -74,7 +61,7 @@ export function CategoriesHero({ categories }: CategoriesHeroProps) {
             <div className="hidden lg:block lg:col-span-5 xl:col-span-6">
               <div className="grid grid-cols-2 grid-rows-3 gap-3 h-[380px] xl:h-[420px]">
                 {mosaicCategories.map((category, idx) => {
-                  const image = MOSAIC_IMAGE[category.slug] || category.image.src;
+                  const image = category.heroImage?.src || category.image.src;
                   return (
                     <Link
                       key={category.id}
@@ -107,7 +94,7 @@ export function CategoriesHero({ categories }: CategoriesHeroProps) {
             className="lg:hidden mt-6 relative block h-40 sm:h-48 w-full overflow-hidden rounded-2xl border border-neutral-200/70 shadow-sm"
           >
             <img
-              src={MOSAIC_IMAGE[mobileCategory.slug] || mobileCategory.image.src}
+              src={mobileCategory.heroImage?.src || mobileCategory.image.src}
               alt={`${mobileCategory.name} in Florence`}
               className="h-full w-full object-cover"
             />

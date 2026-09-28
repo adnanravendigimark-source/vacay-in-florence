@@ -12,6 +12,11 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Plain-CommonJS bootstrap scripts invoked directly via `node scripts/*.js`
+    // (e.g. the dev/build/start Node-version wrapper) — these run before any
+    // TS/ESM tooling and intentionally use require(), so the app's TS lint
+    // rules don't apply to them.
+    "scripts/**",
   ]),
 ]);
 

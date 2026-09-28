@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getBlogPostBySlug, getRelatedBlogPosts, searchBlogPosts, slugifyCategory } from "@/lib/data/blog";
+import { getStaffContext } from "@/lib/require-user";
 import { renderBlogBody } from "@/lib/blog/content";
 import { resolveRobots, resolveCanonical, resolveOg, buildArticleJsonLd, buildBreadcrumbJsonLd, getSiteUrl } from "@/lib/seo";
 import { Container } from "@/components/ui/container";
@@ -16,10 +17,29 @@ export async function generateStaticParams() {
 }
 
 type Params = { slug: string };
+type SearchParams = { preview?: string };
 
-export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
+// A logged-in staff member visiting `?preview=1` sees the article exactly
+// as it will look once published (draft included), so "Preview" in the
+// Admin Blog Editor works before an article goes live. Anyone else
+// always gets the normal published-only filter inside getBlogPostBySlug.
+// Mirrors the product/category detail pages' isStaffPreview.
+async function isStaffPreview(searchParams: Promise<SearchParams>): Promise<boolean> {
+  const { preview } = await searchParams;
+  if (preview !== "1") return false;
+  const staff = await getStaffContext();
+  return staff !== null;
+}
+
+export async function generateMetadata({
+  params,
+  searchParams,
+}: {
+  params: Promise<Params>;
+  searchParams: Promise<SearchParams>;
+}): Promise<Metadata> {
   const { slug } = await params;
-  const post = await getBlogPostBySlug(slug);
+  const post = await getBlogPostBySlug(slug, { anyStatus: await isStaffPreview(searchParams) });
   if (!post) return {};
 
   const og = resolveOg({ ogImage: post.seo.ogImage }, {
@@ -50,9 +70,15 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
   };
 }
 
-export default async function BlogPostPage({ params }: { params: Promise<Params> }) {
+export default async function BlogPostPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<Params>;
+  searchParams: Promise<SearchParams>;
+}) {
   const { slug } = await params;
-  const post = await getBlogPostBySlug(slug);
+  const post = await getBlogPostBySlug(slug, { anyStatus: await isStaffPreview(searchParams) });
   if (!post) notFound();
 
   const related = await getRelatedBlogPosts(post.slug, post.category, 4);
@@ -146,7 +172,7 @@ export default async function BlogPostPage({ params }: { params: Promise<Params>
             {post.quickAnswer.trim() && <QuickAnswer>{post.quickAnswer}</QuickAnswer>}
 
             <div
-              className="mt-8 max-w-none text-[17px] leading-relaxed text-ink-soft [&_h2]:mt-10 [&_h2]:mb-4 [&_h2]:font-display [&_h2]:text-2xl [&_h2]:font-medium [&_h2]:text-ink [&_h2]:scroll-mt-24 [&_h3]:mt-8 [&_h3]:mb-3 [&_h3]:font-display [&_h3]:text-xl [&_h3]:font-medium [&_h3]:text-ink [&_h3]:scroll-mt-24 [&_p]:mb-5 [&_ul]:mb-5 [&_ul]:list-disc [&_ul]:pl-5 [&_li]:mb-1.5"
+              className="mt-8 max-w-none text-[17px] leading-relaxed text-ink-soft [&_h1]:mt-10 [&_h1]:mb-4 [&_h1]:font-display [&_h1]:text-3xl [&_h1]:font-medium [&_h1]:text-ink [&_h1]:scroll-mt-24 [&_h2]:mt-10 [&_h2]:mb-4 [&_h2]:font-display [&_h2]:text-2xl [&_h2]:font-medium [&_h2]:text-ink [&_h2]:scroll-mt-24 [&_h3]:mt-8 [&_h3]:mb-3 [&_h3]:font-display [&_h3]:text-xl [&_h3]:font-medium [&_h3]:text-ink [&_h3]:scroll-mt-24 [&_p]:mb-5 [&_strong]:font-bold [&_strong]:text-ink [&_b]:font-bold [&_b]:text-ink [&_em]:italic [&_u]:underline [&_a]:text-cypress [&_a]:underline [&_a]:underline-offset-2 hover:[&_a]:text-cypress/80 [&_ul]:mb-5 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:mb-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_li]:mb-1.5 [&_blockquote]:my-6 [&_blockquote]:border-l-4 [&_blockquote]:border-cypress/40 [&_blockquote]:pl-4 [&_blockquote]:italic [&_blockquote]:text-ink [&_img]:my-6 [&_img]:w-full [&_img]:rounded-2xl [&_figure]:my-6 [&_figure]:mb-2 [&_figcaption]:mt-2 [&_figcaption]:text-center [&_figcaption]:text-sm [&_figcaption]:text-ink-faint [&_table]:my-6 [&_table]:w-full [&_table]:border-collapse [&_table]:overflow-hidden [&_table]:rounded-xl [&_table]:border [&_table]:border-stone [&_th]:border [&_th]:border-stone [&_th]:bg-cream-deep [&_th]:px-3.5 [&_th]:py-2.5 [&_th]:text-left [&_th]:font-semibold [&_th]:text-ink [&_td]:border [&_td]:border-stone [&_td]:px-3.5 [&_td]:py-2.5"
               dangerouslySetInnerHTML={{ __html: contentHtml }}
             />
 

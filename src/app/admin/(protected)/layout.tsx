@@ -9,7 +9,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   return (
     <ToastProvider>
-      <AdminShell staff={staff}>
+      <AdminShell staff={staff} permissionKeys={Array.from(staff.permissionKeys)}>
         {children}
       </AdminShell>
     </ToastProvider>

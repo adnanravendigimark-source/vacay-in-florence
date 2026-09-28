@@ -8,6 +8,7 @@ import type {
   BlogPageContent,
   ContactPageContent,
   LeadPageContent,
+  SiteSettingsContent,
 } from "@/lib/types";
 import {
   homepageContent as fallbackHomepageContent,
@@ -19,6 +20,7 @@ import {
   contactPageContent as fallbackContactPageContent,
   supplierPageContent as fallbackSupplierPageContent,
   affiliatePageContent as fallbackAffiliatePageContent,
+  siteSettingsContent as fallbackSiteSettingsContent,
 } from "@/lib/data/seed/site-content";
 
 /**
@@ -48,6 +50,26 @@ export async function getHomepageContent(): Promise<HomepageContent> {
   const [row] = await db.select().from(cmsBlocks).where(eq(cmsBlocks.key, "homepage"));
   if (!row) return fallbackHomepageContent;
   return row.content as HomepageContent;
+}
+
+/**
+ * Site-wide identity: footer tagline, copyright name, social links.
+ * Same cms_blocks pattern as every other page-content editor — see
+ * setCmsBlock above.
+ */
+export async function getSiteSettings(): Promise<SiteSettingsContent> {
+  const [row] = await db.select().from(cmsBlocks).where(eq(cmsBlocks.key, "site-settings"));
+  if (!row || !row.content) return fallbackSiteSettingsContent;
+  const dbContent = row.content as Partial<SiteSettingsContent>;
+  return {
+    ...fallbackSiteSettingsContent,
+    ...dbContent,
+    social: { ...fallbackSiteSettingsContent.social, ...(dbContent.social || {}) },
+  };
+}
+
+export async function updateSiteSettings(content: SiteSettingsContent, updatedBy: string | null): Promise<void> {
+  await setCmsBlock("site-settings", content, updatedBy);
 }
 
 export async function getAboutPageContent(): Promise<AboutPageContent> {

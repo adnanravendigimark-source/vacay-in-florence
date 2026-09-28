@@ -1,4 +1,6 @@
-import type { HomepageContent, BlogPageContent } from "@/lib/types";
+import type { HomepageContent, BlogPageContent,
+  SiteSettingsContent,
+} from "@/lib/types";
 
 /**
  * Placeholder for the `cms_blocks` row keyed "homepage" that the Master
@@ -288,6 +290,17 @@ export const blogPageContent: BlogPageContent = {
   searchPlaceholder: "Search articles...",
   emptyStateTitle: "No articles match your search",
   emptyStateDescription: "Try a different keyword or browse all categories instead.",
+};
+
+export const siteSettingsContent: SiteSettingsContent = {
+  tagline: "More than a trip. A deeper connection.",
+  copyrightName: "VACAY Florence",
+  social: {
+    facebook: "",
+    instagram: "",
+    youtube: "",
+    pinterest: "",
+  },
 };
 
 export const contactPageContent: ContactPageContent = {

@@ -1,0 +1,233 @@
+"use client";
+
+import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
+import Image from "next/image";
+import {
+  deleteCategoryAction,
+  setCategoryStatusAction,
+  setCategoryFeaturedAction,
+  moveCategoryAction,
+} from "@/app/admin/(protected)/categories/actions";
+import type { AdminCategoryListItem } from "@/lib/data/admin/categories";
+import type { CategoryStatus } from "@/lib/types";
+import { Table, THead, TBody, TR, TH, TD, Badge, Button, Modal, useToast } from "@/components/admin/ui";
+
+const STATUS_TONE: Record<CategoryStatus, "success" | "neutral"> = {
+  published: "success",
+  draft: "neutral",
+};
+
+function StarButton({ active, onClick, disabled }: { active: boolean; onClick: () => void; disabled: boolean }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      title={active ? "Remove from featured" : "Mark as featured"}
+      className={`inline-flex h-8 w-8 items-center justify-center rounded-full transition disabled:opacity-50 ${
+        active ? "text-amber-500 hover:bg-amber-50" : "text-neutral-300 hover:bg-cream-deep hover:text-amber-400"
+      }`}
+    >
+      <svg viewBox="0 0 24 24" className="h-4.5 w-4.5 fill-current stroke-current stroke-[0.5]">
+        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+      </svg>
+    </button>
+  );
+}
+
+function MoveButtons({
+  id,
+  isFirst,
+  isLast,
+  disabled,
+  onMove,
+}: {
+  id: string;
+  isFirst: boolean;
+  isLast: boolean;
+  disabled: boolean;
+  onMove: (id: string, direction: "up" | "down") => void;
+}) {
+  return (
+    <div className="flex items-center gap-1">
+      <button
+        type="button"
+        onClick={() => onMove(id, "up")}
+        disabled={disabled || isFirst}
+        title="Move up"
+        className="inline-flex h-7 w-7 items-center justify-center rounded-lg text-ink-faint transition hover:bg-cream-deep hover:text-ink disabled:opacity-30"
+      >
+        <svg viewBox="0 0 20 20" className="h-3.5 w-3.5 fill-none stroke-current stroke-[2]">
+          <path d="M10 14V6M6 10l4-4 4 4" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </button>
+      <button
+        type="button"
+        onClick={() => onMove(id, "down")}
+        disabled={disabled || isLast}
+        title="Move down"
+        className="inline-flex h-7 w-7 items-center justify-center rounded-lg text-ink-faint transition hover:bg-cream-deep hover:text-ink disabled:opacity-30"
+      >
+        <svg viewBox="0 0 20 20" className="h-3.5 w-3.5 fill-none stroke-current stroke-[2]">
+          <path d="M10 6v8M6 10l4 4 4-4" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </button>
+    </div>
+  );
+}
+
+export function CategoryTable({ items }: { items: AdminCategoryListItem[] }) {
+  const router = useRouter();
+  const { showToast } = useToast();
+  const [isPending, startTransition] = useTransition();
+  const [deleteTarget, setDeleteTarget] = useState<AdminCategoryListItem | null>(null);
+
+  function handleToggleStatus(item: AdminCategoryListItem) {
+    const next: CategoryStatus = item.status === "published" ? "draft" : "published";
+    startTransition(async () => {
+      const result = await setCategoryStatusAction(item.id, next, item.slug);
+      if (result.success) {
+        showToast(next === "published" ? "Category published." : "Category unpublished.", "success");
+        router.refresh();
+      } else {
+        showToast(result.error ?? "Could not update status.", "error");
+      }
+    });
+  }
+
+  function handleToggleFeatured(item: AdminCategoryListItem) {
+    startTransition(async () => {
+      const result = await setCategoryFeaturedAction(item.id, !item.featured, item.slug);
+      if (result.success) {
+        router.refresh();
+      } else {
+        showToast(result.error ?? "Could not update featured status.", "error");
+      }
+    });
+  }
+
+  function handleMove(id: string, direction: "up" | "down") {
+    startTransition(async () => {
+      const result = await moveCategoryAction(id, direction);
+      if (result.success) {
+        router.refresh();
+      } else {
+        showToast(result.error ?? "Could not reorder categories.", "error");
+      }
+    });
+  }
+
+  function handleDelete() {
+    if (!deleteTarget) return;
+    const target = deleteTarget;
+    startTransition(async () => {
+      const result = await deleteCategoryAction(target.id, target.slug);
+      if (result.success) {
+        showToast("Category deleted.", "success");
+        router.refresh();
+      } else {
+        showToast(result.error ?? "Could not delete this category.", "error");
+      }
+      setDeleteTarget(null);
+    });
+  }
+
+  if (items.length === 0) {
+    return (
+      <div className="rounded-3xl border border-[#EAE6DF] bg-white p-12 text-center shadow-[0_4px_25px_rgba(0,0,0,0.02)]">
+        <p className="text-sm font-medium text-neutral-700">No categories yet.</p>
+        <p className="mt-1 text-xs text-neutral-400">Add your first category to start organizing experiences.</p>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <Table>
+        <THead>
+          <TR>
+            <TH className="w-10">Order</TH>
+            <TH>Category</TH>
+            <TH>Status</TH>
+            <TH className="w-24 text-center">Featured</TH>
+            <TH className="w-28 text-center">Experiences</TH>
+            <TH className="w-40 text-right">Actions</TH>
+          </TR>
+        </THead>
+        <TBody>
+          {items.map((item, i) => (
+            <TR key={item.id}>
+              <TD>
+                <MoveButtons
+                  id={item.id}
+                  isFirst={i === 0}
+                  isLast={i === items.length - 1}
+                  disabled={isPending}
+                  onMove={handleMove}
+                />
+              </TD>
+              <TD>
+                <div className="flex items-center gap-3">
+                  <div className="relative h-11 w-14 shrink-0 overflow-hidden rounded-lg bg-cream-deep">
+                    <Image src={item.imageUrl} alt={item.imageAlt} fill sizes="56px" className="object-cover" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="truncate font-medium text-ink">{item.name}</p>
+                    <p className="truncate text-xs text-ink-faint">/{item.slug}</p>
+                  </div>
+                </div>
+              </TD>
+              <TD>
+                <button type="button" onClick={() => handleToggleStatus(item)} disabled={isPending} className="disabled:opacity-50">
+                  <Badge tone={STATUS_TONE[item.status]}>{item.status === "published" ? "Published" : "Draft"}</Badge>
+                </button>
+              </TD>
+              <TD className="text-center">
+                <StarButton active={item.featured} onClick={() => handleToggleFeatured(item)} disabled={isPending} />
+              </TD>
+              <TD className="text-center text-ink-faint">{item.productCount}</TD>
+              <TD>
+                <div className="flex items-center justify-end gap-2">
+                  <Button href={`/admin/categories/${item.id}`} variant="secondary" size="sm">
+                    Edit
+                  </Button>
+                  <Button variant="ghost" size="sm" onClick={() => setDeleteTarget(item)}>
+                    Delete
+                  </Button>
+                </div>
+              </TD>
+            </TR>
+          ))}
+        </TBody>
+      </Table>
+
+      <Modal
+        open={deleteTarget !== null}
+        onClose={() => setDeleteTarget(null)}
+        title="Delete category?"
+        footer={
+          <>
+            <Button variant="secondary" onClick={() => setDeleteTarget(null)} disabled={isPending}>
+              Cancel
+            </Button>
+            <Button variant="danger" onClick={handleDelete} disabled={isPending}>
+              {isPending ? "Deleting..." : "Delete"}
+            </Button>
+          </>
+        }
+      >
+        <p className="text-sm text-ink-soft">
+          {deleteTarget ? (
+            <>
+              This permanently deletes <strong>{deleteTarget.name}</strong>
+              {deleteTarget.productCount > 0
+                ? `. It currently has ${deleteTarget.productCount} experience${deleteTarget.productCount === 1 ? "" : "s"} assigned — deletion will be blocked until they're reassigned or you unpublish this category instead.`
+                : ". This can't be undone."}
+            </>
+          ) : null}
+        </p>
+      </Modal>
+    </>
+  );
+}

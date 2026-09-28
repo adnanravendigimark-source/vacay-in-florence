@@ -12,12 +12,20 @@ interface AdminSidebarProps {
     email?: string | null;
     roleName?: string | null;
   };
+  /** Staff member's resolved permission keys (StaffContext.permissionKeys,
+   * serialized to an array by the server layout) — filters which nav
+   * sections are shown. UI-only: every route still re-checks permissions
+   * server-side via requireAdmin/requirePermission, so hiding a link here
+   * is never what actually gates access to a module. */
+  permissionKeys?: string[];
 }
 
 interface NavItem {
   href: string;
   label: string;
   icon: (active: boolean) => React.ReactNode;
+  /** Visible if the staff member has ANY of these permission keys. */
+  anyOf: string[];
 }
 
 interface NavGroup {
@@ -33,6 +41,8 @@ interface PublicPageItem {
    * as a disabled row with a "Soon" badge instead of a clickable link — this
    * dropdown only ever holds admin editors, never live-site redirects. */
   comingSoon?: boolean;
+  /** Visible if the staff member has ANY of these permission keys. */
+  anyOf: string[];
 }
 
 // ---------------------------------------------------------------------------
@@ -161,6 +171,7 @@ const PUBLIC_PAGES: PublicPageItem[] = [
   {
     href: "/admin/content/homepage",
     label: "Homepage Editor",
+    anyOf: ["content.view", "content.manage"],
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 shrink-0 text-neutral-400 group-hover:text-[#2b0934]">
         <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
@@ -171,6 +182,7 @@ const PUBLIC_PAGES: PublicPageItem[] = [
   {
     href: "/admin/content/about",
     label: "About Us",
+    anyOf: ["content.view", "content.manage"],
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 shrink-0 text-neutral-400 group-hover:text-[#2b0934]">
         <circle cx="12" cy="12" r="10" />
@@ -182,6 +194,7 @@ const PUBLIC_PAGES: PublicPageItem[] = [
   {
     href: "/admin/content/contact",
     label: "Contact Us",
+    anyOf: ["content.view", "content.manage"],
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 shrink-0 text-neutral-400 group-hover:text-[#2b0934]">
         <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
@@ -192,6 +205,7 @@ const PUBLIC_PAGES: PublicPageItem[] = [
   {
     href: "/admin/content/privacy",
     label: "Privacy Policy",
+    anyOf: ["content.view", "content.manage"],
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 shrink-0 text-neutral-400 group-hover:text-[#2b0934]">
         <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
@@ -201,6 +215,7 @@ const PUBLIC_PAGES: PublicPageItem[] = [
   {
     href: "/admin/content/terms",
     label: "Terms & Conditions",
+    anyOf: ["content.view", "content.manage"],
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 shrink-0 text-neutral-400 group-hover:text-[#2b0934]">
         <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
@@ -213,6 +228,7 @@ const PUBLIC_PAGES: PublicPageItem[] = [
   {
     href: "/admin/content/cancellation-policy",
     label: "Cancellation & Refunds",
+    anyOf: ["content.view", "content.manage"],
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 shrink-0 text-neutral-400 group-hover:text-[#2b0934]">
         <polyline points="1 4 1 10 7 10" />
@@ -224,6 +240,7 @@ const PUBLIC_PAGES: PublicPageItem[] = [
   {
     href: "/admin/content/become-a-supplier",
     label: "Become a Supplier",
+    anyOf: ["content.view", "content.manage"],
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 shrink-0 text-neutral-400 group-hover:text-[#2b0934]">
         <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
@@ -235,6 +252,7 @@ const PUBLIC_PAGES: PublicPageItem[] = [
   {
     href: "/admin/content/affiliates",
     label: "Become an Affiliate",
+    anyOf: ["content.view", "content.manage"],
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 shrink-0 text-neutral-400 group-hover:text-[#2b0934]">
         <circle cx="18" cy="5" r="3" />
@@ -254,11 +272,13 @@ const NAV_GROUPS: NavGroup[] = [
       {
         href: "/admin/experiences",
         label: "Experiences",
+        anyOf: ["catalog.view", "catalog.manage"],
         icon: (active) => <IconExperiences className={`w-4 h-4 shrink-0 ${active ? "text-[#F5D59A]" : "text-neutral-500 group-hover:text-[#2b0934]"}`} />,
       },
       {
         href: "/admin/categories",
         label: "Categories",
+        anyOf: ["catalog.view", "catalog.manage"],
         icon: (active) => <IconCategories className={`w-4 h-4 shrink-0 ${active ? "text-[#F5D59A]" : "text-neutral-500 group-hover:text-[#2b0934]"}`} />,
       },
     ],
@@ -269,11 +289,13 @@ const NAV_GROUPS: NavGroup[] = [
       {
         href: "/admin/bookings",
         label: "Bookings",
+        anyOf: ["bookings.view", "bookings.manage"],
         icon: (active) => <IconBookings className={`w-4 h-4 shrink-0 ${active ? "text-[#F5D59A]" : "text-neutral-500 group-hover:text-[#2b0934]"}`} />,
       },
       {
         href: "/admin/customers",
         label: "Customers",
+        anyOf: ["customers.view", "customers.manage"],
         icon: (active) => <IconCustomers className={`w-4 h-4 shrink-0 ${active ? "text-[#F5D59A]" : "text-neutral-500 group-hover:text-[#2b0934]"}`} />,
       },
     ],
@@ -284,11 +306,13 @@ const NAV_GROUPS: NavGroup[] = [
       {
         href: "/admin/suppliers",
         label: "Suppliers",
+        anyOf: ["suppliers.view", "suppliers.manage"],
         icon: (active) => <IconSuppliers className={`w-4 h-4 shrink-0 ${active ? "text-[#F5D59A]" : "text-neutral-500 group-hover:text-[#2b0934]"}`} />,
       },
       {
         href: "/admin/affiliates",
         label: "Affiliates",
+        anyOf: ["affiliates.view", "affiliates.manage"],
         icon: (active) => <IconAffiliates className={`w-4 h-4 shrink-0 ${active ? "text-[#F5D59A]" : "text-neutral-500 group-hover:text-[#2b0934]"}`} />,
       },
     ],
@@ -299,16 +323,19 @@ const NAV_GROUPS: NavGroup[] = [
       {
         href: "/admin/blog",
         label: "Blog & Articles",
+        anyOf: ["content.view", "content.manage"],
         icon: (active) => <IconBlog className={`w-4 h-4 shrink-0 ${active ? "text-[#F5D59A]" : "text-neutral-500 group-hover:text-[#2b0934]"}`} />,
       },
       {
         href: "/admin/settings",
         label: "Website Settings",
+        anyOf: ["content.view", "content.manage"],
         icon: (active) => <IconSettings className={`w-4 h-4 shrink-0 ${active ? "text-[#F5D59A]" : "text-neutral-500 group-hover:text-[#2b0934]"}`} />,
       },
       {
         href: "/admin/seo",
         label: "SEO Management",
+        anyOf: ["seo.view", "seo.manage"],
         icon: (active) => <IconSEO className={`w-4 h-4 shrink-0 ${active ? "text-[#F5D59A]" : "text-neutral-500 group-hover:text-[#2b0934]"}`} />,
       },
     ],
@@ -319,11 +346,13 @@ const NAV_GROUPS: NavGroup[] = [
       {
         href: "/admin/roles",
         label: "Users & Roles",
+        anyOf: ["roles.view", "roles.manage"],
         icon: (active) => <IconRoles className={`w-4 h-4 shrink-0 ${active ? "text-[#F5D59A]" : "text-neutral-500 group-hover:text-[#2b0934]"}`} />,
       },
       {
         href: "/admin/audit-log",
         label: "Audit Log",
+        anyOf: ["auditlog.view"],
         icon: (active) => <IconAuditLog className={`w-4 h-4 shrink-0 ${active ? "text-[#F5D59A]" : "text-neutral-500 group-hover:text-[#2b0934]"}`} />,
       },
     ],
@@ -337,16 +366,25 @@ function isPathActive(pathname: string, href: string): boolean {
 
 function SidebarContent({
   staff,
+  permissionKeys,
   onClose,
   collapsed = false,
   onToggleCollapse,
 }: {
   staff?: AdminSidebarProps["staff"];
+  permissionKeys?: string[];
   onClose?: () => void;
   collapsed?: boolean;
   onToggleCollapse?: () => void;
 }) {
   const pathname = usePathname();
+  // No permissionKeys prop = don't filter (defensive default so a caller
+  // that forgets to pass it still sees every section rather than none).
+  const hasPerm = (anyOf: string[]) => !permissionKeys || anyOf.some((k) => permissionKeys.includes(k));
+  const visiblePublicPages = PUBLIC_PAGES.filter((p) => hasPerm(p.anyOf));
+  const visibleNavGroups = NAV_GROUPS.map((g) => ({ ...g, items: g.items.filter((i) => hasPerm(i.anyOf)) })).filter(
+    (g) => g.items.length > 0,
+  );
   const [publicPagesOpen, setPublicPagesOpen] = useState(() => pathname.startsWith("/admin/content/homepage"));
 
   const isDashboardActive = isPathActive(pathname, "/admin");
@@ -431,6 +469,7 @@ function SidebarContent({
         {/* Navigation Links */}
         <nav className="p-3 sm:p-4 space-y-4" aria-label="Admin Navigation">
           {/* Dashboard Link */}
+          {hasPerm(["dashboard.view"]) ? (
           <Link
             href="/admin"
             onClick={onClose}
@@ -446,8 +485,10 @@ function SidebarContent({
             <IconDashboard className={`w-4 h-4 shrink-0 ${isDashboardActive ? "text-[#F5D59A]" : "text-neutral-500 group-hover:text-[#2b0934]"}`} />
             {!collapsed ? <span>Dashboard</span> : null}
           </Link>
+          ) : null}
 
           {/* Public Pages Dropdown with Individual Icons */}
+          {visiblePublicPages.length > 0 ? (
           <div className="pt-1">
             <button
               type="button"
@@ -484,7 +525,7 @@ function SidebarContent({
 
             {publicPagesOpen && !collapsed ? (
               <div className="mt-1 ml-3 pl-2.5 border-l border-[#EAE6DF] space-y-0.5 animate-in fade-in slide-in-from-top-1 duration-150">
-                {PUBLIC_PAGES.map((page) => {
+                {visiblePublicPages.map((page) => {
                   if (page.comingSoon) {
                     return (
                       <div
@@ -524,8 +565,9 @@ function SidebarContent({
               </div>
             ) : null}
           </div>
+          ) : null}
 
-          {NAV_GROUPS.map((group) => (
+          {visibleNavGroups.map((group) => (
             <div key={group.label}>
               {!collapsed ? (
                 <p className="px-3 pb-1 text-[10px] font-bold uppercase tracking-wider text-neutral-400">
@@ -592,7 +634,7 @@ function SidebarContent({
   );
 }
 
-export function AdminSidebar({ staff }: AdminSidebarProps) {
+export function AdminSidebar({ staff, permissionKeys }: AdminSidebarProps) {
   const { sidebarOpen, closeSidebar, isCollapsed, toggleCollapse } = useAdminSidebar();
 
   return (
@@ -605,6 +647,7 @@ export function AdminSidebar({ staff }: AdminSidebarProps) {
       >
         <SidebarContent
           staff={staff}
+          permissionKeys={permissionKeys}
           collapsed={isCollapsed}
           onToggleCollapse={toggleCollapse}
         />
@@ -622,7 +665,7 @@ export function AdminSidebar({ staff }: AdminSidebarProps) {
 
           {/* Slide-over panel */}
           <div className="fixed inset-y-0 left-0 w-72 max-w-[85vw] bg-white shadow-2xl z-50 overflow-y-auto flex flex-col justify-between animate-in slide-in-from-left duration-200">
-            <SidebarContent staff={staff} onClose={closeSidebar} />
+            <SidebarContent staff={staff} permissionKeys={permissionKeys} onClose={closeSidebar} />
           </div>
         </div>
       ) : null}

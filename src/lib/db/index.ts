@@ -1,6 +1,19 @@
-import { Pool } from "pg";
+import { Pool, type PoolConfig } from "pg";
 import { drizzle } from "drizzle-orm/node-postgres";
+import dns from "node:dns";
 import * as schema from "./schema";
+
+// @types/pg's PoolConfig doesn't declare `lookup`, even though pg forwards
+// unrecognized config straight through to Node's net.connect()/tls.connect(),
+// which does accept it — extend the type locally rather than losing type
+// safety on the rest of the config with a blanket cast.
+type PoolConfigWithLookup = PoolConfig & {
+  lookup?: (
+    hostname: string,
+    options: dns.LookupOptions,
+    callback: (err: NodeJS.ErrnoException | null, address: string, family: number) => void,
+  ) => void;
+};
 
 /**
  * Singleton DB client, backed by Neon Postgres over plain TCP
@@ -22,11 +35,24 @@ const globalForDb = globalThis as unknown as {
   __pgPool__?: InstanceType<typeof Pool>;
 };
 
-const pool =
-  globalForDb.__pgPool__ ??
-  new Pool({
-    connectionString: process.env.DATABASE_URL,
-  });
+const poolConfig: PoolConfigWithLookup = {
+  connectionString: process.env.DATABASE_URL,
+  // Force IPv4 DNS resolution for the Neon host. Node's default
+  // dual-stack ("happy eyeballs") resolution can hang trying IPv6
+  // addresses first on networks where IPv6 is enabled but not
+  // actually routed end-to-end (common on many home/ISP setups) —
+  // symptom is `pg` timing out with an AggregateError of several
+  // failed connection attempts, even though a plain IPv4 TCP check
+  // (e.g. `nc`) to the same host succeeds instantly. Pinning to IPv4
+  // here sidesteps that entirely; it's a no-op if IPv6 was never the
+  // problem.
+  // `all: false` pins the callback to the single-address overload
+  // (string, not LookupAddress[]) regardless of what the caller passed in.
+  lookup: (hostname, options, callback) =>
+    dns.lookup(hostname, { ...options, family: 4, all: false }, callback),
+};
+
+const pool = globalForDb.__pgPool__ ?? new Pool(poolConfig);
 
 if (process.env.NODE_ENV !== "production") {
   globalForDb.__pgPool__ = pool;

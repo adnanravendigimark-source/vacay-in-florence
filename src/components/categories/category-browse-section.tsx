@@ -238,9 +238,16 @@ export function CategoryBrowseSection({
                 {/* Dark Gradient Overlay for text contrast */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-black/10" />
 
-                {/* Top-Left Floating Icon Badge */}
-                <div className="relative z-10 self-start flex h-10 w-10 items-center justify-center rounded-full bg-white/95 text-neutral-800 shadow-md backdrop-blur-md transition-transform duration-300 group-hover:scale-105">
-                  {ICONS[item.icon]}
+                {/* Top Row: Icon Badge (left) + Badge Text Pill (right) */}
+                <div className="relative z-10 flex items-start justify-between gap-2">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/95 text-neutral-800 shadow-md backdrop-blur-md transition-transform duration-300 group-hover:scale-105">
+                    {ICONS[item.icon]}
+                  </div>
+                  {item.badgeText ? (
+                    <span className="rounded-full bg-[#a813c9] px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-white shadow-md">
+                      {item.badgeText}
+                    </span>
+                  ) : null}
                 </div>
 
                 {/* Bottom Content & Arrow Button */}
@@ -252,14 +259,33 @@ export function CategoryBrowseSection({
                     <div className="text-xs font-semibold text-white/90 mt-1">
                       {item.productCount} {item.productCount === 1 ? "Experience" : "Experiences"}
                     </div>
-                    <p className="text-[11px] sm:text-xs text-white/75 mt-1.5 line-clamp-2 leading-relaxed">
-                      {item.shortDescription}
-                    </p>
+                    {item.highlights.length > 0 ? (
+                      <ul className="mt-1.5 flex flex-wrap gap-x-2.5 gap-y-0.5">
+                        {item.highlights.slice(0, 2).map((h) => (
+                          <li
+                            key={h}
+                            className="flex items-center gap-1 text-[10.5px] font-medium text-white/85 truncate max-w-[140px]"
+                          >
+                            <svg viewBox="0 0 20 20" className="h-2.5 w-2.5 shrink-0 fill-none stroke-current stroke-[2.5]">
+                              <path d="M4 10l4 4 8-8" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                            <span className="truncate">{h}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="text-[11px] sm:text-xs text-white/75 mt-1.5 line-clamp-2 leading-relaxed">
+                        {item.shortDescription}
+                      </p>
+                    )}
                   </div>
 
-                  {/* Circular White Arrow Button */}
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-neutral-900 shadow-md transition-all duration-300 group-hover:bg-[#2B0934] group-hover:text-white group-hover:scale-110">
-                    <svg viewBox="0 0 20 20" className="h-3.5 w-3.5 fill-none stroke-current stroke-[2.2]">
+                  {/* Circular White Arrow Button (pill w/ CTA label when set) */}
+                  <div className="flex h-8 shrink-0 items-center justify-center gap-1.5 rounded-full bg-white px-3 text-neutral-900 shadow-md transition-all duration-300 group-hover:bg-[#2B0934] group-hover:text-white group-hover:scale-105">
+                    {item.ctaLabel ? (
+                      <span className="whitespace-nowrap text-[10.5px] font-bold">{item.ctaLabel}</span>
+                    ) : null}
+                    <svg viewBox="0 0 20 20" className="h-3.5 w-3.5 shrink-0 fill-none stroke-current stroke-[2.2]">
                       <path d="M4 10h11m-4-4l4 4-4 4" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                   </div>

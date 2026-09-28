@@ -1,7 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { getStaffContext } from "@/lib/require-user";
+import { requirePermission } from "@/lib/require-user";
+import { logAudit } from "@/lib/audit";
 import { productFormSchema, availabilityGenerateSchema, type ProductFormInput } from "@/lib/validation/products";
 import {
   createProduct,
@@ -38,13 +39,16 @@ function revalidateExperienceRoutes(slug?: string, previousSlug?: string) {
 }
 
 export async function createProductAction(input: ProductFormInput): Promise<MutationResult> {
-  await getStaffContext();
+  const staff = await requirePermission("catalog.manage", "/admin/experiences");
   const parsed = productFormSchema.safeParse(input);
   if (!parsed.success) {
     return { success: false, error: parsed.error.issues[0]?.message ?? "Please check the form for errors." };
   }
   const result = await createProduct(parsed.data);
-  if (result.success) revalidateExperienceRoutes(parsed.data.slug);
+  if (result.success) {
+    revalidateExperienceRoutes(parsed.data.slug);
+    await logAudit({ actorUserId: staff.userId, action: "product.create", entityType: "product", entityId: result.id, after: { title: parsed.data.title, slug: parsed.data.slug } });
+  }
   return result;
 }
 
@@ -53,20 +57,26 @@ export async function updateProductAction(
   input: ProductFormInput,
   previousSlug?: string,
 ): Promise<MutationResult> {
-  await getStaffContext();
+  const staff = await requirePermission("catalog.manage", "/admin/experiences");
   const parsed = productFormSchema.safeParse(input);
   if (!parsed.success) {
     return { success: false, error: parsed.error.issues[0]?.message ?? "Please check the form for errors." };
   }
   const result = await updateProduct(id, parsed.data);
-  if (result.success) revalidateExperienceRoutes(parsed.data.slug, previousSlug);
+  if (result.success) {
+    revalidateExperienceRoutes(parsed.data.slug, previousSlug);
+    await logAudit({ actorUserId: staff.userId, action: "product.update", entityType: "product", entityId: id, after: { title: parsed.data.title, slug: parsed.data.slug } });
+  }
   return result;
 }
 
 export async function deleteProductAction(id: string, slug?: string): Promise<MutationResult> {
-  await getStaffContext();
+  const staff = await requirePermission("catalog.manage", "/admin/experiences");
   const result = await deleteProduct(id);
-  if (result.success) revalidateExperienceRoutes(slug);
+  if (result.success) {
+    revalidateExperienceRoutes(slug);
+    await logAudit({ actorUserId: staff.userId, action: "product.delete", entityType: "product", entityId: id, before: { slug } });
+  }
   return result;
 }
 
@@ -75,9 +85,12 @@ export async function setProductStatusAction(
   status: ProductStatus,
   slug?: string,
 ): Promise<MutationResult> {
-  await getStaffContext();
+  const staff = await requirePermission("catalog.manage", "/admin/experiences");
   const result = await setProductStatus(id, status);
-  if (result.success) revalidateExperienceRoutes(slug);
+  if (result.success) {
+    revalidateExperienceRoutes(slug);
+    await logAudit({ actorUserId: staff.userId, action: "product.status_change", entityType: "product", entityId: id, after: { status } });
+  }
   return result;
 }
 
@@ -86,9 +99,12 @@ export async function setProductFeaturedAction(
   featured: boolean,
   slug?: string,
 ): Promise<MutationResult> {
-  await getStaffContext();
+  const staff = await requirePermission("catalog.manage", "/admin/experiences");
   const result = await setProductFeatured(id, featured);
-  if (result.success) revalidateExperienceRoutes(slug);
+  if (result.success) {
+    revalidateExperienceRoutes(slug);
+    await logAudit({ actorUserId: staff.userId, action: "product.featured_change", entityType: "product", entityId: id, after: { featured } });
+  }
   return result;
 }
 
@@ -112,23 +128,30 @@ function revalidateBulk(targets: BulkTarget[]) {
 }
 
 export async function bulkSetProductStatusAction(targets: BulkTarget[], status: ProductStatus): Promise<MutationResult> {
-  await getStaffContext();
+  const staff = await requirePermission("catalog.manage", "/admin/experiences");
   const result = await bulkSetProductStatus(targets.map((t) => t.id), status);
-  if (result.success) revalidateBulk(targets);
+  if (result.success) {
+    revalidateBulk(targets);
+    await logAudit({ actorUserId: staff.userId, action: "product.bulk_status_change", entityType: "product", entityId: targets.map((t) => t.id).join(","), after: { status, count: targets.length } });
+  }
   return result;
 }
 
 export async function bulkSetProductFeaturedAction(targets: BulkTarget[], featured: boolean): Promise<MutationResult> {
-  await getStaffContext();
+  const staff = await requirePermission("catalog.manage", "/admin/experiences");
   const result = await bulkSetProductFeatured(targets.map((t) => t.id), featured);
-  if (result.success) revalidateBulk(targets);
+  if (result.success) {
+    revalidateBulk(targets);
+    await logAudit({ actorUserId: staff.userId, action: "product.bulk_featured_change", entityType: "product", entityId: targets.map((t) => t.id).join(","), after: { featured, count: targets.length } });
+  }
   return result;
 }
 
 export async function bulkDeleteProductsAction(targets: BulkTarget[]): Promise<BulkDeleteResult> {
-  await getStaffContext();
+  const staff = await requirePermission("catalog.manage", "/admin/experiences");
   const result = await bulkDeleteProducts(targets.map((t) => t.id));
   revalidateBulk(targets);
+  await logAudit({ actorUserId: staff.userId, action: "product.bulk_delete", entityType: "product", entityId: targets.map((t) => t.id).join(","), before: { slugs: targets.map((t) => t.slug) } });
   return result;
 }
 
@@ -149,7 +172,7 @@ export async function generateAvailabilityAction(
   productId: string,
   input: { days: number; capacityTotal: number },
 ): Promise<MutationResult & { availability?: AvailabilityRow[] }> {
-  await getStaffContext();
+  const staff = await requirePermission("catalog.manage", "/admin/experiences");
   const parsed = availabilityGenerateSchema.safeParse(input);
   if (!parsed.success) {
     return { success: false, error: parsed.error.issues[0]?.message ?? "Invalid input." };
@@ -157,6 +180,7 @@ export async function generateAvailabilityAction(
   const result = await generateAvailability(productId, parsed.data.days, parsed.data.capacityTotal);
   if (!result.success) return result;
   revalidatePath(`/admin/experiences/${productId}`);
+  await logAudit({ actorUserId: staff.userId, action: "product.availability_generate", entityType: "product", entityId: productId, after: parsed.data });
   return { ...result, availability: await currentAvailabilityWindow(productId) };
 }
 
@@ -165,9 +189,10 @@ export async function updateAvailabilityCapacityAction(
   date: string,
   capacityTotal: number,
 ): Promise<MutationResult & { availability?: AvailabilityRow[] }> {
-  await getStaffContext();
+  const staff = await requirePermission("catalog.manage", "/admin/experiences");
   const result = await updateAvailabilityCapacity(productId, date, capacityTotal);
   if (!result.success) return result;
+  await logAudit({ actorUserId: staff.userId, action: "product.availability_update", entityType: "product", entityId: productId, after: { date, capacityTotal } });
   return { ...result, availability: await currentAvailabilityWindow(productId) };
 }
 
@@ -175,8 +200,9 @@ export async function deleteAvailabilityDateAction(
   productId: string,
   date: string,
 ): Promise<MutationResult & { availability?: AvailabilityRow[] }> {
-  await getStaffContext();
+  const staff = await requirePermission("catalog.manage", "/admin/experiences");
   const result = await deleteAvailabilityDate(productId, date);
   if (!result.success) return result;
+  await logAudit({ actorUserId: staff.userId, action: "product.availability_delete", entityType: "product", entityId: productId, before: { date } });
   return { ...result, availability: await currentAvailabilityWindow(productId) };
 }

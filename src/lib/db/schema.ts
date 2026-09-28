@@ -59,6 +59,26 @@ export const categories = pgTable(
     parentId: text("parent_id"),
     featured: boolean("featured").notNull().default(false),
     sortOrder: integer("sort_order").notNull().default(0),
+    // draft | published — draft categories are invisible on the public
+    // site (404 on their own page, hidden from every listing) except via
+    // a staff-only ?preview=1 bypass, same convention as products.status.
+    status: text("status").notNull().default("published"),
+    // Optional wide/landscape image for the /categories hero mosaic and
+    // similar large treatments — falls back to imageUrl/imageAlt above
+    // when unset, so every category always has a usable hero image.
+    heroImageUrl: text("hero_image_url"),
+    heroImageAlt: text("hero_image_alt"),
+    // Short marketing bullets shown on the category's card and intro
+    // strip — same jsonb-string-array shape as products.highlights.
+    highlights: jsonb("highlights").$type<string[]>().notNull().default([]),
+    // Small pill label on the category card, e.g. "Most Popular" — optional.
+    badgeText: text("badge_text"),
+    // Optional CTA override for the category card: when set, ctaHref
+    // replaces the card's default link target (normally
+    // /experiences/category/{slug}) and ctaLabel replaces the default
+    // "Explore" affordance text.
+    ctaLabel: text("cta_label"),
+    ctaHref: text("cta_href"),
     // Per-category SEO overrides — same pattern as products/blogPosts.
     metaTitle: text("meta_title"),
     metaDescription: text("meta_description"),

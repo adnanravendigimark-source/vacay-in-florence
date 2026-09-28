@@ -3,12 +3,14 @@ import { SiteHeader } from "@/components/layout/site-header";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { AuthModalProvider } from "@/components/auth/auth-modal-context";
 import { AuthModal } from "@/components/auth/auth-modal";
+import { getSiteSettings } from "@/lib/data/site-content";
 
 // Everything that used to live directly in the root layout, moved here
 // unchanged (see the note in src/app/layout.tsx). Neither AuthModalProvider
 // nor AuthModal.Provider render a wrapping DOM element, so body's
 // `flex flex-col` sticky-footer layout is unaffected by this move.
-export default function PublicLayout({ children }: { children: ReactNode }) {
+export default async function PublicLayout({ children }: { children: ReactNode }) {
+  const settings = await getSiteSettings();
   return (
     <AuthModalProvider>
       <a
@@ -21,7 +23,7 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
       <main id="main-content" className="flex-1">
         {children}
       </main>
-      <SiteFooter />
+      <SiteFooter settings={settings} />
       <AuthModal />
     </AuthModalProvider>
   );
