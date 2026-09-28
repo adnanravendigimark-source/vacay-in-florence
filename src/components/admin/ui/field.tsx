@@ -18,8 +18,8 @@ export function Field({
 }) {
   return (
     <label className="block">
-      <span className="mb-1.5 flex items-baseline justify-between text-sm font-medium text-ink">
-        <span>
+      <span className="mb-1.5 flex flex-wrap items-baseline justify-between gap-x-2 gap-y-0.5 text-sm font-medium text-ink">
+        <span className="whitespace-nowrap">
           {label}
           {required ? <span className="ml-0.5 text-red-500">*</span> : null}
         </span>

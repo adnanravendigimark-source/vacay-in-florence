@@ -8,6 +8,7 @@ import {
 } from "@/lib/data/admin/products";
 import { ExperienceEditor } from "@/components/admin/experience-editor";
 import type { ProductFormData } from "@/lib/validation/products";
+import { DEFAULT_GOOD_TO_KNOW_TIPS } from "@/lib/constants";
 
 export const metadata: Metadata = {
   title: "Edit Experience | Admin | VACAY Florence",
@@ -45,6 +46,7 @@ export default async function EditExperiencePage({ params }: { params: Promise<P
     highlights: product.highlights,
     inclusions: product.inclusions,
     exclusions: product.exclusions,
+    goodToKnow: product.goodToKnow.length > 0 ? product.goodToKnow : DEFAULT_GOOD_TO_KNOW_TIPS,
     cancellationPolicy: product.cancellationPolicy,
     meetingPoint: product.meetingPoint,
     meetingCity: product.meetingCity,
@@ -54,6 +56,7 @@ export default async function EditExperiencePage({ params }: { params: Promise<P
     options: product.options.map((o) => ({ ...o, description: o.description ?? undefined })),
     images: product.images.map(({ url, alt }) => ({ url, alt })),
     videoUrl: product.videoUrl,
+    timeSlots: product.timeSlots,
     metaTitle: product.metaTitle,
     metaDescription: product.metaDescription,
     canonicalUrl: product.canonicalUrl,

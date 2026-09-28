@@ -108,9 +108,20 @@ export interface HomepageContent {
 }
 
 // ---------------------------------------------------------------------------
-// About Us + legal pages (CMS-managed, same cms_blocks pattern as
-// HomepageContent — see src/lib/data/site-content.ts)
+// CMS static pages (About, Contact, legal pages, Supplier/Affiliate) — all
+// share the same cms_blocks pattern (key -> jsonb), see
+// src/lib/data/site-content.ts. SeoFields is the shared per-page SEO shape:
+// these are fixed-route pages (their URL is the folder structure, not a
+// stored slug), so admin controls the meta title/description/OG image and
+// indexing, not the URL itself.
 // ---------------------------------------------------------------------------
+
+export interface SeoFields {
+  title: string;
+  description: string;
+  ogImage?: string | null;
+  noIndex?: boolean;
+}
 
 export interface AboutPageContent {
   hero: {
@@ -119,8 +130,11 @@ export interface AboutPageContent {
     subheadline: string;
   };
   story: { heading: string; paragraphs: string[] };
+  valuesHeading: string;
   values: { id: string; title: string; description: string }[];
   stats: { label: string; value: string }[];
+  cta: { heading: string; body: string; buttonLabel: string; buttonHref: string };
+  seo: SeoFields;
 }
 
 /** Shared shape for Privacy Policy, Terms & Conditions, Cancellation & Refund Policy. */
@@ -129,6 +143,50 @@ export interface LegalPageContent {
   effectiveDate: string;
   intro: string;
   sections: { heading: string; body: string[] }[];
+  seo: SeoFields;
+}
+
+/** Contact Us — a mailto card + info cards, intentionally no live form. */
+export interface ContactPageContent {
+  hero: { badge: string; headline: string; subheadline: string };
+  email: string;
+  emailLabel: string;
+  emailNote: string;
+  infoCards: { id: string; icon: "help" | "partnership" | "mail"; title: string; description: string }[];
+  existingBookingNote: string;
+  ctaEyebrow: string;
+  ctaButtonLabel: string;
+  ctaButtonHref: string;
+  seo: SeoFields;
+}
+
+/**
+ * One configurable field on the Supplier/Affiliate application form. `id`
+ * is a stable key matching the underlying FormData field name and the
+ * zod/validation + lead-payload code — it is fixed, not admin-editable;
+ * only label/placeholder/required/visible are. `name` and `email` are
+ * always required and visible (a lead is useless without them) and are
+ * not offered as togglable in the admin UI, even though they appear in
+ * this same list for label/placeholder editing.
+ */
+export interface LeadFormFieldConfig {
+  id: string;
+  label: string;
+  placeholder: string;
+  required: boolean;
+  visible: boolean;
+}
+
+/** Shared shape for the Become a Supplier and Become an Affiliate pages. */
+export interface LeadPageContent {
+  hero: { eyebrow: string; headline: string; subheadline: string };
+  benefits: { id: string; title: string; description: string }[];
+  formHeading: string;
+  formSubheading: string;
+  submitButtonLabel: string;
+  successMessage: string;
+  fields: LeadFormFieldConfig[];
+  seo: SeoFields;
 }
 
 /**

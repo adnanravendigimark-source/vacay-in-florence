@@ -48,6 +48,7 @@ export const productFormSchema = z.object({
   highlights: z.array(z.string().trim().min(1)).default([]),
   inclusions: z.array(z.string().trim().min(1)).default([]),
   exclusions: z.array(z.string().trim().min(1)).default([]),
+  goodToKnow: z.array(z.string().trim().min(1)).default([]),
   cancellationPolicy: nonEmpty("Cancellation policy"),
 
   // Location
@@ -63,6 +64,10 @@ export const productFormSchema = z.object({
   // Media
   images: z.array(productImageSchema).default([]),
   videoUrl: z.string().trim().nullable().optional(),
+
+  // Booking time slots (e.g. "09:00 AM") shown on the public booking
+  // card. Empty is valid — the card falls back to a default schedule.
+  timeSlots: z.array(z.string().trim().min(1)).default([]),
 
   // SEO
   metaTitle: z.string().trim().max(70).nullable().optional(),

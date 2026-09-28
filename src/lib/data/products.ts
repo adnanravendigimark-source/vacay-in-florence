@@ -30,10 +30,33 @@ let productsSchemaEnsured = false;
  * this environment cannot run `drizzle-kit push` against the live Neon
  * DB directly. Cached per process so it is a no-op after the first call.
  */
+/**
+ * Runs one ADD COLUMN statement, treating a duplicate_column error
+ * (Postgres code 42701) as success rather than a failure. "ADD COLUMN IF
+ * NOT EXISTS" is not atomic under concurrency: two requests can both
+ * pass the existence check before either has actually added the column,
+ * so the loser legitimately fails with duplicate_column even though the
+ * column now exists exactly as intended.
+ */
+async function alterProductsColumn(statement: SQL) {
+  try {
+    await db.execute(statement);
+  } catch (err) {
+    const code = (err as { code?: string } | null)?.code;
+    if (code !== "42701") throw err;
+  }
+}
+
 export async function ensureProductsSchemaUpToDate() {
   if (productsSchemaEnsured) return;
   try {
-    await db.execute(sql`ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "video_url" text;`);
+    await alterProductsColumn(sql`ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "video_url" text;`);
+    await alterProductsColumn(
+      sql`ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "time_slots" jsonb NOT NULL DEFAULT '[]'::jsonb;`,
+    );
+    await alterProductsColumn(
+      sql`ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "good_to_know" jsonb NOT NULL DEFAULT '[]'::jsonb;`,
+    );
     productsSchemaEnsured = true;
   } catch (err) {
     console.error("Error migrating products columns:", err);
@@ -390,6 +413,10 @@ export interface ProductDetail {
   highlights: string[];
   inclusions: string[];
   exclusions: string[];
+  // Freeform "Good to know" tips (voucher/arrival/ID-type notes) shown on
+  // the public page. Empty when unset — the page falls back to its own
+  // default tips rather than rendering an empty section.
+  goodToKnow: string[];
   meetingPoint: string | null;
   meetingCity: string | null;
   meetingCountry: string | null;
@@ -407,6 +434,10 @@ export interface ProductDetail {
   reviewCount: number;
   badges: ProductBadge[];
   videoUrl: string | null;
+  // Real per-experience booking time slots set in the admin editor.
+  // Empty when unset — the booking card falls back to its own default
+  // schedule rather than rendering an empty time-slot picker.
+  timeSlots: string[];
   categorySlug: string;
   categoryName: string;
   supplierName: string;
@@ -476,6 +507,7 @@ export async function getProductBySlug(
       highlights: products.highlights,
       inclusions: products.inclusions,
       exclusions: products.exclusions,
+      goodToKnow: products.goodToKnow,
       meetingPoint: products.meetingPoint,
       meetingCity: products.meetingCity,
       meetingCountry: products.meetingCountry,
@@ -489,6 +521,7 @@ export async function getProductBySlug(
       reviewCount: products.reviewCount,
       badges: products.badges,
       videoUrl: products.videoUrl,
+      timeSlots: products.timeSlots,
       categorySlug: categories.slug,
       categoryName: categories.name,
       supplierName: suppliers.name,
@@ -537,6 +570,7 @@ export async function getProductBySlug(
     highlights: row.highlights as string[],
     inclusions: row.inclusions as string[],
     exclusions: row.exclusions as string[],
+    goodToKnow: row.goodToKnow as string[],
     meetingPoint: row.meetingPoint,
     meetingCity: row.meetingCity,
     meetingCountry: row.meetingCountry,
@@ -548,6 +582,7 @@ export async function getProductBySlug(
     reviewCount: row.reviewCount,
     badges: row.badges as ProductBadge[],
     videoUrl: row.videoUrl,
+    timeSlots: row.timeSlots as string[],
     categorySlug: row.categorySlug,
     categoryName: row.categoryName,
     supplierName: row.supplierName,

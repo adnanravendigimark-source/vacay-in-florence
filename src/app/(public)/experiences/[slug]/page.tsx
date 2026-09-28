@@ -9,6 +9,7 @@ import { SingleExperienceBookingCard } from "@/components/experiences/single-exp
 import { ExperienceCard } from "@/components/ui/experience-card";
 import { ProductBadgePill } from "@/components/ui/badge";
 import { ExperienceLocationMap } from "@/components/experiences/experience-location-map";
+import { DEFAULT_GOOD_TO_KNOW_TIPS } from "@/lib/constants";
 
 export async function generateStaticParams() {
   const { items } = await searchProducts({ pageSize: 100 });
@@ -361,6 +362,7 @@ export default async function ProductDetailPage({
                 productSlug={product.slug}
                 options={product.options}
                 basePrice={product.priceFrom.amount}
+                timeSlots={product.timeSlots}
               />
             </div>
           </div>
@@ -660,30 +662,16 @@ export default async function ProductDetailPage({
                   Good to know
                 </h3>
                 <ul className="space-y-3">
-                  <li className="flex items-center gap-3">
-                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#f7ecfb] text-[#2b0934]">
-                      <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <rect x="3" y="4" width="18" height="16" rx="2" />
-                        <line x1="7" y1="8" x2="17" y2="8" />
-                        <line x1="7" y1="12" x2="13" y2="12" />
-                        <circle cx="17" cy="14" r="1.5" />
-                      </svg>
-                    </span>
-                    <span className="text-xs sm:text-[13px] font-medium text-neutral-700">
-                      Show your voucher (mobile or printed) at the entrance
-                    </span>
-                  </li>
-                  <li className="flex items-center gap-3">
-                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#f7ecfb] text-[#2b0934]">
-                      <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <circle cx="12" cy="12" r="10" />
-                        <polyline points="12 6 12 12 16 14" />
-                      </svg>
-                    </span>
-                    <span className="text-xs sm:text-[13px] font-medium text-neutral-700">
-                      Arrive 10–15 minutes early
-                    </span>
-                  </li>
+                  {(product.goodToKnow.length > 0 ? product.goodToKnow : DEFAULT_GOOD_TO_KNOW_TIPS).map((tip, index) => (
+                    <li key={index} className="flex items-center gap-3">
+                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#f7ecfb] text-[#2b0934]">
+                        <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M20 6L9 17l-5-5" />
+                        </svg>
+                      </span>
+                      <span className="text-xs sm:text-[13px] font-medium text-neutral-700">{tip}</span>
+                    </li>
+                  ))}
                   <li className="flex items-center gap-3">
                     <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#f7ecfb] text-[#2b0934]">
                       <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -691,17 +679,6 @@ export default async function ProductDetailPage({
                       </svg>
                     </span>
                     <span className="text-xs sm:text-[13px] font-medium text-neutral-700">{product.cancellationPolicy}</span>
-                  </li>
-                  <li className="flex items-center gap-3">
-                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#f7ecfb] text-[#2b0934]">
-                      <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <rect x="2" y="6" width="20" height="14" rx="2" />
-                        <path d="M2 10h20" />
-                      </svg>
-                    </span>
-                    <span className="text-xs sm:text-[13px] font-medium text-neutral-700">
-                      Bring a valid photo ID matching your booking name
-                    </span>
                   </li>
                 </ul>
               </div>

@@ -1,12 +1,18 @@
 import type { Metadata } from "next";
 import { LegalPage } from "@/components/legal/legal-page";
 import { getLegalPageContent } from "@/lib/data/site-content";
+import { resolveCanonical, resolveRobots } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Cancellation & Refund Policy",
-  description: "Cancellation windows, refund handling, and what happens if a supplier cancels your experience.",
-  alternates: { canonical: "/cancellation-policy" },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const content = await getLegalPageContent("cancellation-policy");
+  return {
+    title: content.seo.title,
+    description: content.seo.description,
+    alternates: { canonical: resolveCanonical("/cancellation-policy") },
+    robots: resolveRobots(content.seo.noIndex ?? false),
+    openGraph: content.seo.ogImage ? { images: [content.seo.ogImage] } : undefined,
+  };
+}
 
 export default async function CancellationPolicyPage() {
   const content = await getLegalPageContent("cancellation-policy");

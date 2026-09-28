@@ -3,13 +3,18 @@ import Link from "next/link";
 import { Container } from "@/components/ui/container";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { getAboutPageContent } from "@/lib/data/site-content";
+import { resolveCanonical, resolveRobots } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "About Us",
-  description:
-    "VACAY Florence is a small, Florence-based team that vets every experience in person before it goes live — no resale inventory, no affiliate feeds.",
-  alternates: { canonical: "/about" },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const content = await getAboutPageContent();
+  return {
+    title: content.seo.title,
+    description: content.seo.description,
+    alternates: { canonical: resolveCanonical("/about") },
+    robots: resolveRobots(content.seo.noIndex ?? false),
+    openGraph: content.seo.ogImage ? { images: [content.seo.ogImage] } : undefined,
+  };
+}
 
 export default async function AboutPage() {
   const content = await getAboutPageContent();
@@ -50,7 +55,7 @@ export default async function AboutPage() {
         </div>
 
         <div className="mt-16 sm:mt-20">
-          <SectionHeading align="center" title="What we hold ourselves to" />
+          <SectionHeading align="center" title={content.valuesHeading} />
           <ul className="mx-auto mt-10 grid max-w-5xl grid-cols-1 gap-6 sm:grid-cols-2">
             {content.values.map((value) => (
               <li key={value.id} className="rounded-2xl bg-white p-6 shadow-[var(--shadow-card)] ring-1 ring-stone/60">
@@ -62,15 +67,13 @@ export default async function AboutPage() {
         </div>
 
         <div className="mx-auto mt-16 max-w-2xl rounded-2xl bg-ink px-6 py-10 text-center sm:mt-20 sm:px-10">
-          <h2 className="font-display text-2xl font-medium text-cream sm:text-3xl">See it for yourself</h2>
-          <p className="mx-auto mt-2 max-w-md text-sm text-cream/75">
-            Every experience on this site has been vetted by our own team — browse the catalog and judge for yourself.
-          </p>
+          <h2 className="font-display text-2xl font-medium text-cream sm:text-3xl">{content.cta.heading}</h2>
+          <p className="mx-auto mt-2 max-w-md text-sm text-cream/75">{content.cta.body}</p>
           <Link
-            href="/experiences"
+            href={content.cta.buttonHref}
             className="mt-6 inline-block rounded-full bg-cream px-6 py-3 text-sm font-semibold text-ink transition hover:bg-white"
           >
-            Browse experiences
+            {content.cta.buttonLabel}
           </Link>
         </div>
       </Container>

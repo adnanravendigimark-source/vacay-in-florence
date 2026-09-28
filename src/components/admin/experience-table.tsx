@@ -4,7 +4,6 @@ import { useMemo, useState, useTransition, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
-  setProductFeaturedAction,
   deleteProductAction,
   bulkSetProductStatusAction,
   bulkSetProductFeaturedAction,
@@ -27,7 +26,10 @@ function formatPrice(amount: number, currency: string) {
   try {
     return new Intl.NumberFormat("en-IE", { style: "currency", currency, maximumFractionDigits: 0 }).format(amount);
   } catch {
-    return `${currency} ${amount.toFixed(0)}`;
+    // currency should always be "EUR" (single-currency site), so this
+    // only fires for a pre-existing bad value — show the symbol rather
+    // than leaking the raw stored code (e.g. "EUR 45") onto the page.
+    return `€${amount.toFixed(0)}`;
   }
 }
 
@@ -40,32 +42,6 @@ function StatusBadge({ status }: { status: ProductStatus }) {
     >
       {s.label}
     </span>
-  );
-}
-
-function FeaturedSwitch({
-  checked,
-  onChange,
-  disabled,
-}: {
-  checked: boolean;
-  onChange: () => void;
-  disabled: boolean;
-}) {
-  return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={checked}
-      aria-label={checked ? "Remove from featured" : "Mark as featured"}
-      disabled={disabled}
-      onClick={onChange}
-      className={`flex h-5 w-9 shrink-0 items-center rounded-full p-0.5 transition disabled:opacity-50 ${
-        checked ? "justify-end bg-[#2b0934]" : "justify-start bg-neutral-200"
-      }`}
-    >
-      <span className="h-4 w-4 rounded-full bg-white shadow transition-transform" />
-    </button>
   );
 }
 
@@ -154,14 +130,12 @@ function GridCard({
   item,
   selected,
   onToggleSelect,
-  onToggleFeatured,
   onDelete,
   isPending,
 }: {
   item: AdminProductListItem;
   selected: boolean;
   onToggleSelect: () => void;
-  onToggleFeatured: () => void;
   onDelete: () => void;
   isPending: boolean;
 }) {
@@ -194,11 +168,10 @@ function GridCard({
           </span>
           <span className="text-[11px] text-neutral-400">{item.durationLabel}</span>
         </div>
-        <div className="mt-3 flex items-center justify-between border-t border-[#F0ECE6] pt-3">
+        <div className="mt-3 border-t border-[#F0ECE6] pt-3">
           <span className="text-sm font-semibold text-neutral-900">
             {formatPrice(item.priceFromAmount, item.priceFromCurrency)}
           </span>
-          <FeaturedSwitch checked={item.featured} onChange={onToggleFeatured} disabled={isPending} />
         </div>
         <div className="mt-3 flex items-center gap-1.5">
           <IconLink href={`/admin/experiences/${item.id}`} label="Edit">
@@ -244,18 +217,6 @@ export function ExperienceTable({ items, view }: { items: AdminProductListItem[]
   }
   function clearSelection() {
     setSelected(new Set());
-  }
-
-  function handleToggleFeatured(item: AdminProductListItem) {
-    startTransition(async () => {
-      const result = await setProductFeaturedAction(item.id, !item.featured, item.slug);
-      if (result.success) {
-        showToast(!item.featured ? "Marked as featured." : "Removed from featured.", "success");
-        router.refresh();
-      } else {
-        showToast(result.error ?? "Could not update.", "error");
-      }
-    });
   }
 
   function handleDelete() {
@@ -363,7 +324,6 @@ export function ExperienceTable({ items, view }: { items: AdminProductListItem[]
               item={item}
               selected={selected.has(item.id)}
               onToggleSelect={() => toggleOne(item.id)}
-              onToggleFeatured={() => handleToggleFeatured(item)}
               onDelete={() => setDeleteTarget(item)}
               isPending={isPending}
             />
@@ -388,7 +348,6 @@ export function ExperienceTable({ items, view }: { items: AdminProductListItem[]
                 <th className="px-3 py-3">Price</th>
                 <th className="px-3 py-3">Duration</th>
                 <th className="px-3 py-3">Status</th>
-                <th className="px-3 py-3">Featured</th>
                 <th className="px-3 py-3">Created</th>
                 <th className="py-3 pr-5 text-right">Actions</th>
               </tr>
@@ -434,9 +393,6 @@ export function ExperienceTable({ items, view }: { items: AdminProductListItem[]
                   <td className="whitespace-nowrap px-3 py-3.5 text-neutral-600">{item.durationLabel}</td>
                   <td className="px-3 py-3.5">
                     <StatusBadge status={item.status} />
-                  </td>
-                  <td className="px-3 py-3.5">
-                    <FeaturedSwitch checked={item.featured} onChange={() => handleToggleFeatured(item)} disabled={isPending} />
                   </td>
                   <td className="whitespace-nowrap px-3 py-3.5 text-neutral-500">{dateFormatter.format(item.createdAt)}</td>
                   <td className="py-3.5 pr-5">

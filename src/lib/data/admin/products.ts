@@ -246,6 +246,7 @@ export interface AdminProductDetail {
   highlights: string[];
   inclusions: string[];
   exclusions: string[];
+  goodToKnow: string[];
   meetingPoint: string | null;
   meetingCity: string | null;
   meetingCountry: string | null;
@@ -260,6 +261,7 @@ export interface AdminProductDetail {
   priceFromCurrency: string;
   badges: string[];
   videoUrl: string | null;
+  timeSlots: string[];
   metaTitle: string | null;
   metaDescription: string | null;
   canonicalUrl: string | null;
@@ -303,6 +305,7 @@ export async function getAdminProductById(id: string): Promise<AdminProductDetai
     highlights: row.highlights as string[],
     inclusions: row.inclusions as string[],
     exclusions: row.exclusions as string[],
+    goodToKnow: row.goodToKnow as string[],
     meetingPoint: row.meetingPoint,
     meetingCity: row.meetingCity,
     meetingCountry: row.meetingCountry,
@@ -317,6 +320,7 @@ export async function getAdminProductById(id: string): Promise<AdminProductDetai
     priceFromCurrency: row.priceFromCurrency,
     badges: row.badges as string[],
     videoUrl: row.videoUrl,
+    timeSlots: row.timeSlots as string[],
     metaTitle: row.metaTitle,
     metaDescription: row.metaDescription,
     canonicalUrl: row.canonicalUrl,
@@ -366,6 +370,7 @@ function baseProductValues(input: ProductFormData) {
     highlights: input.highlights,
     inclusions: input.inclusions,
     exclusions: input.exclusions,
+    goodToKnow: input.goodToKnow,
     meetingPoint: input.meetingPoint || null,
     meetingCity: input.meetingCity || null,
     meetingCountry: input.meetingCountry || null,
@@ -380,6 +385,7 @@ function baseProductValues(input: ProductFormData) {
     priceFromCurrency: input.priceFromCurrency,
     badges: input.badges,
     videoUrl: input.videoUrl || null,
+    timeSlots: input.timeSlots,
     metaTitle: input.metaTitle || null,
     metaDescription: input.metaDescription || null,
     canonicalUrl: input.canonicalUrl || null,
@@ -598,9 +604,19 @@ export { getProductAvailability as getAdminProductAvailability };
 
 /**
  * Idempotent bulk-generate: inserts the next `days` dates at
- * `capacityTotal`, or, for a date that already has a row, raises its
- * capacity to at least `capacityTotal` — GREATEST() guarantees this
- * never drops a date's capacity below what's already booked.
+ * `capacityTotal`, or, for a date that already has a row, RAISES its
+ * capacity to `capacityTotal` — never lowers it.
+ *
+ * Bug fixed here: this used to compare the new `capacityTotal` only
+ * against `capacityBooked`, not against the date's own existing
+ * `capacityTotal` — so re-running "Generate availability" with a
+ * smaller "Daily capacity" than before would silently SHRINK every
+ * already-generated date down to that smaller number (as long as it
+ * still covered what was booked), directly contradicting the "raises
+ * capacity for existing dates too" promise shown in the admin UI.
+ * Now GREATEST() also includes the date's current capacityTotal, so
+ * this can only ever raise (or leave unchanged), never shrink, an
+ * existing date's capacity.
  */
 export async function generateAvailability(
   productId: string,
@@ -620,7 +636,10 @@ export async function generateAvailability(
       .values(rows)
       .onConflictDoUpdate({
         target: [availability.productId, availability.date],
-        set: { capacityTotal: sql`GREATEST(${availability.capacityBooked}, ${capacityTotal})`, updatedAt: new Date() },
+        set: {
+          capacityTotal: sql`GREATEST(${availability.capacityTotal}, ${availability.capacityBooked}, ${capacityTotal})`,
+          updatedAt: new Date(),
+        },
       });
     return { success: true };
   } catch (err) {

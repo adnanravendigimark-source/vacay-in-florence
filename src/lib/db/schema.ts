@@ -141,6 +141,11 @@ export const products = pgTable(
     highlights: jsonb("highlights").$type<string[]>().notNull().default([]),
     inclusions: jsonb("inclusions").$type<string[]>().notNull().default([]),
     exclusions: jsonb("exclusions").$type<string[]>().notNull().default([]),
+    // Freeform "Good to know" tips shown on the public product page
+    // (voucher/arrival/ID-type notes). Empty by default — the public
+    // page falls back to its own honest default tips until an admin
+    // sets real ones, same pattern as timeSlots below.
+    goodToKnow: jsonb("good_to_know").$type<string[]>().notNull().default([]),
     meetingPoint: text("meeting_point"),
     // City / country, kept separate from the free-text venue/address above
     // so the location map and geocoding fallback (src/lib/geocoding.ts)
@@ -177,6 +182,10 @@ export const products = pgTable(
     // array rather than a join table since these are simple flags, not
     // entities with their own attributes.
     badges: jsonb("badges").$type<string[]>().notNull().default([]),
+    // Per-experience booking time slots (e.g. "09:00 AM"), editable in the
+    // admin editor. Empty by default — the public booking card falls back
+    // to its own honest default schedule until an admin sets real ones.
+    timeSlots: jsonb("time_slots").$type<string[]>().notNull().default([]),
     // Optional promo/walkthrough video for the product detail page's
     // gallery — same plain-mp4-URL convention as the homepage hero's
     // heroVideoUrl (src/lib/db/schema.ts homepageContent), not an embed.

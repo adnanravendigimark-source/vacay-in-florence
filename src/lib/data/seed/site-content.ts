@@ -65,7 +65,12 @@ export const homepageContent: HomepageContent = {
   },
 };
 
-import type { AboutPageContent, LegalPageContent } from "@/lib/types";
+import type {
+  AboutPageContent,
+  LegalPageContent,
+  ContactPageContent,
+  LeadPageContent,
+} from "@/lib/types";
 
 export const aboutPageContent: AboutPageContent = {
   hero: {
@@ -114,6 +119,18 @@ export const aboutPageContent: AboutPageContent = {
     { label: "Team based in", value: "Florence, Italy" },
     { label: "Average rating", value: "4.8 / 5" },
   ],
+  valuesHeading: "What we hold ourselves to",
+  cta: {
+    heading: "See it for yourself",
+    body: "Every experience on this site has been vetted by our own team — browse the catalog and judge for yourself.",
+    buttonLabel: "Browse experiences",
+    buttonHref: "/experiences",
+  },
+  seo: {
+    title: "About Us",
+    description:
+      "VACAY Florence is a small, Florence-based team that vets every experience in person before it goes live — no resale inventory, no affiliate feeds.",
+  },
 };
 
 const legalIntro =
@@ -164,6 +181,10 @@ export const privacyPolicyContent: LegalPageContent = {
       ],
     },
   ],
+  seo: {
+    title: "Privacy Policy",
+    description: "How VACAY Florence collects, uses, and protects your personal information.",
+  },
 };
 
 export const termsContent: LegalPageContent = {
@@ -212,6 +233,10 @@ export const termsContent: LegalPageContent = {
       ],
     },
   ],
+  seo: {
+    title: "Terms & Conditions",
+    description: "The terms that apply when you book an experience through VACAY Florence.",
+  },
 };
 
 export const cancellationPolicyContent: LegalPageContent = {
@@ -247,6 +272,11 @@ export const cancellationPolicyContent: LegalPageContent = {
       ],
     },
   ],
+  seo: {
+    title: "Cancellation & Refund Policy",
+    description:
+      "Cancellation windows, refund handling, and what happens if a supplier cancels your experience.",
+  },
 };
 
 /** Same cms_blocks pattern as homepageContent — see getBlogPageContent(). */
@@ -258,4 +288,144 @@ export const blogPageContent: BlogPageContent = {
   searchPlaceholder: "Search articles...",
   emptyStateTitle: "No articles match your search",
   emptyStateDescription: "Try a different keyword or browse all categories instead.",
+};
+
+export const contactPageContent: ContactPageContent = {
+  hero: {
+    badge: "Contact",
+    headline: "Get in Touch",
+    subheadline: "Questions about a Florence tour or ticket — or a partnership inquiry? Reach out directly by email.",
+  },
+  email: "livetravelpartner@gmail.com",
+  emailLabel: "Email us directly",
+  emailNote: "We typically reply within 1–2 business days.",
+  infoCards: [
+    {
+      id: "booking-help",
+      icon: "help",
+      title: "Booking Help",
+      description:
+        "Not sure whether to book the Uffizi skip-the-line ticket, a Chianti wine day trip, or a guided walking tour? Ask us before you book.",
+    },
+    {
+      id: "partnerships",
+      icon: "partnership",
+      title: "Partnerships & Affiliates",
+      description:
+        "Tour operators, local guides, and affiliate partners — reach out about listing your experiences or collaboration opportunities.",
+    },
+    {
+      id: "general",
+      icon: "mail",
+      title: "General Inquiries",
+      description: "Site feedback, content corrections, or travel tips regarding Florence experiences.",
+    },
+  ],
+  existingBookingNote:
+    "Already have a booking? Contact your tour operator directly via your confirmation email — they handle modifications and cancellations directly.",
+  ctaEyebrow: "Not booked yet?",
+  ctaButtonLabel: "Compare Florence Tours & Tickets",
+  ctaButtonHref: "/experiences",
+  seo: {
+    title: "Contact Us",
+    description: "Get in touch with the VACAY Florence team — booking questions, changes, or anything else.",
+  },
+};
+
+export const supplierPageContent: LeadPageContent = {
+  hero: {
+    eyebrow: "For suppliers",
+    headline: "List your experience on VACAY Florence",
+    subheadline:
+      "We work with a small number of independent Florence guides and operators — every listing is reviewed by our team before it goes live, not auto-published from a feed.",
+  },
+  benefits: [
+    {
+      id: "reach",
+      title: "Reach travelers actively booking",
+      description: "Every visitor on VACAY Florence is already planning a trip — not browsing casually.",
+    },
+    {
+      id: "no-resale",
+      title: "No resale, no undercutting",
+      description: "We work with you directly on pricing and availability — never a resale layer you don't control.",
+    },
+    {
+      id: "onboarding",
+      title: "A real onboarding conversation",
+      description: "Every new supplier talks to a real person on our team before going live, not a self-serve form.",
+    },
+  ],
+  formHeading: "Apply to list your experience",
+  formSubheading: "Tell us a bit about your business — we'll follow up to talk through the details.",
+  submitButtonLabel: "Submit application",
+  successMessage: "Application received — our supplier team will be in touch within a few days.",
+  fields: [
+    { id: "name", label: "Your name", placeholder: "", required: true, visible: true },
+    { id: "company", label: "Business name", placeholder: "", required: true, visible: true },
+    { id: "email", label: "Email", placeholder: "", required: true, visible: true },
+    { id: "phone", label: "Phone (optional)", placeholder: "", required: false, visible: true },
+    { id: "website", label: "Website (optional)", placeholder: "https://", required: false, visible: true },
+    {
+      id: "experienceType",
+      label: "What would you like to list?",
+      placeholder: "e.g. Small-group walking tours of the Oltrarno, 2 hours, up to 12 people",
+      required: true,
+      visible: true,
+    },
+    { id: "message", label: "Anything else? (optional)", placeholder: "", required: false, visible: true },
+  ],
+  seo: {
+    title: "Become a Supplier",
+    description: "List your tours, tickets, or experiences on VACAY Florence — apply to become a vetted supplier.",
+  },
+};
+
+export const affiliatePageContent: LeadPageContent = {
+  hero: {
+    eyebrow: "Affiliate program",
+    headline: "Recommend Florence, get paid for it",
+    subheadline:
+      "If you write about travel, run a Florence-focused audience, or work in Italian tourism, apply to promote our vetted experiences and earn commission on the bookings you send our way.",
+  },
+  benefits: [
+    {
+      id: "commission",
+      title: "Commission on real bookings",
+      description: "Earn a share of every completed booking that comes through your link — not just clicks.",
+    },
+    {
+      id: "catalog",
+      title: "A catalog worth recommending",
+      description: "Every experience is vetted in person, so you're never pointing your audience at something dodgy.",
+    },
+    {
+      id: "support",
+      title: "Direct support",
+      description: "A real person on our team, not a self-serve affiliate portal you never hear from again.",
+    },
+  ],
+  formHeading: "Apply to the affiliate program",
+  formSubheading: "Tell us a bit about where and how you'd be sharing VACAY Florence.",
+  submitButtonLabel: "Submit application",
+  successMessage: "Application received — our partnerships team will be in touch within a few days.",
+  fields: [
+    { id: "name", label: "Your name", placeholder: "", required: true, visible: true },
+    { id: "email", label: "Email", placeholder: "", required: true, visible: true },
+    { id: "phone", label: "Phone (optional)", placeholder: "", required: false, visible: true },
+    { id: "company", label: "Business / brand name (optional)", placeholder: "", required: false, visible: true },
+    { id: "website", label: "Website or main channel (optional)", placeholder: "https://", required: false, visible: true },
+    {
+      id: "audienceSize",
+      label: "Audience size (optional)",
+      placeholder: "e.g. 12,000 newsletter subscribers",
+      required: false,
+      visible: true,
+    },
+    { id: "message", label: "Anything else? (optional)", placeholder: "", required: false, visible: true },
+  ],
+  seo: {
+    title: "Affiliate Program",
+    description: "Earn commission recommending Florence experiences your audience will actually enjoy.",
+  },
 };

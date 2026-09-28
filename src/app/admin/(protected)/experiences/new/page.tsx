@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { getCategoryOptions, getSupplierOptions } from "@/lib/data/admin/products";
 import { ExperienceEditor } from "@/components/admin/experience-editor";
 import type { ProductFormData } from "@/lib/validation/products";
+import { DEFAULT_GOOD_TO_KNOW_TIPS } from "@/lib/constants";
 
 export const metadata: Metadata = {
   title: "New Experience | Admin | VACAY Florence",
@@ -23,6 +24,7 @@ const EMPTY_VALUES: ProductFormData = {
   highlights: [],
   inclusions: [],
   exclusions: [],
+  goodToKnow: DEFAULT_GOOD_TO_KNOW_TIPS,
   cancellationPolicy: "",
   meetingPoint: null,
   meetingCity: null,
@@ -32,6 +34,7 @@ const EMPTY_VALUES: ProductFormData = {
   options: [],
   images: [],
   videoUrl: null,
+  timeSlots: [],
   metaTitle: null,
   metaDescription: null,
   canonicalUrl: null,

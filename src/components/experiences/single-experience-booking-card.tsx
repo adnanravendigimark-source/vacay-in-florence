@@ -9,9 +9,14 @@ interface SingleExperienceBookingCardProps {
   productSlug: string;
   options: ProductOptionSummary[];
   basePrice?: number;
+  // Real per-experience time slots set in the admin editor
+  // (products.timeSlots). Falls back to DEFAULT_TIME_SLOTS below when a
+  // product has none set yet, so existing/unedited experiences keep
+  // working exactly as before.
+  timeSlots?: string[];
 }
 
-const TIME_SLOTS = [
+const DEFAULT_TIME_SLOTS = [
   "09:00 AM",
   "11:00 AM",
   "01:00 PM",
@@ -30,7 +35,10 @@ export function SingleExperienceBookingCard({
   productSlug,
   options,
   basePrice = 15.0,
+  timeSlots,
 }: SingleExperienceBookingCardProps) {
+  const slots = timeSlots && timeSlots.length > 0 ? timeSlots : DEFAULT_TIME_SLOTS;
+
   // Calendar state: defaults to 2 days from today (the browser's actual
   // current date at load time, since this is a client component).
   const [selectedDate, setSelectedDate] = useState<Date>(() => {
@@ -52,7 +60,7 @@ export function SingleExperienceBookingCard({
   }, []);
 
   // Time slot selection
-  const [selectedTimeSlot, setSelectedTimeSlot] = useState("09:00 AM");
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState(slots[0]);
 
   // Ticket tiers are the product's real, per-product options from the
   // database (ProductOptionSummary[] — name + price set per product, e.g.
@@ -328,7 +336,7 @@ export function SingleExperienceBookingCard({
 
           {/* 3-column grid with compact padding */}
           <div className="grid grid-cols-3 gap-2">
-            {TIME_SLOTS.map((slot) => {
+            {slots.map((slot) => {
               const isSelected = selectedTimeSlot === slot;
               return (
                 <button

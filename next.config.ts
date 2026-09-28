@@ -2,6 +2,11 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   images: {
+    // Admin experience images are entered as freeform URLs (no upload/CDN
+    // yet), so any HTTPS host must be allowed here or next/image throws
+    // "hostname is not configured" the first time someone pastes a URL
+    // from a new source (seen with a Google Images thumbnail host).
+    remotePatterns: [{ protocol: "https", hostname: "**" }],
     dangerouslyAllowSVG: true,
     contentDispositionType: "inline",
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",

@@ -171,7 +171,6 @@ const PUBLIC_PAGES: PublicPageItem[] = [
   {
     href: "/admin/content/about",
     label: "About Us",
-    comingSoon: true,
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 shrink-0 text-neutral-400 group-hover:text-[#2b0934]">
         <circle cx="12" cy="12" r="10" />
@@ -183,7 +182,6 @@ const PUBLIC_PAGES: PublicPageItem[] = [
   {
     href: "/admin/content/contact",
     label: "Contact Us",
-    comingSoon: true,
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 shrink-0 text-neutral-400 group-hover:text-[#2b0934]">
         <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
@@ -192,9 +190,8 @@ const PUBLIC_PAGES: PublicPageItem[] = [
     ),
   },
   {
-    href: "/admin/content/legal/privacy-policy",
+    href: "/admin/content/privacy",
     label: "Privacy Policy",
-    comingSoon: true,
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 shrink-0 text-neutral-400 group-hover:text-[#2b0934]">
         <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
@@ -202,9 +199,8 @@ const PUBLIC_PAGES: PublicPageItem[] = [
     ),
   },
   {
-    href: "/admin/content/legal/terms-conditions",
+    href: "/admin/content/terms",
     label: "Terms & Conditions",
-    comingSoon: true,
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 shrink-0 text-neutral-400 group-hover:text-[#2b0934]">
         <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
@@ -215,9 +211,8 @@ const PUBLIC_PAGES: PublicPageItem[] = [
     ),
   },
   {
-    href: "/admin/content/legal/cancellation-policy",
+    href: "/admin/content/cancellation-policy",
     label: "Cancellation & Refunds",
-    comingSoon: true,
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 shrink-0 text-neutral-400 group-hover:text-[#2b0934]">
         <polyline points="1 4 1 10 7 10" />
@@ -229,7 +224,6 @@ const PUBLIC_PAGES: PublicPageItem[] = [
   {
     href: "/admin/content/become-a-supplier",
     label: "Become a Supplier",
-    comingSoon: true,
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 shrink-0 text-neutral-400 group-hover:text-[#2b0934]">
         <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
@@ -241,7 +235,6 @@ const PUBLIC_PAGES: PublicPageItem[] = [
   {
     href: "/admin/content/affiliates",
     label: "Become an Affiliate",
-    comingSoon: true,
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 shrink-0 text-neutral-400 group-hover:text-[#2b0934]">
         <circle cx="18" cy="5" r="3" />
