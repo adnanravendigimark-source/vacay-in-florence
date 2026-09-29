@@ -18,7 +18,7 @@ import type { ProductFormData } from "@/lib/validation/products";
  * column the public product page (or its data layer) already reads.
  */
 
-export type ProductStatus = "draft" | "pending_review" | "live" | "paused";
+export type ProductStatus = "draft" | "pending_review" | "live" | "paused" | "rejected" | "changes_requested";
 
 export interface MutationResult {
   success: boolean;
@@ -117,11 +117,13 @@ export interface AdminProductListItem {
   featured: boolean;
   categoryId: string;
   categoryName: string;
+  supplierId: string;
   supplierName: string;
   durationLabel: string;
   priceFromAmount: number;
   priceFromCurrency: string;
   image: { src: string; alt: string } | null;
+  submittedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -185,9 +187,11 @@ export async function listAdminProducts(params: ListAdminProductsParams = {}): P
       durationLabel: products.durationLabel,
       priceFromAmount: products.priceFromAmount,
       priceFromCurrency: products.priceFromCurrency,
+      submittedAt: products.submittedAt,
       createdAt: products.createdAt,
       updatedAt: products.updatedAt,
       categoryName: categories.name,
+      supplierId: suppliers.id,
       supplierName: suppliers.name,
     })
     .from(products)
@@ -202,10 +206,10 @@ export async function listAdminProducts(params: ListAdminProductsParams = {}): P
   const images =
     ids.length > 0
       ? await db
-          .select({ productId: productImages.productId, url: productImages.url, alt: productImages.alt })
-          .from(productImages)
-          .where(inArray(productImages.productId, ids))
-          .orderBy(asc(productImages.sortOrder))
+        .select({ productId: productImages.productId, url: productImages.url, alt: productImages.alt })
+        .from(productImages)
+        .where(inArray(productImages.productId, ids))
+        .orderBy(asc(productImages.sortOrder))
       : [];
   const imageByProduct = new Map<string, { src: string; alt: string }>();
   for (const img of images) {
@@ -221,11 +225,13 @@ export async function listAdminProducts(params: ListAdminProductsParams = {}): P
     featured: r.featured,
     categoryId: r.categoryId,
     categoryName: r.categoryName,
+    supplierId: r.supplierId,
     supplierName: r.supplierName,
     durationLabel: r.durationLabel,
     priceFromAmount: r.priceFromAmount,
     priceFromCurrency: r.priceFromCurrency,
     image: imageByProduct.get(r.id) ?? null,
+    submittedAt: r.submittedAt,
     createdAt: r.createdAt,
     updatedAt: r.updatedAt,
   }));
@@ -247,6 +253,24 @@ export interface AdminProductDetail {
   inclusions: string[];
   exclusions: string[];
   goodToKnow: string[];
+  // New public-page content sections (2026 build) — see
+  // src/lib/db/schema.ts `products` table for field rationale.
+  whyVisit: string | null;
+  itinerary: { time: string; title: string; description: string }[];
+  secretHistoryPoints: string[];
+  entrances: { name: string; description: string }[];
+  ultimateExperienceTitle: string | null;
+  ultimateExperienceDescription: string | null;
+  ultimateExperiencePoints: string[];
+  openingHours: { day: string; hours: string }[];
+  operationalInfo: string | null;
+  gettingThereOptions: { mode: string; description: string }[];
+  bestTimeToVisit: string | null;
+  bestTimeToVisitTips: string[];
+  faqs: { question: string; answer: string }[];
+  relatedBlogSlugs: string[];
+  ctaHeadline: string | null;
+  ctaSubtext: string | null;
   meetingPoint: string | null;
   meetingCity: string | null;
   meetingCountry: string | null;
@@ -254,6 +278,10 @@ export interface AdminProductDetail {
   categoryId: string;
   supplierId: string;
   status: ProductStatus;
+  // Supplier-panel approval flow fields (see schema.ts) — null for
+  // admin-authored products, which skip the review step entirely.
+  submittedAt: Date | null;
+  reviewNote: string | null;
   featured: boolean;
   featuredRank: number | null;
   durationLabel: string;
@@ -276,6 +304,7 @@ export interface AdminProductDetail {
     priceAmount: number;
     priceCurrency: string;
     isActive: boolean;
+    features: string[];
   }[];
 }
 
@@ -306,6 +335,22 @@ export async function getAdminProductById(id: string): Promise<AdminProductDetai
     inclusions: row.inclusions as string[],
     exclusions: row.exclusions as string[],
     goodToKnow: row.goodToKnow as string[],
+    whyVisit: row.whyVisit,
+    itinerary: row.itinerary as AdminProductDetail["itinerary"],
+    secretHistoryPoints: row.secretHistoryPoints as string[],
+    entrances: row.entrances as AdminProductDetail["entrances"],
+    ultimateExperienceTitle: row.ultimateExperienceTitle,
+    ultimateExperienceDescription: row.ultimateExperienceDescription,
+    ultimateExperiencePoints: row.ultimateExperiencePoints as string[],
+    openingHours: row.openingHours as AdminProductDetail["openingHours"],
+    operationalInfo: row.operationalInfo,
+    gettingThereOptions: row.gettingThereOptions as AdminProductDetail["gettingThereOptions"],
+    bestTimeToVisit: row.bestTimeToVisit,
+    bestTimeToVisitTips: row.bestTimeToVisitTips as string[],
+    faqs: row.faqs as AdminProductDetail["faqs"],
+    relatedBlogSlugs: row.relatedBlogSlugs as string[],
+    ctaHeadline: row.ctaHeadline,
+    ctaSubtext: row.ctaSubtext,
     meetingPoint: row.meetingPoint,
     meetingCity: row.meetingCity,
     meetingCountry: row.meetingCountry,
@@ -313,6 +358,8 @@ export async function getAdminProductById(id: string): Promise<AdminProductDetai
     categoryId: row.categoryId,
     supplierId: row.supplierId,
     status: row.status as ProductStatus,
+    submittedAt: row.submittedAt,
+    reviewNote: row.reviewNote,
     featured: row.featured,
     featuredRank: row.featuredRank,
     durationLabel: row.durationLabel,
@@ -335,6 +382,7 @@ export async function getAdminProductById(id: string): Promise<AdminProductDetai
       priceAmount: o.priceAmount,
       priceCurrency: o.priceCurrency,
       isActive: o.isActive,
+      features: o.features as string[],
     })),
   };
 }
@@ -371,6 +419,22 @@ function baseProductValues(input: ProductFormData) {
     inclusions: input.inclusions,
     exclusions: input.exclusions,
     goodToKnow: input.goodToKnow,
+    whyVisit: input.whyVisit || null,
+    itinerary: input.itinerary,
+    secretHistoryPoints: input.secretHistoryPoints,
+    entrances: input.entrances,
+    ultimateExperienceTitle: input.ultimateExperienceTitle || null,
+    ultimateExperienceDescription: input.ultimateExperienceDescription || null,
+    ultimateExperiencePoints: input.ultimateExperiencePoints,
+    openingHours: input.openingHours,
+    operationalInfo: input.operationalInfo || null,
+    gettingThereOptions: input.gettingThereOptions,
+    bestTimeToVisit: input.bestTimeToVisit || null,
+    bestTimeToVisitTips: input.bestTimeToVisitTips,
+    faqs: input.faqs,
+    relatedBlogSlugs: input.relatedBlogSlugs,
+    ctaHeadline: input.ctaHeadline || null,
+    ctaSubtext: input.ctaSubtext || null,
     meetingPoint: input.meetingPoint || null,
     meetingCity: input.meetingCity || null,
     meetingCountry: input.meetingCountry || null,
@@ -441,6 +505,7 @@ async function syncOptions(productId: string, submitted: ProductFormData["option
           priceCurrency: opt.priceCurrency,
           sortOrder: index,
           isActive: opt.isActive,
+          features: opt.features,
         })
         .where(eq(productOptions.id, opt.id));
     } else {
@@ -452,6 +517,7 @@ async function syncOptions(productId: string, submitted: ProductFormData["option
         priceCurrency: opt.priceCurrency,
         sortOrder: index,
         isActive: opt.isActive,
+        features: opt.features,
       });
     }
   }
@@ -526,6 +592,30 @@ export async function setProductStatus(id: string, status: ProductStatus): Promi
   }
 }
 
+/**
+ * The Supplier Panel's approval-queue action (approve/reject/request
+ * changes) — sets status AND records the admin's note in one write, so a
+ * rejection/changes-requested reason is never lost between the two
+ * columns. `reviewNote` is cleared (set to null) on approval, since a note
+ * from a previous review round shouldn't linger once the listing is live.
+ */
+export async function reviewProduct(
+  id: string,
+  status: Extract<ProductStatus, "live" | "rejected" | "changes_requested">,
+  reviewNote: string | null,
+): Promise<MutationResult> {
+  try {
+    await db
+      .update(products)
+      .set({ status, reviewNote: status === "live" ? null : reviewNote, updatedAt: new Date() })
+      .where(eq(products.id, id));
+    return { success: true };
+  } catch (err) {
+    console.error("[admin/products] reviewProduct failed:", err);
+    return { success: false, error: "Could not save this review decision." };
+  }
+}
+
 export async function setProductFeatured(id: string, featured: boolean): Promise<MutationResult> {
   try {
     await db.update(products).set({ featured, updatedAt: new Date() }).where(eq(products.id, id));
@@ -589,9 +679,8 @@ export async function bulkDeleteProducts(ids: string[]): Promise<BulkDeleteResul
     blockedCount,
     error:
       blockedCount > 0
-        ? `${blockedCount} experience${blockedCount === 1 ? "" : "s"} could not be deleted because ${
-            blockedCount === 1 ? "it has" : "they have"
-          } existing bookings — set ${blockedCount === 1 ? "it" : "them"} to Paused instead.`
+        ? `${blockedCount} experience${blockedCount === 1 ? "" : "s"} could not be deleted because ${blockedCount === 1 ? "it has" : "they have"
+        } existing bookings — set ${blockedCount === 1 ? "it" : "them"} to Paused instead.`
         : undefined,
   };
 }

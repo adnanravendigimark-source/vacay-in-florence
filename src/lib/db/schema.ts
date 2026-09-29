@@ -120,7 +120,32 @@ export const suppliers = pgTable(
     commissionRateOverride: doublePrecision("commission_rate_override"),
     notes: text("notes"),
     userId: text("user_id").references(() => users.id),
+    // Self-service supplier-panel profile fields (logo shown in the
+    // supplier shell/sidebar, freeform business description shown on the
+    // supplier's own profile page). Both optional — nothing required this
+    // that wasn't already required at admin-created-supplier time.
+    logoUrl: text("logo_url"),
+    about: text("about"),
+    // Structured fields collected by the multi-step self-registration
+    // wizard (src/app/supplier/register/supplier-register-flow.tsx). Kept
+    // as real, separate columns rather than folded into `notes` above —
+    // `notes` is admin's own freeform internal note (fully overwritten by
+    // the admin "Notes" box and the "Edit Supplier" form), so anything an
+    // applicant submits must live somewhere admin's own note-taking can
+    // never clobber it.
+    businessType: text("business_type"),
+    businessAddress: text("business_address"),
+    city: text("city"),
+    postalCode: text("postal_code"),
+    // Real uploaded compliance document (business license, ID, tour
+    // operator certification, etc.) — documentUrl is the actual file in
+    // blob storage (see src/app/api/supplier/register-upload/route.ts),
+    // documentName is the original filename + size shown back to the
+    // applicant and to admin ("license.pdf (2.34 MB)").
+    documentUrl: text("document_url"),
+    documentName: text("document_name"),
     createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { mode: "date" }).notNull().defaultNow(),
   },
   (t) => [uniqueIndex("suppliers_slug_idx").on(t.slug), index("suppliers_status_idx").on(t.status)],
 );
@@ -189,7 +214,18 @@ export const products = pgTable(
     supplierId: text("supplier_id")
       .notNull()
       .references(() => suppliers.id),
+    // draft | pending_review | live | paused | rejected | changes_requested
+    // (last two added for the self-service Supplier Panel's approval flow —
+    // "approve" still just means setting this back to "live", there is no
+    // separate publish step). submittedAt/reviewNote below support that flow.
     status: text("status").notNull().default("draft"),
+    // Stamped when a supplier submits a draft for review (Admin's approval
+    // queue shows this as "Submission date"). Null for admin-authored
+    // products, which skip the review step entirely.
+    submittedAt: timestamp("submitted_at", { mode: "date" }),
+    // Admin's rejection reason / requested-changes note, shown back to the
+    // supplier on their experience's status. Overwritten on each review.
+    reviewNote: text("review_note"),
     featured: boolean("featured").notNull().default(false),
     featuredRank: integer("featured_rank"),
     durationLabel: text("duration_label").notNull(),
@@ -220,6 +256,54 @@ export const products = pgTable(
     ogImage: text("og_image"),
     noIndex: boolean("no_index").notNull().default(false),
     noFollow: boolean("no_follow").notNull().default(false),
+    // ---------------------------------------------------------------
+    // Public experience-page content sections (2026 build): each is a
+    // real, independently-editable field in the admin Experience Editor.
+    // Every array/text field below defaults to empty/null and the public
+    // page only renders its section when real content exists — no
+    // fabricated copy, matching the honesty convention already used for
+    // goodToKnow/timeSlots above.
+    // ---------------------------------------------------------------
+    // "Why Visit" hook — a short 1-3 sentence intro shown above the
+    // existing Highlights grid (which stays as-is; this is new, distinct
+    // copy, not a duplicate of it).
+    whyVisit: text("why_visit"),
+    // Recommended Visit Schedule / Itinerary Timeline — ordered steps,
+    // each with an optional time label.
+    itinerary: jsonb("itinerary").$type<{ time: string; title: string; description: string }[]>().notNull().default([]),
+    // "Secrets, history & artistic significance" bullet list — distinct
+    // from `highlights` above, which is booking-assurance-style copy
+    // (skip the line, small group, etc.).
+    secretHistoryPoints: jsonb("secret_history_points").$type<string[]>().notNull().default([]),
+    // Key Entrances & Access Points.
+    entrances: jsonb("entrances").$type<{ name: string; description: string }[]>().notNull().default([]),
+    // "The Ultimate Experience" premium-pitch block.
+    ultimateExperienceTitle: text("ultimate_experience_title"),
+    ultimateExperienceDescription: text("ultimate_experience_description"),
+    ultimateExperiencePoints: jsonb("ultimate_experience_points").$type<string[]>().notNull().default([]),
+    // Opening Hours & Operational Info table + freeform notes below it
+    // (e.g. "Last entry 30 minutes before closing").
+    openingHours: jsonb("opening_hours").$type<{ day: string; hours: string }[]>().notNull().default([]),
+    operationalInfo: text("operational_info"),
+    // "How to get there" transport options, alongside the existing
+    // meetingPoint/City/Country + map above.
+    gettingThereOptions: jsonb("getting_there_options").$type<{ mode: string; description: string }[]>().notNull().default([]),
+    // Best Time to Visit — a short paragraph plus optional quick tips.
+    bestTimeToVisit: text("best_time_to_visit"),
+    bestTimeToVisitTips: jsonb("best_time_to_visit_tips").$type<string[]>().notNull().default([]),
+    // Frequently Asked Questions accordion.
+    faqs: jsonb("faqs").$type<{ question: string; answer: string }[]>().notNull().default([]),
+    // Related Travel Guides & Blog Articles — admin-curated override list
+    // of blog post slugs, in display order. Empty means "auto": the
+    // public page falls back to real posts matched by category/tag
+    // (see getRelatedBlogPostsForCategory in src/lib/data/blog.ts) rather
+    // than showing nothing or fabricating entries.
+    relatedBlogSlugs: jsonb("related_blog_slugs").$type<string[]>().notNull().default([]),
+    // Bottom CTA banner copy overrides — optional; the public page falls
+    // back to its existing generic "Ready to explore Florence?" copy
+    // when unset.
+    ctaHeadline: text("cta_headline"),
+    ctaSubtext: text("cta_subtext"),
     ...timestamps,
   },
   (t) => [
@@ -264,6 +348,12 @@ export const productOptions = pgTable(
     priceCurrency: text("price_currency").notNull().default("EUR"),
     sortOrder: integer("sort_order").notNull().default(0),
     isActive: boolean("is_active").notNull().default(true),
+    // Per-tier feature checklist for the public "Comprehensive Ticket
+    // Comparison Table" — freeform strings (e.g. "Skip the line", "Audio
+    // guide included"), matched by exact text across tiers to build the
+    // comparison grid. Empty by default; the table only renders once at
+    // least one tier has at least one feature set.
+    features: jsonb("features").$type<string[]>().notNull().default([]),
   },
   (t) => [index("product_options_product_idx").on(t.productId, t.sortOrder)],
 );
@@ -750,5 +840,80 @@ export const auditLogs = pgTable(
     index("audit_logs_created_idx").on(t.createdAt),
     index("audit_logs_actor_idx").on(t.actorUserId),
   ],
+);
+
+// ---------------------------------------------------------------------------
+// Supplier Panel: platform settings, payouts, notifications
+// ---------------------------------------------------------------------------
+
+// Tiny global key/value config store — currently just the platform's
+// default commission rate (a supplier's own commissionRateOverride on the
+// suppliers table above still wins when set). Deliberately not hardcoded
+// as a constant so it's a real, admin-editable setting without a deploy.
+export const platformSettings = pgTable("platform_settings", {
+  key: text("key").primaryKey(),
+  value: text("value").notNull(),
+});
+
+// A record of an actual manual payout to a supplier (this project has no
+// payment processor — see orders' own "no payment table yet" comment above
+// — so payouts are recorded by admin after paying a supplier out of band,
+// never an automated/fake "Pay now" button). status: pending | paid.
+export const supplierPayouts = pgTable(
+  "supplier_payouts",
+  {
+    id: id(),
+    supplierId: text("supplier_id")
+      .notNull()
+      .references(() => suppliers.id),
+    amount: doublePrecision("amount").notNull(),
+    currency: text("currency").notNull().default("EUR"),
+    status: text("status").notNull().default("pending"),
+    paidAt: timestamp("paid_at", { mode: "date" }),
+    notes: text("notes"),
+    createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [index("supplier_payouts_supplier_idx").on(t.supplierId)],
+);
+
+// Links specific order_items into a payout batch once paid. A supplier's
+// "pending payout" total is always computed as (their confirmed order_items)
+// minus (whichever ones already appear here) — never stored redundantly, so
+// there's no separate running balance that can drift out of sync.
+export const supplierPayoutItems = pgTable(
+  "supplier_payout_items",
+  {
+    id: id(),
+    payoutId: text("payout_id")
+      .notNull()
+      .references(() => supplierPayouts.id, { onDelete: "cascade" }),
+    orderItemId: text("order_item_id")
+      .notNull()
+      .references(() => orderItems.id),
+  },
+  // An order_item can only ever be paid out once.
+  (t) => [uniqueIndex("supplier_payout_items_order_item_idx").on(t.orderItemId)],
+);
+
+// In-app notifications for the supplier panel (no email/SMS in this pass).
+// type: application_approved | application_rejected | experience_approved |
+// experience_rejected | new_booking | booking_cancelled | payout_recorded |
+// admin_message
+export const supplierNotifications = pgTable(
+  "supplier_notifications",
+  {
+    id: id(),
+    supplierId: text("supplier_id")
+      .notNull()
+      .references(() => suppliers.id, { onDelete: "cascade" }),
+    type: text("type").notNull(),
+    title: text("title").notNull(),
+    body: text("body"),
+    entityType: text("entity_type"),
+    entityId: text("entity_id"),
+    isRead: boolean("is_read").notNull().default(false),
+    createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [index("supplier_notifications_supplier_read_idx").on(t.supplierId, t.isRead)],
 );
 

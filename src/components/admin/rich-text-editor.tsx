@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useEditor, EditorContent, type Editor } from "@tiptap/react";
+import { DOMParser as ProseMirrorDOMParser } from "@tiptap/pm/model";
 import StarterKit from "@tiptap/starter-kit";
 import HeadingExtension, { type Level, type HeadingOptions } from "@tiptap/extension-heading";
 import Underline from "@tiptap/extension-underline";
@@ -22,10 +23,23 @@ import { RichLinkModal, type RichLinkModalResult } from "./rich-link-modal";
  * Content field, ported from the Amsterdam reference repo's
  * TiptapArticleEditor.tsx (built on Tiptap v3 here, matched to this
  * project's React 19 — Amsterdam runs React 18/Tiptap v2, same API).
- * Tiptap (ProseMirror) gives real, battle-tested HTML paste handling —
- * headings, bold/italic/underline, links, lists, tables, images, and
- * blockquotes pasted from Word, Google Docs, or any website come
- * through correctly, without hand-rolled paste-cleaning heuristics.
+ *
+ * Tiptap v3's OWN default clipboard handling turned out not to reliably
+ * preserve formatting pasted from real websites or ChatGPT's web UI —
+ * headings/bold/links were silently dropping to plain text (a real,
+ * reported regression, not present in Amsterdam's v2 setup). Rather than
+ * trust that default pipeline, `handlePaste` below explicitly intercepts
+ * the clipboard event and runs it through the same paste-cleaning
+ * heuristics Amsterdam's OTHER editor (RichTextEditor.tsx, used for its
+ * simpler CMS fields) has relied on for a long time: prefer real pasted
+ * HTML when it has genuine structure, normalize Word/Google-Docs-style
+ * "Heading N" paragraphs and strip stray fonts/colors, fall back to
+ * parsing markdown-flavored plain text (what ChatGPT's copy button often
+ * puts on the clipboard instead of real HTML), and otherwise fall back to
+ * plain paragraphs — then parses the resulting clean HTML through
+ * ProseMirror's own schema-aware DOMParser and inserts it directly, so
+ * the editor's node/mark schema (headings, links, images, tables, …)
+ * still governs what's actually allowed in, exactly as it did before.
  *
  * The saved HTML is re-sanitized server-side before it's ever written
  * to the DB (see src/lib/blog/rich-content.ts) — this editor's own
@@ -39,6 +53,285 @@ function normalizeUrl(raw: string): string {
   if (!url) return url;
   if (/^([a-z][a-z0-9+.-]*:|\/\/|\/|#)/i.test(url)) return url;
   return `https://${url}`;
+}
+
+function escapeHtml(text: string): string {
+  return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function formatInlineMarkdown(text: string): string {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\*\*\*(.*?)\*\*\*/g, "<strong><em>$1</em></strong>")
+    .replace(/___(.*?)___/g, "<strong><em>$1</em></strong>")
+    .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+    .replace(/__(.*?)__/g, "<strong>$1</strong>")
+    .replace(/\*(.*?)\*/g, "<em>$1</em>")
+    .replace(/_(.*?)_/g, "<em>$1</em>")
+    .replace(/`([^`]+)`/g, "<code>$1</code>")
+    .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" />')
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+}
+
+/**
+ * Converts Markdown text (like ChatGPT copy output or standard markdown)
+ * into clean semantic HTML — ported from Amsterdam's RichTextEditor.tsx.
+ */
+function markdownToHtml(markdown: string, allowedHeadings: (1 | 2 | 3)[]): string {
+  const lines = markdown.split(/\r?\n/);
+  const htmlParts: string[] = [];
+  let inList: "ul" | "ol" | null = null;
+  let inBlockquote = false;
+  let inTable = false;
+  let tableRows: string[] = [];
+
+  function closeList() {
+    if (inList) {
+      htmlParts.push(`</${inList}>`);
+      inList = null;
+    }
+  }
+
+  function closeBlockquote() {
+    if (inBlockquote) {
+      htmlParts.push(`</blockquote>`);
+      inBlockquote = false;
+    }
+  }
+
+  function closeTable() {
+    if (inTable && tableRows.length > 0) {
+      const isHeaderSep = (row: string) => /^\s*\|?\s*:?-+:?\s*(\|?\s*:?-+:?\s*)+\|?\s*$/.test(row);
+      const rowsHtml: string[] = [];
+      let headerDone = false;
+
+      for (let i = 0; i < tableRows.length; i++) {
+        const row = tableRows[i];
+        if (isHeaderSep(row)) {
+          headerDone = true;
+          continue;
+        }
+        const cells = row
+          .split("|")
+          .map((c) => c.trim())
+          .filter((_, idx, arr) => !(idx === 0 && arr[0] === "") && !(idx === arr.length - 1 && arr[arr.length - 1] === ""));
+
+        const tag = !headerDone && i === 0 ? "th" : "td";
+        const rowContent = cells.map((cell) => `<${tag}>${formatInlineMarkdown(cell)}</${tag}>`).join("");
+        rowsHtml.push(`<tr>${rowContent}</tr>`);
+      }
+
+      htmlParts.push(`<table><tbody>${rowsHtml.join("")}</tbody></table>`);
+      tableRows = [];
+      inTable = false;
+    }
+  }
+
+  for (let i = 0; i < lines.length; i++) {
+    const rawLine = lines[i];
+    const line = rawLine.trim();
+
+    if (line.startsWith("|") && line.endsWith("|")) {
+      closeList();
+      closeBlockquote();
+      inTable = true;
+      tableRows.push(line);
+      continue;
+    } else {
+      closeTable();
+    }
+
+    if (!line) {
+      closeList();
+      closeBlockquote();
+      continue;
+    }
+
+    const headingMatch = line.match(/^(#{1,6})\s+(.*)$/);
+    if (headingMatch) {
+      closeList();
+      closeBlockquote();
+      const levelNum = headingMatch[1].length;
+      let targetLevel: 1 | 2 | 3 = 2;
+      if (levelNum === 1) targetLevel = allowedHeadings.includes(1) ? 1 : 2;
+      else if (levelNum === 2) targetLevel = 2;
+      else targetLevel = 3;
+
+      htmlParts.push(`<h${targetLevel}>${formatInlineMarkdown(headingMatch[2])}</h${targetLevel}>`);
+      continue;
+    }
+
+    if (line.startsWith(">")) {
+      closeList();
+      const quoteText = line.replace(/^>\s*/, "");
+      if (!inBlockquote) {
+        htmlParts.push(`<blockquote>`);
+        inBlockquote = true;
+      }
+      htmlParts.push(`<p>${formatInlineMarkdown(quoteText)}</p>`);
+      continue;
+    } else {
+      closeBlockquote();
+    }
+
+    const ulMatch = line.match(/^[-*+]\s+(.*)$/);
+    if (ulMatch) {
+      if (inList !== "ul") {
+        closeList();
+        htmlParts.push(`<ul>`);
+        inList = "ul";
+      }
+      htmlParts.push(`<li>${formatInlineMarkdown(ulMatch[1])}</li>`);
+      continue;
+    }
+
+    const olMatch = line.match(/^\d+\.\s+(.*)$/);
+    if (olMatch) {
+      if (inList !== "ol") {
+        closeList();
+        htmlParts.push(`<ol>`);
+        inList = "ol";
+      }
+      htmlParts.push(`<li>${formatInlineMarkdown(olMatch[1])}</li>`);
+      continue;
+    }
+
+    closeList();
+    htmlParts.push(`<p>${formatInlineMarkdown(line)}</p>`);
+  }
+
+  closeList();
+  closeBlockquote();
+  closeTable();
+
+  return htmlParts.join("");
+}
+
+// Real pages / Word / Google Docs almost always carry proper HTML on the
+// clipboard, but plain everyday article text very often ALSO happens to
+// match the markdown heuristics below (a numbered intro like "1. Book
+// tickets early", a stray "**word**", a "|" somewhere in a sentence). When
+// that happens we must not throw the good HTML away — only fall back to
+// the markdown/plain-text path when there's no real structure to keep.
+function hasRichHtmlStructure(rawHtml: string): boolean {
+  try {
+    const doc = new window.DOMParser().parseFromString(rawHtml, "text/html");
+    const body = doc.body;
+    if (body.querySelector("h1, h2, h3, h4, h5, h6, table, ul, ol, blockquote")) return true;
+    if (body.querySelectorAll("p").length > 1) return true;
+    if (body.querySelector("strong, b, em, i, u, a, img")) return true;
+    return false;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Cleans and normalizes HTML pasted from rich sources (Google Docs, Word,
+ * ChatGPT web copy, or any website) — ported from Amsterdam's
+ * RichTextEditor.tsx. Maps headings to the allowed levels (including
+ * Word/Google Docs' habit of marking headings as styled <p> elements
+ * instead of real <h1>-<h6> tags), strips fonts/colors/classes that would
+ * fight this site's own styling, and sets safe rel/target on links —
+ * Tiptap's schema (via ProseMirror's own DOMParser, applied right after
+ * this) drops anything left over that isn't one of this editor's
+ * configured node/mark types.
+ */
+function cleanRichHtml(rawHtml: string, allowedHeadings: (1 | 2 | 3)[]): string {
+  try {
+    const parser = new window.DOMParser();
+    const doc = parser.parseFromString(rawHtml, "text/html");
+    const body = doc.body;
+
+    const headingParas = body.querySelectorAll("p");
+    headingParas.forEach((p) => {
+      const signature = `${p.getAttribute("style") || ""} ${p.getAttribute("class") || ""}`;
+      const match = signature.match(/heading\s*(\d)/i);
+      if (!match) return;
+      const level = Math.min(3, Math.max(1, parseInt(match[1], 10)));
+      const tag = `h${level}`;
+      const replacement = doc.createElement(tag);
+      replacement.innerHTML = p.innerHTML;
+      p.replaceWith(replacement);
+    });
+
+    const headings = body.querySelectorAll("h1, h2, h3, h4, h5, h6");
+    headings.forEach((h) => {
+      const tag = h.tagName.toLowerCase();
+      let targetTag = "h2";
+      if (tag === "h1") targetTag = allowedHeadings.includes(1) ? "h1" : "h2";
+      else if (tag === "h2") targetTag = "h2";
+      else targetTag = "h3";
+
+      if (tag !== targetTag) {
+        const replacement = doc.createElement(targetTag);
+        replacement.innerHTML = h.innerHTML;
+        h.replaceWith(replacement);
+      }
+    });
+
+    const allElements = body.querySelectorAll("*");
+    allElements.forEach((el) => {
+      el.removeAttribute("class");
+      el.removeAttribute("style");
+    });
+
+    const links = body.querySelectorAll("a");
+    links.forEach((a) => {
+      a.setAttribute("target", "_blank");
+      a.setAttribute("rel", "noopener noreferrer");
+    });
+
+    return body.innerHTML;
+  } catch {
+    return rawHtml;
+  }
+}
+
+/**
+ * The actual paste interception, wired into Tiptap's editorProps below.
+ * Reads both clipboard flavors, picks the right path (rich HTML / markdown
+ * plain text / flat HTML / plain paragraphs — same decision order
+ * Amsterdam's editor uses), and inserts the result through ProseMirror's
+ * own schema-aware parser so the editor's node/mark schema still has the
+ * final say over what's actually allowed in.
+ */
+function buildPastedHtml(clipboardData: DataTransfer, allowedHeadings: (1 | 2 | 3)[]): string {
+  const pastedHtml = clipboardData.getData("text/html");
+  const pastedText = clipboardData.getData("text/plain");
+
+  const hasRichHtml = !!pastedHtml && hasRichHtmlStructure(pastedHtml);
+  const isMarkdown =
+    !!pastedText &&
+    (/(^|\n)#{1,6}\s+/.test(pastedText) ||
+      /(^|\n)[-*+]\s+/.test(pastedText) ||
+      /(^|\n)\d+\.\s+/.test(pastedText) ||
+      /\*\*[^*]+\*\*/.test(pastedText) ||
+      /\[[^\]]+\]\([^)]+\)/.test(pastedText) ||
+      /(^|\n)\|.*\|/.test(pastedText));
+
+  if (hasRichHtml) {
+    return cleanRichHtml(pastedHtml, allowedHeadings);
+  }
+  if (pastedText) {
+    if (isMarkdown) {
+      return markdownToHtml(pastedText, allowedHeadings);
+    }
+    if (pastedHtml) {
+      return cleanRichHtml(pastedHtml, allowedHeadings);
+    }
+    const paras = pastedText.split(/\r?\n\r?\n/);
+    return paras
+      .map((p) => {
+        const clean = escapeHtml(p.trim()).replace(/\r?\n/g, "<br>");
+        return clean ? `<p>${clean}</p>` : "";
+      })
+      .filter(Boolean)
+      .join("");
+  }
+  return "";
 }
 
 // Restrict headings to the levels allowed in this field, mapping any
@@ -168,6 +461,11 @@ export function RichTextEditor({
     onChangeRef.current = onChange;
   }, [onChange]);
 
+  const allowedHeadingsRef = useRef(allowedHeadings);
+  useEffect(() => {
+    allowedHeadingsRef.current = allowedHeadings;
+  }, [allowedHeadings]);
+
   const [imageModalOpen, setImageModalOpen] = useState(false);
   const [editingImageData, setEditingImageData] = useState<RichImageModalData | null>(null);
   const editingImageRef = useRef<{ pos: number } | null>(null);
@@ -200,6 +498,27 @@ export function RichTextEditor({
             return true;
           }
           return false;
+        },
+        // See the module docstring — Tiptap v3's default clipboard
+        // handling wasn't reliably preserving formatting pasted from
+        // real websites or ChatGPT. This explicitly cleans the pasted
+        // HTML (or converts markdown-flavored plain text) the way
+        // Amsterdam's editor does, then hands the result to
+        // ProseMirror's own schema-aware parser.
+        handlePaste: (view, event) => {
+          const clipboardData = event.clipboardData;
+          if (!clipboardData) return false;
+
+          const finalHtml = buildPastedHtml(clipboardData, allowedHeadingsRef.current);
+          if (!finalHtml) return false;
+
+          event.preventDefault();
+          const dom = document.createElement("div");
+          dom.innerHTML = finalHtml;
+          const parser = ProseMirrorDOMParser.fromSchema(view.state.schema);
+          const slice = parser.parseSlice(dom, { preserveWhitespace: true });
+          view.dispatch(view.state.tr.replaceSelection(slice).scrollIntoView());
+          return true;
         },
       },
       extensions: [
@@ -338,7 +657,7 @@ export function RichTextEditor({
   return (
     <div className="rounded-xl border border-neutral-300 focus-within:border-brand focus-within:ring-1 focus-within:ring-brand">
       <div
-        className="sticky z-10 flex flex-wrap items-center justify-between gap-1 rounded-t-xl border-b border-stone bg-cream-deep p-1.5"
+        className="sticky z-20 flex flex-wrap items-center justify-between gap-1 rounded-t-xl border-b border-stone bg-cream-deep p-1.5"
         style={{ top: stickyOffset || 0 }}
       >
         <div className="flex flex-wrap items-center gap-0.5">

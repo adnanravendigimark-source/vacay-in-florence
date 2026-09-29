@@ -3,7 +3,6 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { AdminSidebar } from "./admin-sidebar";
-import { AdminTopbar } from "./admin-topbar";
 
 interface StaffInfo {
   name?: string | null;
@@ -80,8 +79,20 @@ export function AdminShell({
 
         {/* Main Content Area */}
         <div className="flex-1 flex flex-col min-w-0">
-          <AdminTopbar staff={staff} />
-          <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto">
+          {/* Deliberately no overflow-y-auto here: this wrapper never gets a
+             bounded height (the shell uses min-h-screen, not h-screen), so
+             it can never scroll internally anyway — the window scrolls,
+             exactly like the sidebar/topbar above already assume (both use
+             plain viewport-relative `sticky`). overflow-y-auto on this
+             element used to be a no-op for visible scrolling but NOT a
+             no-op for CSS: it silently became the nearest scroll container
+             for any `position: sticky` element nested inside it (e.g. the
+             blog editor's toolbar), whose "stuck" offset is computed
+             against *that* container's scroll position — which never
+             moves, since this element itself never scrolls. The visible
+             symptom was a sticky toolbar that just sat in normal flow and
+             scrolled away with the page instead of staying pinned. */}
+          <main className="flex-1 p-4 sm:p-6 lg:p-8">
             {children}
           </main>
         </div>

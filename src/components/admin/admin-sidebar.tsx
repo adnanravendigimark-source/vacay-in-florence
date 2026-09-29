@@ -12,11 +12,6 @@ interface AdminSidebarProps {
     email?: string | null;
     roleName?: string | null;
   };
-  /** Staff member's resolved permission keys (StaffContext.permissionKeys,
-   * serialized to an array by the server layout) — filters which nav
-   * sections are shown. UI-only: every route still re-checks permissions
-   * server-side via requireAdmin/requirePermission, so hiding a link here
-   * is never what actually gates access to a module. */
   permissionKeys?: string[];
 }
 
@@ -24,8 +19,8 @@ interface NavItem {
   href: string;
   label: string;
   icon: (active: boolean) => React.ReactNode;
-  /** Visible if the staff member has ANY of these permission keys. */
   anyOf: string[];
+  badge?: string;
 }
 
 interface NavGroup {
@@ -36,22 +31,37 @@ interface NavGroup {
 interface PublicPageItem {
   href: string;
   label: string;
-  icon: React.ReactNode;
-  /** true = this page's admin content editor hasn't been built yet. Shown
-   * as a disabled row with a "Soon" badge instead of a clickable link — this
-   * dropdown only ever holds admin editors, never live-site redirects. */
-  comingSoon?: boolean;
-  /** Visible if the staff member has ANY of these permission keys. */
   anyOf: string[];
+  comingSoon?: boolean;
 }
 
 // ---------------------------------------------------------------------------
-// Self-contained Icon Components (guaranteed visible rendering with clean strokes)
+// Clean, Unified SVG Icons (20x20 with 1.75px stroke)
 // ---------------------------------------------------------------------------
 
-function IconDashboard({ className }: { className?: string }) {
+function IconDashboard({ active }: { active: boolean }) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className={`w-4.5 h-4.5 shrink-0 ${active ? "text-emerald-300" : "text-neutral-400 group-hover:text-neutral-700"}`}>
+      <rect x="3" y="3" width="7" height="9" rx="1.5" />
+      <rect x="14" y="3" width="7" height="5" rx="1.5" />
+      <rect x="14" y="12" width="7" height="9" rx="1.5" />
+      <rect x="3" y="16" width="7" height="5" rx="1.5" />
+    </svg>
+  );
+}
+
+function IconExperiences({ active }: { active: boolean }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className={`w-4.5 h-4.5 shrink-0 ${active ? "text-emerald-300" : "text-neutral-400 group-hover:text-neutral-700"}`}>
+      <circle cx="12" cy="12" r="9" />
+      <polygon points="15 8.5 13.5 13.5 8.5 15 10 10 15 8.5" />
+    </svg>
+  );
+}
+
+function IconCategories({ active }: { active: boolean }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className={`w-4.5 h-4.5 shrink-0 ${active ? "text-emerald-300" : "text-neutral-400 group-hover:text-neutral-700"}`}>
       <rect x="3" y="3" width="7" height="7" rx="1" />
       <rect x="14" y="3" width="7" height="7" rx="1" />
       <rect x="14" y="14" width="7" height="7" rx="1" />
@@ -60,28 +70,18 @@ function IconDashboard({ className }: { className?: string }) {
   );
 }
 
-function IconExperiences({ className }: { className?: string }) {
+function IconApprovals({ active }: { active: boolean }) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-      <circle cx="12" cy="12" r="10" />
-      <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className={`w-4.5 h-4.5 shrink-0 ${active ? "text-emerald-300" : "text-neutral-400 group-hover:text-neutral-700"}`}>
+      <path d="M9 11l3 3L22 4" />
+      <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" />
     </svg>
   );
 }
 
-function IconCategories({ className }: { className?: string }) {
+function IconBookings({ active }: { active: boolean }) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-      <path d="M4 7V4h16v3" />
-      <path d="M9 20h6" />
-      <path d="M12 4v16" />
-    </svg>
-  );
-}
-
-function IconBookings({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className={`w-4.5 h-4.5 shrink-0 ${active ? "text-emerald-300" : "text-neutral-400 group-hover:text-neutral-700"}`}>
       <rect x="3" y="4" width="18" height="18" rx="2" />
       <line x1="16" y1="2" x2="16" y2="6" />
       <line x1="8" y1="2" x2="8" y2="6" />
@@ -90,28 +90,29 @@ function IconBookings({ className }: { className?: string }) {
   );
 }
 
-function IconCustomers({ className }: { className?: string }) {
+function IconCustomers({ active }: { active: boolean }) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-      <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className={`w-4.5 h-4.5 shrink-0 ${active ? "text-emerald-300" : "text-neutral-400 group-hover:text-neutral-700"}`}>
+      <path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2" />
       <circle cx="9" cy="7" r="4" />
-      <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" />
+      <path d="M22 21v-2a4 4 0 00-3-3.87" />
+      <path d="M16 3.13a4 4 0 010 7.75" />
     </svg>
   );
 }
 
-function IconSuppliers({ className }: { className?: string }) {
+function IconSuppliers({ active }: { active: boolean }) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className={`w-4.5 h-4.5 shrink-0 ${active ? "text-emerald-300" : "text-neutral-400 group-hover:text-neutral-700"}`}>
       <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
       <polyline points="9 22 9 12 15 12 15 22" />
     </svg>
   );
 }
 
-function IconAffiliates({ className }: { className?: string }) {
+function IconAffiliates({ active }: { active: boolean }) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className={`w-4.5 h-4.5 shrink-0 ${active ? "text-emerald-300" : "text-neutral-400 group-hover:text-neutral-700"}`}>
       <circle cx="18" cy="5" r="3" />
       <circle cx="6" cy="12" r="3" />
       <circle cx="18" cy="19" r="3" />
@@ -121,46 +122,44 @@ function IconAffiliates({ className }: { className?: string }) {
   );
 }
 
-function IconBlog({ className }: { className?: string }) {
+function IconBlog({ active }: { active: boolean }) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-      <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
-      <polyline points="14 2 14 8 20 8" />
-      <line x1="16" y1="13" x2="8" y2="13" />
-      <line x1="16" y1="17" x2="8" y2="17" />
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className={`w-4.5 h-4.5 shrink-0 ${active ? "text-emerald-300" : "text-neutral-400 group-hover:text-neutral-700"}`}>
+      <path d="M12 20h9" />
+      <path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z" />
     </svg>
   );
 }
 
-function IconSettings({ className }: { className?: string }) {
+function IconSettings({ active }: { active: boolean }) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className={`w-4.5 h-4.5 shrink-0 ${active ? "text-emerald-300" : "text-neutral-400 group-hover:text-neutral-700"}`}>
       <circle cx="12" cy="12" r="3" />
       <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z" />
     </svg>
   );
 }
 
-function IconSEO({ className }: { className?: string }) {
+function IconSEO({ active }: { active: boolean }) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className={`w-4.5 h-4.5 shrink-0 ${active ? "text-emerald-300" : "text-neutral-400 group-hover:text-neutral-700"}`}>
       <circle cx="11" cy="11" r="8" />
       <line x1="21" y1="21" x2="16.65" y2="16.65" />
     </svg>
   );
 }
 
-function IconRoles({ className }: { className?: string }) {
+function IconRoles({ active }: { active: boolean }) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className={`w-4.5 h-4.5 shrink-0 ${active ? "text-emerald-300" : "text-neutral-400 group-hover:text-neutral-700"}`}>
       <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
     </svg>
   );
 }
 
-function IconAuditLog({ className }: { className?: string }) {
+function IconAuditLog({ active }: { active: boolean }) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className={`w-4.5 h-4.5 shrink-0 ${active ? "text-emerald-300" : "text-neutral-400 group-hover:text-neutral-700"}`}>
       <circle cx="12" cy="12" r="10" />
       <polyline points="12 6 12 12 16 14" />
     </svg>
@@ -168,135 +167,49 @@ function IconAuditLog({ className }: { className?: string }) {
 }
 
 const PUBLIC_PAGES: PublicPageItem[] = [
-  {
-    href: "/admin/content/homepage",
-    label: "Homepage Editor",
-    anyOf: ["content.view", "content.manage"],
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 shrink-0 text-neutral-400 group-hover:text-[#2b0934]">
-        <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
-        <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
-      </svg>
-    ),
-  },
-  {
-    href: "/admin/content/about",
-    label: "About Us",
-    anyOf: ["content.view", "content.manage"],
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 shrink-0 text-neutral-400 group-hover:text-[#2b0934]">
-        <circle cx="12" cy="12" r="10" />
-        <line x1="12" y1="16" x2="12" y2="12" />
-        <line x1="12" y1="8" x2="12.01" y2="8" />
-      </svg>
-    ),
-  },
-  {
-    href: "/admin/content/contact",
-    label: "Contact Us",
-    anyOf: ["content.view", "content.manage"],
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 shrink-0 text-neutral-400 group-hover:text-[#2b0934]">
-        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
-        <polyline points="22,6 12,13 2,6" />
-      </svg>
-    ),
-  },
-  {
-    href: "/admin/content/privacy",
-    label: "Privacy Policy",
-    anyOf: ["content.view", "content.manage"],
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 shrink-0 text-neutral-400 group-hover:text-[#2b0934]">
-        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-      </svg>
-    ),
-  },
-  {
-    href: "/admin/content/terms",
-    label: "Terms & Conditions",
-    anyOf: ["content.view", "content.manage"],
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 shrink-0 text-neutral-400 group-hover:text-[#2b0934]">
-        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
-        <polyline points="14 2 14 8 20 8" />
-        <line x1="16" y1="13" x2="8" y2="13" />
-        <line x1="16" y1="17" x2="8" y2="17" />
-      </svg>
-    ),
-  },
-  {
-    href: "/admin/content/cancellation-policy",
-    label: "Cancellation & Refunds",
-    anyOf: ["content.view", "content.manage"],
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 shrink-0 text-neutral-400 group-hover:text-[#2b0934]">
-        <polyline points="1 4 1 10 7 10" />
-        <polyline points="23 20 23 14 17 14" />
-        <path d="M20.49 9A9 9 0 005.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 013.51 15" />
-      </svg>
-    ),
-  },
-  {
-    href: "/admin/content/become-a-supplier",
-    label: "Become a Supplier",
-    anyOf: ["content.view", "content.manage"],
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 shrink-0 text-neutral-400 group-hover:text-[#2b0934]">
-        <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
-        <line x1="3" y1="6" x2="21" y2="6" />
-        <path d="M16 10a4 4 0 01-8 0" />
-      </svg>
-    ),
-  },
-  {
-    href: "/admin/content/affiliates",
-    label: "Become an Affiliate",
-    anyOf: ["content.view", "content.manage"],
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 shrink-0 text-neutral-400 group-hover:text-[#2b0934]">
-        <circle cx="18" cy="5" r="3" />
-        <circle cx="6" cy="12" r="3" />
-        <circle cx="18" cy="19" r="3" />
-        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
-        <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
-      </svg>
-    ),
-  },
+  { href: "/admin/content/homepage", label: "Homepage", anyOf: ["content.view", "content.manage"] },
+  { href: "/admin/content/about", label: "About Us", anyOf: ["content.view", "content.manage"] },
+  { href: "/admin/content/contact", label: "Contact", anyOf: ["content.view", "content.manage"] },
+  { href: "/admin/content/privacy", label: "Privacy Policy", anyOf: ["content.view", "content.manage"] },
+  { href: "/admin/content/terms", label: "Terms of Service", anyOf: ["content.view", "content.manage"] },
+  { href: "/admin/content/cancellation-policy", label: "Cancellation Policy", anyOf: ["content.view", "content.manage"] },
+  { href: "/admin/content/become-a-supplier", label: "Supplier Landing", anyOf: ["content.view", "content.manage"] },
+  { href: "/admin/content/affiliates", label: "Affiliate Landing", anyOf: ["content.view", "content.manage"] },
 ];
 
 const NAV_GROUPS: NavGroup[] = [
   {
-    label: "Catalog",
+    label: "Catalog & Bookings",
     items: [
       {
         href: "/admin/experiences",
         label: "Experiences",
         anyOf: ["catalog.view", "catalog.manage"],
-        icon: (active) => <IconExperiences className={`w-4 h-4 shrink-0 ${active ? "text-[#F5D59A]" : "text-neutral-500 group-hover:text-[#2b0934]"}`} />,
+        icon: (active) => <IconExperiences active={active} />,
       },
       {
         href: "/admin/categories",
         label: "Categories",
         anyOf: ["catalog.view", "catalog.manage"],
-        icon: (active) => <IconCategories className={`w-4 h-4 shrink-0 ${active ? "text-[#F5D59A]" : "text-neutral-500 group-hover:text-[#2b0934]"}`} />,
+        icon: (active) => <IconCategories active={active} />,
       },
-    ],
-  },
-  {
-    label: "Bookings",
-    items: [
+      {
+        href: "/admin/experiences/approvals",
+        label: "Approvals",
+        anyOf: ["catalog.manage"],
+        icon: (active) => <IconApprovals active={active} />,
+      },
       {
         href: "/admin/bookings",
         label: "Bookings",
         anyOf: ["bookings.view", "bookings.manage"],
-        icon: (active) => <IconBookings className={`w-4 h-4 shrink-0 ${active ? "text-[#F5D59A]" : "text-neutral-500 group-hover:text-[#2b0934]"}`} />,
+        icon: (active) => <IconBookings active={active} />,
       },
       {
         href: "/admin/customers",
         label: "Customers",
         anyOf: ["customers.view", "customers.manage"],
-        icon: (active) => <IconCustomers className={`w-4 h-4 shrink-0 ${active ? "text-[#F5D59A]" : "text-neutral-500 group-hover:text-[#2b0934]"}`} />,
+        icon: (active) => <IconCustomers active={active} />,
       },
     ],
   },
@@ -307,53 +220,53 @@ const NAV_GROUPS: NavGroup[] = [
         href: "/admin/suppliers",
         label: "Suppliers",
         anyOf: ["suppliers.view", "suppliers.manage"],
-        icon: (active) => <IconSuppliers className={`w-4 h-4 shrink-0 ${active ? "text-[#F5D59A]" : "text-neutral-500 group-hover:text-[#2b0934]"}`} />,
+        icon: (active) => <IconSuppliers active={active} />,
       },
       {
         href: "/admin/affiliates",
         label: "Affiliates",
         anyOf: ["affiliates.view", "affiliates.manage"],
-        icon: (active) => <IconAffiliates className={`w-4 h-4 shrink-0 ${active ? "text-[#F5D59A]" : "text-neutral-500 group-hover:text-[#2b0934]"}`} />,
+        icon: (active) => <IconAffiliates active={active} />,
       },
     ],
   },
   {
-    label: "Content",
+    label: "Content & CMS",
     items: [
       {
         href: "/admin/blog",
-        label: "Blog & Articles",
+        label: "Blog & Guides",
         anyOf: ["content.view", "content.manage"],
-        icon: (active) => <IconBlog className={`w-4 h-4 shrink-0 ${active ? "text-[#F5D59A]" : "text-neutral-500 group-hover:text-[#2b0934]"}`} />,
-      },
-      {
-        href: "/admin/settings",
-        label: "Website Settings",
-        anyOf: ["content.view", "content.manage"],
-        icon: (active) => <IconSettings className={`w-4 h-4 shrink-0 ${active ? "text-[#F5D59A]" : "text-neutral-500 group-hover:text-[#2b0934]"}`} />,
+        icon: (active) => <IconBlog active={active} />,
       },
       {
         href: "/admin/seo",
-        label: "SEO Management",
+        label: "SEO Settings",
         anyOf: ["seo.view", "seo.manage"],
-        icon: (active) => <IconSEO className={`w-4 h-4 shrink-0 ${active ? "text-[#F5D59A]" : "text-neutral-500 group-hover:text-[#2b0934]"}`} />,
+        icon: (active) => <IconSEO active={active} />,
+      },
+      {
+        href: "/admin/settings",
+        label: "Platform Settings",
+        anyOf: ["content.view", "content.manage"],
+        icon: (active) => <IconSettings active={active} />,
       },
     ],
   },
   {
-    label: "Administration",
+    label: "Governance",
     items: [
       {
         href: "/admin/roles",
-        label: "Users & Roles",
+        label: "Roles & Staff",
         anyOf: ["roles.view", "roles.manage"],
-        icon: (active) => <IconRoles className={`w-4 h-4 shrink-0 ${active ? "text-[#F5D59A]" : "text-neutral-500 group-hover:text-[#2b0934]"}`} />,
+        icon: (active) => <IconRoles active={active} />,
       },
       {
         href: "/admin/audit-log",
-        label: "Audit Log",
+        label: "Audit Logs",
         anyOf: ["auditlog.view"],
-        icon: (active) => <IconAuditLog className={`w-4 h-4 shrink-0 ${active ? "text-[#F5D59A]" : "text-neutral-500 group-hover:text-[#2b0934]"}`} />,
+        icon: (active) => <IconAuditLog active={active} />,
       },
     ],
   },
@@ -378,202 +291,138 @@ function SidebarContent({
   onToggleCollapse?: () => void;
 }) {
   const pathname = usePathname();
-  // No permissionKeys prop = don't filter (defensive default so a caller
-  // that forgets to pass it still sees every section rather than none).
   const hasPerm = (anyOf: string[]) => !permissionKeys || anyOf.some((k) => permissionKeys.includes(k));
   const visiblePublicPages = PUBLIC_PAGES.filter((p) => hasPerm(p.anyOf));
   const visibleNavGroups = NAV_GROUPS.map((g) => ({ ...g, items: g.items.filter((i) => hasPerm(i.anyOf)) })).filter(
     (g) => g.items.length > 0,
   );
-  const [publicPagesOpen, setPublicPagesOpen] = useState(() => pathname.startsWith("/admin/content/homepage"));
+  const [publicPagesOpen, setPublicPagesOpen] = useState(() => pathname.startsWith("/admin/content/"));
 
   const isDashboardActive = isPathActive(pathname, "/admin");
+  const isPageEditorActive = pathname.startsWith("/admin/content/");
+
+  // Compute initials for staff avatar
+  const staffInitials = staff?.name
+    ? staff.name
+        .split(" ")
+        .map((p) => p[0])
+        .join("")
+        .toUpperCase()
+        .slice(0, 2)
+    : "AD";
 
   return (
     <div className="flex flex-col justify-between h-full bg-white select-none">
-      <div className="overflow-y-auto">
-        {/* Brand Header with Hamburger Icon */}
-        <div className={`p-4 ${collapsed ? "px-2" : "p-5"} pb-3 border-b border-[#F0ECE6]`}>
-          <div className="flex items-center justify-between gap-2 mb-2.5">
+      {/* Top Header & Navigation */}
+      <div className="flex-1 overflow-y-auto overflow-x-hidden">
+        {/* Clean Brand Header */}
+        <div className={`p-4 ${collapsed ? "px-3" : "p-4.5"} border-b border-neutral-100`}>
+          <div className="flex items-center justify-between gap-2">
             <Link
               href="/admin"
               onClick={onClose}
-              className={`flex items-center ${collapsed ? "justify-center" : "gap-3"} px-1 py-1 group min-w-0`}
+              className={`flex items-center ${collapsed ? "justify-center" : "gap-3"} group min-w-0`}
             >
-              <div className="w-9 h-9 rounded-xl bg-[#FAF5FC] flex items-center justify-center shrink-0 border border-[#2b0934]/20 text-[#2b0934] shadow-2xs group-hover:border-[#2b0934]/50 transition">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 text-[#2b0934]">
-                  <path d="M12 2v4M12 2L8 6v14h8V6L12 2z" />
-                  <path d="M4 14h4v6H4zM16 14h4v6h-4z" />
+              {/* Cupola Duomo Brand Emblem */}
+              <div className="w-8.5 h-8.5 rounded-xl bg-[#1b3b36] flex items-center justify-center shrink-0 text-white shadow-xs group-hover:bg-[#132c28] transition-colors">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4.5 h-4.5 text-white">
+                  <path d="M12 2v3M12 2L8 6v14h8V6L12 2z" />
+                  <path d="M5 14h3v6H5zM16 14h3v6h-3z" />
                 </svg>
               </div>
-              {!collapsed ? (
-                <div className="min-w-0">
-                  <span className="block text-[9px] font-bold tracking-[0.2em] text-neutral-400 uppercase leading-none">
+
+              {!collapsed && (
+                <div className="min-w-0 leading-tight">
+                  <span className="block text-[9px] font-bold tracking-[0.2em] text-neutral-400 uppercase">
                     VACAY IN
                   </span>
-                  <span className="block font-display text-[18px] font-medium tracking-tight text-neutral-900 mt-0.5 leading-none truncate">
+                  <span className="block font-serif text-[17px] font-bold tracking-tight text-[#1b3b36]">
                     Florence
                   </span>
                 </div>
-              ) : null}
+              )}
             </Link>
 
-            {/* Hamburger Toggle Button in Sidebar Header */}
-            {onToggleCollapse ? (
+            {/* Collapse toggle button */}
+            {onToggleCollapse && (
               <button
                 type="button"
                 onClick={onToggleCollapse}
-                className="hidden lg:flex p-2 rounded-xl text-neutral-600 hover:text-neutral-900 hover:bg-[#FAF8F5] border border-[#EAE6DF] transition cursor-pointer shrink-0"
+                className="hidden lg:flex p-1.5 rounded-lg text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 transition-colors cursor-pointer shrink-0"
                 title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
                 aria-label="Toggle sidebar collapse"
               >
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 text-neutral-700">
-                  <line x1="3" y1="6" x2="21" y2="6" />
-                  <line x1="3" y1="12" x2="21" y2="12" />
-                  <line x1="3" y1="18" x2="21" y2="18" />
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`w-4 h-4 transition-transform duration-200 ${collapsed ? "rotate-180" : ""}`}>
+                  <polyline points="15 18 9 12 15 6" />
                 </svg>
               </button>
-            ) : null}
+            )}
 
-            {onClose ? (
+            {/* Mobile close button */}
+            {onClose && (
               <button
                 type="button"
                 onClick={onClose}
-                className="lg:hidden p-2 rounded-xl text-neutral-600 hover:text-neutral-900 hover:bg-[#FAF8F5] border border-[#EAE6DF] transition shrink-0"
+                className="lg:hidden p-1.5 rounded-lg text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 transition shrink-0"
                 aria-label="Close menu"
               >
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 text-neutral-700">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4.5 h-4.5">
                   <line x1="18" y1="6" x2="6" y2="18" />
                   <line x1="6" y1="6" x2="18" y2="18" />
                 </svg>
               </button>
-            ) : null}
+            )}
           </div>
 
-          {!collapsed ? (
+          {!collapsed && (
             <Link
               href="/"
               target="_blank"
-              className="flex items-center justify-between px-3 py-1.5 rounded-xl text-[11.5px] font-medium text-neutral-500 hover:text-neutral-900 hover:bg-[#FAF8F5] transition-colors border border-transparent hover:border-[#EAE6DF]"
+              className="mt-3 flex items-center justify-between px-2.5 py-1.5 rounded-lg text-[11px] font-medium text-neutral-500 hover:text-[#1b3b36] hover:bg-[#f4f7f6] transition-colors"
             >
-              <span>View Public Site</span>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5 text-neutral-400">
+              <span className="flex items-center gap-1.5">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                <span>Live Public Site</span>
+              </span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-3 h-3 text-neutral-400">
                 <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6" />
                 <polyline points="15 3 21 3 21 9" />
                 <line x1="10" y1="14" x2="21" y2="3" />
               </svg>
             </Link>
-          ) : null}
+          )}
         </div>
 
-        {/* Navigation Links */}
-        <nav className="p-3 sm:p-4 space-y-4" aria-label="Admin Navigation">
-          {/* Dashboard Link */}
-          {hasPerm(["dashboard.view"]) ? (
-          <Link
-            href="/admin"
-            onClick={onClose}
-            title={collapsed ? "Dashboard" : undefined}
-            className={`group flex items-center ${
-              collapsed ? "justify-center px-2" : "gap-3 px-3.5"
-            } py-2 rounded-xl text-[13px] font-medium transition-all ${
-              isDashboardActive
-                ? "bg-[#2b0934] text-white font-semibold shadow-[0_2px_8px_rgba(43,9,52,0.18)]"
-                : "text-neutral-600 hover:text-neutral-900 hover:bg-[#FAF8F5]"
-            }`}
-          >
-            <IconDashboard className={`w-4 h-4 shrink-0 ${isDashboardActive ? "text-[#F5D59A]" : "text-neutral-500 group-hover:text-[#2b0934]"}`} />
-            {!collapsed ? <span>Dashboard</span> : null}
-          </Link>
-          ) : null}
-
-          {/* Public Pages Dropdown with Individual Icons */}
-          {visiblePublicPages.length > 0 ? (
-          <div className="pt-1">
-            <button
-              type="button"
-              onClick={() => setPublicPagesOpen((prev) => !prev)}
-              title={collapsed ? "Page Editors" : undefined}
-              className={`w-full flex items-center ${
-                collapsed ? "justify-center px-2" : "justify-between px-3.5"
-              } py-2 rounded-xl text-[13px] font-medium text-neutral-600 hover:text-neutral-900 hover:bg-[#FAF8F5] transition-colors cursor-pointer group`}
+        {/* Navigation Groups */}
+        <nav className="p-3 space-y-4" aria-label="Admin Navigation">
+          {/* Main Dashboard Link */}
+          {hasPerm(["dashboard.view"]) && (
+            <Link
+              href="/admin"
+              onClick={onClose}
+              title={collapsed ? "Dashboard" : undefined}
+              className={`group flex items-center ${
+                collapsed ? "justify-center px-2.5" : "gap-3 px-3"
+              } py-2 rounded-xl text-xs font-medium transition-all ${
+                isDashboardActive
+                  ? "bg-[#1b3b36] text-white font-semibold shadow-xs"
+                  : "text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100/70"
+              }`}
             >
-              <div className="flex items-center gap-3">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 shrink-0 text-neutral-500 group-hover:text-[#2b0934]">
-                  <circle cx="12" cy="12" r="10" />
-                  <line x1="2" y1="12" x2="22" y2="12" />
-                  <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
-                </svg>
-                {!collapsed ? <span>Page Editors</span> : null}
-              </div>
-              {!collapsed ? (
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className={`w-3.5 h-3.5 text-neutral-400 transition-transform duration-200 ${
-                    publicPagesOpen ? "rotate-180 text-neutral-700" : ""
-                  }`}
-                >
-                  <polyline points="6 9 12 15 18 9" />
-                </svg>
-              ) : null}
-            </button>
+              <IconDashboard active={isDashboardActive} />
+              {!collapsed && <span>Dashboard</span>}
+            </Link>
+          )}
 
-            {publicPagesOpen && !collapsed ? (
-              <div className="mt-1 ml-3 pl-2.5 border-l border-[#EAE6DF] space-y-0.5 animate-in fade-in slide-in-from-top-1 duration-150">
-                {visiblePublicPages.map((page) => {
-                  if (page.comingSoon) {
-                    return (
-                      <div
-                        key={page.href}
-                        title="Editor coming soon"
-                        className="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-lg text-xs font-medium text-neutral-400 opacity-70 cursor-default select-none"
-                      >
-                        <div className="flex items-center gap-2.5 min-w-0">
-                          {page.icon}
-                          <span className="truncate">{page.label}</span>
-                        </div>
-                        <span className="shrink-0 text-[9px] font-bold uppercase tracking-wider text-neutral-400 bg-neutral-100 px-1.5 py-0.5 rounded">
-                          Soon
-                        </span>
-                      </div>
-                    );
-                  }
-                  const isActive = isPathActive(pathname, page.href);
-                  return (
-                    <Link
-                      key={page.href}
-                      href={page.href}
-                      onClick={onClose}
-                      className={`flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors group ${
-                        isActive
-                          ? "bg-[#2b0934] text-white font-semibold"
-                          : "text-neutral-600 hover:text-neutral-900 hover:bg-[#FAF8F5]"
-                      }`}
-                    >
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        {page.icon}
-                        <span className="truncate">{page.label}</span>
-                      </div>
-                    </Link>
-                  );
-                })}
-              </div>
-            ) : null}
-          </div>
-          ) : null}
-
+          {/* Navigation Groups */}
           {visibleNavGroups.map((group) => (
-            <div key={group.label}>
-              {!collapsed ? (
-                <p className="px-3 pb-1 text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+            <div key={group.label} className="space-y-1">
+              {!collapsed && (
+                <p className="px-3 pt-1 pb-0.5 text-[10px] font-bold uppercase tracking-wider text-neutral-400">
                   {group.label}
                 </p>
-              ) : null}
+              )}
+
               <div className="space-y-0.5">
                 {group.items.map((item) => {
                   const active = isPathActive(pathname, item.href);
@@ -584,50 +433,134 @@ function SidebarContent({
                       onClick={onClose}
                       title={collapsed ? item.label : undefined}
                       className={`group flex items-center ${
-                        collapsed ? "justify-center px-2" : "gap-3 px-3.5"
-                      } py-2 rounded-xl text-[13px] font-medium transition-all ${
+                        collapsed ? "justify-center px-2.5" : "justify-between px-3"
+                      } py-2 rounded-xl text-xs font-medium transition-all ${
                         active
-                          ? "bg-[#2b0934] text-white font-semibold shadow-[0_2px_8px_rgba(43,9,52,0.18)]"
-                          : "text-neutral-600 hover:text-neutral-900 hover:bg-[#FAF8F5]"
+                          ? "bg-[#1b3b36] text-white font-semibold shadow-xs"
+                          : "text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100/70"
                       }`}
                     >
-                      {item.icon(active)}
-                      {!collapsed ? <span>{item.label}</span> : null}
+                      <div className="flex items-center gap-3">
+                        {item.icon(active)}
+                        {!collapsed && <span>{item.label}</span>}
+                      </div>
+                      {!collapsed && item.badge && (
+                        <span className="text-[10px] font-bold uppercase px-1.5 py-0.2 rounded bg-amber-100 text-amber-800">
+                          {item.badge}
+                        </span>
+                      )}
                     </Link>
                   );
                 })}
               </div>
             </div>
           ))}
+
+          {/* Page Editors Accordion */}
+          {visiblePublicPages.length > 0 && (
+            <div className="space-y-1">
+              {!collapsed && (
+                <p className="px-3 pt-1 pb-0.5 text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+                  Site Pages
+                </p>
+              )}
+
+              <button
+                type="button"
+                onClick={() => setPublicPagesOpen((prev) => !prev)}
+                title={collapsed ? "Page Editors" : undefined}
+                className={`w-full flex items-center ${
+                  collapsed ? "justify-center px-2.5" : "justify-between px-3"
+                } py-2 rounded-xl text-xs font-medium transition-colors cursor-pointer group ${
+                  isPageEditorActive && !publicPagesOpen
+                    ? "bg-[#1b3b36] text-white font-semibold"
+                    : "text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100/70"
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className={`w-4.5 h-4.5 shrink-0 ${isPageEditorActive && !publicPagesOpen ? "text-emerald-300" : "text-neutral-400 group-hover:text-neutral-700"}`}>
+                    <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+                    <polyline points="14 2 14 8 20 8" />
+                  </svg>
+                  {!collapsed && <span>Page Editors</span>}
+                </div>
+                {!collapsed && (
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className={`w-3.5 h-3.5 text-neutral-400 transition-transform duration-200 ${
+                      publicPagesOpen ? "rotate-180 text-neutral-700" : ""
+                    }`}
+                  >
+                    <polyline points="6 9 12 15 18 9" />
+                  </svg>
+                )}
+              </button>
+
+              {publicPagesOpen && !collapsed && (
+                <div className="mt-1 ml-4 pl-2 border-l border-neutral-200 space-y-0.5 animate-in fade-in duration-150">
+                  {visiblePublicPages.map((page) => {
+                    const isActive = isPathActive(pathname, page.href);
+                    return (
+                      <Link
+                        key={page.href}
+                        href={page.href}
+                        onClick={onClose}
+                        className={`block px-2.5 py-1.5 rounded-lg text-[11.5px] transition-colors ${
+                          isActive
+                            ? "font-semibold text-[#1b3b36] bg-[#f4f7f6]"
+                            : "text-neutral-500 hover:text-neutral-900 hover:bg-neutral-50"
+                        }`}
+                      >
+                        {page.label}
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
         </nav>
       </div>
 
       {/* Bottom: Staff Identity & Logout */}
-      <div className={`p-4 ${collapsed ? "px-2" : "p-4"} border-t border-[#F0ECE6]`}>
+      <div className={`p-3 ${collapsed ? "px-2" : "p-3.5"} border-t border-neutral-100 bg-[#faf8f5]/60`}>
         {staff?.name && !collapsed ? (
-          <div className="px-2 pb-2.5 mb-1">
-            <p className="text-[12px] font-semibold text-neutral-900 truncate">{staff.name}</p>
-            {staff.roleName ? (
-              <span className="inline-block mt-0.5 px-2 py-0.5 rounded-full text-[10px] font-medium bg-[#FAF5FC] text-[#2b0934] border border-[#2b0934]/15 truncate">
-                {staff.roleName}
-              </span>
-            ) : null}
+          <div className="flex items-center gap-3 p-1.5 mb-1.5 rounded-xl">
+            {/* Avatar with Initials */}
+            <div className="w-8 h-8 rounded-full bg-[#1b3b36] text-white flex items-center justify-center text-[11px] font-bold shrink-0 shadow-2xs">
+              {staffInitials}
+            </div>
+
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-semibold text-neutral-900 truncate leading-tight">
+                {staff.name}
+              </p>
+              <p className="text-[10.5px] text-neutral-500 truncate mt-0.5">
+                {staff.roleName || "Staff Admin"}
+              </p>
+            </div>
           </div>
         ) : null}
+
         <button
           type="button"
           onClick={() => signOut({ callbackUrl: "/admin/login" })}
           title={collapsed ? "Logout" : undefined}
           className={`w-full flex items-center ${
-            collapsed ? "justify-center px-2" : "gap-2.5 px-3"
-          } py-2 rounded-xl text-[12.5px] font-medium text-neutral-600 hover:text-rose-600 hover:bg-rose-50/70 transition-colors cursor-pointer text-left`}
+            collapsed ? "justify-center px-2" : "gap-2.5 px-2.5"
+          } py-2 rounded-xl text-xs font-medium text-neutral-600 hover:text-rose-600 hover:bg-rose-50/70 transition-colors cursor-pointer text-left`}
         >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 shrink-0 text-neutral-500 hover:text-rose-600">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 shrink-0 text-neutral-400 group-hover:text-rose-600">
             <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
             <polyline points="16 17 21 12 16 7" />
             <line x1="21" y1="12" x2="9" y2="12" />
           </svg>
-          {!collapsed ? <span>Logout</span> : null}
+          {!collapsed && <span>Sign Out</span>}
         </button>
       </div>
     </div>
@@ -635,15 +568,31 @@ function SidebarContent({
 }
 
 export function AdminSidebar({ staff, permissionKeys }: AdminSidebarProps) {
-  const { sidebarOpen, closeSidebar, isCollapsed, toggleCollapse } = useAdminSidebar();
+  const { sidebarOpen, toggleSidebar, closeSidebar, isCollapsed, toggleCollapse } = useAdminSidebar();
 
   return (
     <>
-      {/* Desktop Sticky Sidebar (Full w-64 or Collapsed w-20) */}
+      {/* Mobile-only floating menu trigger */}
+      {!sidebarOpen && (
+        <button
+          type="button"
+          onClick={toggleSidebar}
+          className="lg:hidden fixed top-4 left-4 z-40 p-2.5 rounded-xl bg-white text-neutral-700 hover:text-neutral-900 border border-neutral-200 shadow-sm transition cursor-pointer"
+          aria-label="Toggle navigation menu"
+        >
+          <svg viewBox="0 0 24 24" className="w-5 h-5 fill-none stroke-currentColor stroke-2">
+            <line x1="3" y1="6" x2="21" y2="6" strokeLinecap="round" />
+            <line x1="3" y1="12" x2="21" y2="12" strokeLinecap="round" />
+            <line x1="3" y1="18" x2="21" y2="18" strokeLinecap="round" />
+          </svg>
+        </button>
+      )}
+
+      {/* Desktop Sticky Sidebar (Full w-60 or Collapsed w-18) */}
       <aside
         className={`hidden lg:flex ${
-          isCollapsed ? "w-20" : "w-64"
-        } shrink-0 bg-white text-neutral-900 flex-col justify-between min-h-screen sticky top-0 h-screen overflow-y-auto border-r border-[#EAE6DF] select-none z-30 shadow-[1px_0_4px_rgba(0,0,0,0.015)] transition-[width] duration-200`}
+          isCollapsed ? "w-18" : "w-60"
+        } shrink-0 bg-white text-neutral-900 flex-col justify-between min-h-screen sticky top-0 h-screen overflow-hidden border-r border-neutral-200/80 select-none z-30 shadow-[1px_0_3px_rgba(0,0,0,0.02)] transition-[width] duration-200`}
       >
         <SidebarContent
           staff={staff}
@@ -654,21 +603,19 @@ export function AdminSidebar({ staff, permissionKeys }: AdminSidebarProps) {
       </aside>
 
       {/* Mobile Drawer Backdrop & Slide-Over */}
-      {sidebarOpen ? (
+      {sidebarOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
-          {/* Backdrop overlay */}
           <div
             className="fixed inset-0 bg-black/40 backdrop-blur-xs transition-opacity duration-200"
             onClick={closeSidebar}
             aria-hidden="true"
           />
 
-          {/* Slide-over panel */}
-          <div className="fixed inset-y-0 left-0 w-72 max-w-[85vw] bg-white shadow-2xl z-50 overflow-y-auto flex flex-col justify-between animate-in slide-in-from-left duration-200">
+          <div className="fixed inset-y-0 left-0 w-68 max-w-[85vw] bg-white shadow-2xl z-50 overflow-y-auto flex flex-col justify-between animate-in slide-in-from-left duration-200">
             <SidebarContent staff={staff} permissionKeys={permissionKeys} onClose={closeSidebar} />
           </div>
         </div>
-      ) : null}
+      )}
     </>
   );
 }

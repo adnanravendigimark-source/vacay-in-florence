@@ -21,6 +21,33 @@ export const productOptionSchema = z.object({
   priceAmount: z.coerce.number().min(0, "Price must be zero or more."),
   priceCurrency: z.string().trim().min(1).default("EUR"),
   isActive: z.boolean().default(true),
+  // Feature checklist for this tier, used by the public "Comprehensive
+  // Ticket Comparison Table" section.
+  features: z.array(z.string().trim().min(1)).default([]),
+});
+
+// New content-section sub-schemas (2026 build) — kept as small named
+// objects rather than inlined so the admin editor can reuse each shape.
+export const itineraryStepSchema = z.object({
+  time: z.string().trim().default(""),
+  title: nonEmpty("Step title"),
+  description: z.string().trim().default(""),
+});
+export const namedPointSchema = z.object({
+  name: nonEmpty("Name"),
+  description: z.string().trim().default(""),
+});
+export const openingHoursRowSchema = z.object({
+  day: nonEmpty("Day"),
+  hours: nonEmpty("Hours"),
+});
+export const gettingThereOptionSchema = z.object({
+  mode: nonEmpty("Transport mode"),
+  description: z.string().trim().default(""),
+});
+export const faqItemSchema = z.object({
+  question: nonEmpty("Question"),
+  answer: nonEmpty("Answer"),
 });
 
 export const productFormSchema = z.object({
@@ -40,7 +67,7 @@ export const productFormSchema = z.object({
   badges: z.array(z.string().trim().min(1)).default([]),
 
   // Status
-  status: z.enum(["draft", "pending_review", "live", "paused"]).default("draft"),
+  status: z.enum(["draft", "pending_review", "live", "paused", "rejected", "changes_requested"]).default("draft"),
   featured: z.boolean().default(false),
   featuredRank: z.coerce.number().int().nullable().optional(),
 
@@ -50,6 +77,27 @@ export const productFormSchema = z.object({
   exclusions: z.array(z.string().trim().min(1)).default([]),
   goodToKnow: z.array(z.string().trim().min(1)).default([]),
   cancellationPolicy: nonEmpty("Cancellation policy"),
+
+  // New public-page content sections (2026 build) — see
+  // src/lib/db/schema.ts `products` table for the field-by-field
+  // rationale. All optional/defaulted; the public page only renders a
+  // section once it has real content.
+  whyVisit: z.string().trim().nullable().optional(),
+  itinerary: z.array(itineraryStepSchema).default([]),
+  secretHistoryPoints: z.array(z.string().trim().min(1)).default([]),
+  entrances: z.array(namedPointSchema).default([]),
+  ultimateExperienceTitle: z.string().trim().nullable().optional(),
+  ultimateExperienceDescription: z.string().trim().nullable().optional(),
+  ultimateExperiencePoints: z.array(z.string().trim().min(1)).default([]),
+  openingHours: z.array(openingHoursRowSchema).default([]),
+  operationalInfo: z.string().trim().nullable().optional(),
+  gettingThereOptions: z.array(gettingThereOptionSchema).default([]),
+  bestTimeToVisit: z.string().trim().nullable().optional(),
+  bestTimeToVisitTips: z.array(z.string().trim().min(1)).default([]),
+  faqs: z.array(faqItemSchema).default([]),
+  relatedBlogSlugs: z.array(z.string().trim().min(1)).default([]),
+  ctaHeadline: z.string().trim().nullable().optional(),
+  ctaSubtext: z.string().trim().nullable().optional(),
 
   // Location
   meetingPoint: z.string().trim().nullable().optional(),

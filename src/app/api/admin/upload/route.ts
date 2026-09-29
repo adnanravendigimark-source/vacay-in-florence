@@ -1,16 +1,19 @@
 import { NextResponse } from "next/server";
 import { put } from "@vercel/blob";
-import { getStaffContext } from "@/lib/require-user";
+import { getStaffContext, getSupplierContext } from "@/lib/require-user";
 
 /**
- * General-purpose admin media upload, backed by Vercel Blob. Used by every
- * admin form's image/video picker (ImageField, and the Homepage Editor's
- * media fields) — the client posts the raw file here and gets back a public
- * URL to save into whichever DB column that field edits. Requires a signed-in
- * *staff* session (never trusts a client-supplied user id or role), validates
- * the file server-side (type + size — the client's <input accept> is a UX
- * hint only), and stores it under a path scoped to an admin-chosen folder
- * plus the uploader's id so files are traceable and never collide.
+ * General-purpose media upload, backed by Vercel Blob. Used by every admin
+ * form's image/video picker (ImageField, and the Homepage Editor's media
+ * fields) AND, since the Supplier Panel reuses ImageField as-is for the
+ * supplier profile's logo field, by approved suppliers too — the client
+ * posts the raw file here and gets back a public URL to save into whichever
+ * DB column that field edits. Requires a signed-in *staff* session OR an
+ * *approved* supplier session (never trusts a client-supplied user id or
+ * role), validates the file server-side (type + size — the client's
+ * <input accept> is a UX hint only), and stores it under a path scoped to
+ * an admin-chosen folder plus the uploader's id so files are traceable and
+ * never collide.
  */
 
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024; // 8MB
@@ -37,8 +40,10 @@ function sanitizeFolder(raw: FormDataEntryValue | null): string {
 
 export async function POST(req: Request) {
   const staff = await getStaffContext();
-  if (!staff) {
-    return NextResponse.json({ error: "You must be signed in as an admin to upload files." }, { status: 401 });
+  const supplier = staff ? null : await getSupplierContext();
+  const uploaderId = staff?.userId ?? (supplier?.status === "approved" ? supplier.userId : null);
+  if (!uploaderId) {
+    return NextResponse.json({ error: "You must be signed in to upload files." }, { status: 401 });
   }
 
   if (!process.env.BLOB_READ_WRITE_TOKEN) {
@@ -81,7 +86,7 @@ export async function POST(req: Request) {
   }
 
   const ext = isImage ? ALLOWED_IMAGE_TYPES[file.type] : ALLOWED_VIDEO_TYPES[file.type];
-  const pathname = `admin/${folder}/${Date.now()}-${staff.userId}.${ext}`;
+  const pathname = `admin/${folder}/${Date.now()}-${uploaderId}.${ext}`;
 
   try {
     const blob = await put(pathname, file, {

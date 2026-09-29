@@ -3,7 +3,7 @@ import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { users, roles } from "@/lib/db/schema";
+import { users, roles, suppliers } from "@/lib/db/schema";
 import { loginSchema } from "@/lib/validation/auth";
 import { mergeGuestCartIntoUser } from "@/lib/cart";
 
@@ -26,13 +26,25 @@ import { mergeGuestCartIntoUser } from "@/lib/cart";
  * src/lib/require-user.ts, so a role edit takes effect immediately rather
  * than waiting for the next login.
  *
- * Two Credentials providers share the lookup below:
+ * Three Credentials providers cover the three separate login surfaces:
  *  - "credentials" (id omitted -> defaults to "credentials"): the public
  *    /login form. Rejects a staff account's credentials outright — they
  *    have to use /admin/login instead — so a customer session is never
- *    silently created for a staff email typed into the wrong form.
+ *    silently created for a staff email typed into the wrong form. Also
+ *    rejects any account linked to a supplier row (see authorizeSupplier
+ *    below) — suppliers only ever get a session via /supplier/login.
  *  - "admin-credentials": the /admin/login form. Rejects a non-staff
  *    account's credentials the same way.
+ *  - "supplier-credentials": the /supplier/login form (authorizeSupplier,
+ *    below authorizeAgainstRole). Discriminator is a linked `suppliers`
+ *    row (suppliers.userId), not roleId — a supplier account is an
+ *    ordinary customer-role user (roleId: null) that also owns a
+ *    suppliers row. Only succeeds for an *approved* supplier; a
+ *    pending/rejected/suspended supplier's correct password still never
+ *    returns a session here (approval is enforced at the auth boundary,
+ *    not just hidden in the UI) — the login page does its own separate,
+ *    non-auth status lookup so those suppliers see the real reason
+ *    instead of a bare "invalid credentials" (src/app/supplier/login/actions.ts).
  * Doing this rejection inside authorize() (one request) replaces an
  * earlier version that signed in first and checked the role as a
  * *second* client-side round trip (getSession() + signOut() if wrong),
@@ -58,6 +70,17 @@ async function authorizeAgainstRole(rawCredentials: unknown, requireStaff: boole
   const isStaff = Boolean(user.roleId);
   if (isStaff !== requireStaff) return null;
 
+  // A customer-provider login (requireStaff: false) must also fail for an
+  // account linked to a supplier row — suppliers authenticate only through
+  // authorizeSupplier/"supplier-credentials" below, never here, even
+  // though roleId is null for both. Skipped on the staff path since a
+  // staff account can never be supplier-linked in practice, and to avoid
+  // an unnecessary query on every admin login attempt.
+  if (!requireStaff) {
+    const [supplierLink] = await db.select({ id: suppliers.id }).from(suppliers).where(eq(suppliers.userId, user.id));
+    if (supplierLink) return null;
+  }
+
   let roleName: string | null = null;
   if (user.roleId) {
     const [role] = await db.select({ name: roles.name }).from(roles).where(eq(roles.id, user.roleId));
@@ -70,6 +93,43 @@ async function authorizeAgainstRole(rawCredentials: unknown, requireStaff: boole
     name: user.name,
     roleId: user.roleId,
     roleName,
+  };
+}
+
+async function authorizeSupplier(rawCredentials: unknown) {
+  const parsed = loginSchema.safeParse(rawCredentials);
+  if (!parsed.success) return null;
+  const { email, password } = parsed.data;
+
+  const [user] = await db
+    .select()
+    .from(users)
+    .where(eq(users.email, email.toLowerCase()));
+  if (!user) return null;
+
+  const passwordMatches = await bcrypt.compare(password, user.passwordHash);
+  if (!passwordMatches) return null;
+
+  // Staff accounts never have a supplier row, but guard explicitly so a
+  // staff email can never authenticate on this surface either.
+  if (user.roleId) return null;
+
+  const [supplier] = await db
+    .select({ id: suppliers.id, status: suppliers.status })
+    .from(suppliers)
+    .where(eq(suppliers.userId, user.id));
+  // Only an approved supplier gets a session — pending/rejected/suspended
+  // all fail here identically (never a session), which is the real
+  // server-side authorization boundary. requireSupplier() re-checks this
+  // same thing fresh on every request afterward, same as staff permissions.
+  if (!supplier || supplier.status !== "approved") return null;
+
+  return {
+    id: user.id,
+    email: user.email,
+    name: user.name,
+    roleId: null,
+    roleName: null,
   };
 }
 
@@ -94,6 +154,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         password: { label: "Password", type: "password" },
       },
       authorize: (rawCredentials) => authorizeAgainstRole(rawCredentials, true),
+    }),
+    Credentials({
+      id: "supplier-credentials",
+      credentials: {
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" },
+      },
+      authorize: (rawCredentials) => authorizeSupplier(rawCredentials),
     }),
   ],
   callbacks: {

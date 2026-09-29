@@ -18,6 +18,8 @@ const STATUS_STYLE: Record<ProductStatus, { bg: string; text: string; label: str
   draft: { bg: "#F0ECE6", text: "#6B6B6B", label: "Draft" },
   pending_review: { bg: "#FEF7E6", text: "#B47818", label: "Pending review" },
   paused: { bg: "#FDF0ED", text: "#D94F3D", label: "Paused" },
+  rejected: { bg: "#FDF0ED", text: "#D94F3D", label: "Rejected" },
+  changes_requested: { bg: "#FEF7E6", text: "#B47818", label: "Changes requested" },
 };
 
 const dateFormatter = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric" });

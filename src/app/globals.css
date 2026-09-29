@@ -77,3 +77,127 @@ textarea:focus-visible {
   outline: none !important;
   box-shadow: none !important;
 }
+/* ---------------------------------------------------------------------- */
+/* Rich content styling — shared by the Admin Blog Editor (Tiptap, see    */
+/* src/components/admin/rich-text-editor.tsx, which sets the "tiptap      */
+/* rich-content" class on its editable area) and matched to the exact     */
+/* Tailwind arbitrary-variant styling the public article page             */
+/* (src/app/(public)/blog/[slug]/page.tsx) already applies to the same    */
+/* tags. Without this block, Tailwind's Preflight reset strips the        */
+/* browser's own default styling from headings/lists/links (no size,      */
+/* no bullets/numbers, no link color) — so pasted or typed rich content    */
+/* silently LOOKED unformatted while editing, even though the underlying  */
+/* HTML was correct and rendered fine once published. This block exists   */
+/* so the editor is a true WYSIWYG preview of the published article.      */
+/* ---------------------------------------------------------------------- */
+.rich-content h1,
+.rich-content h2,
+.rich-content h3 {
+  font-family: var(--font-display);
+  font-weight: 500;
+  color: var(--color-ink);
+  scroll-margin-top: 6rem;
+}
+.rich-content h1 {
+  margin: 1.75em 0 0.6em;
+  font-size: 1.875rem;
+}
+.rich-content h2 {
+  margin: 1.75em 0 0.6em;
+  font-size: 1.5rem;
+}
+.rich-content h3 {
+  margin: 1.5em 0 0.5em;
+  font-size: 1.25rem;
+}
+.rich-content p {
+  margin: 0 0 1.15em;
+  line-height: 1.7;
+}
+.rich-content ul,
+.rich-content ol {
+  margin: 0 0 1.15em;
+  padding-left: 1.35rem;
+}
+.rich-content ul {
+  list-style: disc;
+}
+.rich-content ol {
+  list-style: decimal;
+}
+.rich-content li {
+  margin-bottom: 0.35em;
+}
+.rich-content a {
+  color: var(--color-cypress);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.rich-content a:hover {
+  color: color-mix(in srgb, var(--color-cypress) 80%, transparent);
+}
+.rich-content strong,
+.rich-content b {
+  font-weight: 700;
+  color: var(--color-ink);
+}
+.rich-content em,
+.rich-content i {
+  font-style: italic;
+}
+.rich-content u {
+  text-decoration: underline;
+}
+.rich-content blockquote {
+  margin: 1.4em 0;
+  border-left: 4px solid color-mix(in srgb, var(--color-cypress) 40%, transparent);
+  padding-left: 1rem;
+  font-style: italic;
+  color: var(--color-ink);
+}
+.rich-content img {
+  margin: 1.4em 0;
+  width: 100%;
+  border-radius: 1rem;
+}
+.rich-content figure {
+  margin: 1.4em 0 0.5em;
+}
+.rich-content figure img {
+  margin: 0;
+}
+.rich-content figcaption {
+  margin-top: 0.5em;
+  text-align: center;
+  font-size: 0.85em;
+  color: var(--color-ink-faint);
+}
+.rich-content table {
+  margin: 1.4em 0;
+  width: 100%;
+  border-collapse: collapse;
+  overflow: hidden;
+  border-radius: 0.75rem;
+  border: 1px solid var(--color-stone);
+}
+.rich-content th,
+.rich-content td {
+  border: 1px solid var(--color-stone);
+  padding: 0.6em 0.85em;
+  text-align: left;
+}
+.rich-content th {
+  background-color: var(--color-cream-deep);
+  font-weight: 600;
+  color: var(--color-ink);
+}
+
+/* Tiptap's Placeholder extension needs this exact rule to render its
+   placeholder text — without it, an empty editor shows nothing. */
+.tiptap p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+  color: var(--color-ink-faint);
+}

@@ -1,4 +1,4 @@
-import { eq, and, desc, lte, ne, sql, SQL } from "drizzle-orm";
+import { eq, and, desc, lte, ne, sql, SQL, ilike, inArray, or } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { blogPosts } from "@/lib/db/schema";
 import type { BlogPostSummary, BlogCategorySummary } from "@/lib/types";
@@ -241,6 +241,51 @@ export async function getBlogPostBySlug(
  * fast, and it's the same trade-off the reference repo's own
  * getRelatedPosts() makes (there, no category weighting at all).
  */
+/**
+ * Real, honest "related articles" lookup for the public experience-page
+ * section (src/app/(public)/experiences/[slug]/page.tsx) — distinct from
+ * getRelatedBlogPosts below, which always backfills up to `limit` with
+ * unrelated "filler" posts (right for a blog post's own related-reading
+ * widget, wrong here: this section claims genuine relevance, so it never
+ * pads with posts that don't actually match). Matches on the post's
+ * `category` label OR a tag equal to the experience's category name,
+ * case-insensitively — either is a real editorial signal, not a guess.
+ * Returns fewer than `limit` (even zero) rather than fabricate a match.
+ */
+export async function getRelatedBlogPostsForCategory(categoryName: string, limit = 3): Promise<BlogPostSummary[]> {
+  const rows = await db
+    .select()
+    .from(blogPosts)
+    .where(
+      and(
+        published(),
+        or(
+          ilike(blogPosts.category, categoryName),
+          sql`EXISTS (SELECT 1 FROM jsonb_array_elements_text(${blogPosts.tags}) AS t WHERE t ILIKE ${categoryName})`,
+        ),
+      ),
+    )
+    .orderBy(desc(blogPosts.publishedAt))
+    .limit(limit);
+  return rows.map(toSummary);
+}
+
+/**
+ * Admin-curated override for the same section — an explicit, ordered
+ * list of post slugs picked in the Experience Editor. Preserves that
+ * order (not publish-date order) and silently drops any slug that
+ * doesn't resolve to a real, published post — never a broken/fake card.
+ */
+export async function getBlogPostsBySlugs(slugs: string[]): Promise<BlogPostSummary[]> {
+  if (slugs.length === 0) return [];
+  const rows = await db
+    .select()
+    .from(blogPosts)
+    .where(and(published(), inArray(blogPosts.slug, slugs)));
+  const bySlug = new Map(rows.map((row) => [row.slug, row]));
+  return slugs.map((slug) => bySlug.get(slug)).filter((row) => row !== undefined).map(toSummary);
+}
+
 export async function getRelatedBlogPosts(currentSlug: string, category: string, limit = 3): Promise<BlogPostSummary[]> {
   const sameCategory = await db
     .select()

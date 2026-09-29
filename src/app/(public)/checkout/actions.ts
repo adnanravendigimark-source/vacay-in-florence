@@ -7,6 +7,7 @@ import { cartItems, availability, orders, orderItems, carts, products } from "@/
 import { requireUser } from "@/lib/require-user";
 import { getCartId } from "@/lib/cart";
 import { checkoutDetailsSchema } from "@/lib/validation/checkout";
+import { notifySupplier } from "@/lib/supplier-notifications";
 
 /** Internal signal only — thrown inside the transaction to force a
  * rollback when a line loses the availability race, caught right outside. */
@@ -75,8 +76,12 @@ export async function placeOrderAction(formData: FormData): Promise<void> {
 
   // Snapshot product titles at order time (orderItems.productTitle),
   // since the product's title could change later.
-  const productRows = await db.select({ id: products.id, title: products.title }).from(products).where(inArray(products.id, productIds));
+  const productRows = await db
+    .select({ id: products.id, title: products.title, supplierId: products.supplierId })
+    .from(products)
+    .where(inArray(products.id, productIds));
   const titleByProductId = new Map(productRows.map((p) => [p.id, p.title]));
+  const supplierIdByProductId = new Map(productRows.map((p) => [p.id, p.supplierId]));
 
   let orderId: string;
   try {
@@ -149,6 +154,26 @@ export async function placeOrderAction(formData: FormData): Promise<void> {
       );
     }
     throw error;
+  }
+
+  // Notify every supplier whose experience is part of this order (an
+  // order can span multiple suppliers) — one notification per supplier,
+  // not per item, so a multi-item booking from the same supplier doesn't
+  // spam their notification list. Best-effort: notifySupplier never
+  // throws, so a notification failure can never block a real booking.
+  const supplierIdsInOrder = new Set(
+    items.map((item) => supplierIdByProductId.get(item.productId)).filter((id): id is string => Boolean(id)),
+  );
+  for (const supplierId of supplierIdsInOrder) {
+    const itemCount = items.filter((item) => supplierIdByProductId.get(item.productId) === supplierId).length;
+    await notifySupplier({
+      supplierId,
+      type: "new_booking",
+      title: itemCount > 1 ? `${itemCount} new bookings` : "New booking",
+      body: `${parsed.data.customerName} booked ${itemCount > 1 ? "your experiences" : "your experience"}.`,
+      entityType: "order",
+      entityId: orderId,
+    });
   }
 
   redirect(`/booking-confirmation/${orderId}`);

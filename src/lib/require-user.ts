@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { eq } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { users, roles, rolePermissions, permissions } from "@/lib/db/schema";
+import { users, roles, rolePermissions, permissions, suppliers } from "@/lib/db/schema";
 
 /**
  * Server-side auth guard for account/checkout pages. Redirects to
@@ -119,4 +119,71 @@ export async function requirePermission(key: string, currentPath: string): Promi
     redirect("/admin?error=forbidden");
   }
   return staff;
+}
+
+export type SupplierContext = {
+  userId: string;
+  email: string;
+  name: string;
+  supplierId: string;
+  supplierName: string;
+  /** pending | approved | rejected | suspended */
+  status: string;
+};
+
+/**
+ * Fresh per-request lookup of the signed-in user's linked supplier row,
+ * same cache()-per-request-shared, always-re-queried-from-the-DB shape as
+ * getStaffContext above. Returns null for a logged-out visitor, an
+ * ordinary customer, or a staff account — none of those have a suppliers
+ * row pointing at them. Deliberately returns a non-approved supplier's
+ * context too (rather than null) — /supplier/pending needs the real
+ * status to show the right message, and requireSupplier below is what
+ * actually enforces the approved-only gate.
+ */
+export const getSupplierContext = cache(async (): Promise<SupplierContext | null> => {
+  const session = await auth();
+  if (!session?.user?.id) return null;
+
+  const [row] = await db
+    .select({
+      userId: users.id,
+      email: users.email,
+      name: users.name,
+      supplierId: suppliers.id,
+      supplierName: suppliers.name,
+      status: suppliers.status,
+    })
+    .from(users)
+    .innerJoin(suppliers, eq(suppliers.userId, users.id))
+    .where(eq(users.id, session.user.id));
+
+  return row ?? null;
+});
+
+/**
+ * Gate for every /supplier/(protected)/* route. Supplier has its own
+ * sign-in surface at /supplier/login (see src/lib/auth.ts's
+ * "supplier-credentials" provider). A logged-out visitor is sent to
+ * /supplier/login; a logged-in account with no supplier row at all is
+ * also sent there (nothing to show); a logged-in, supplier-linked
+ * account whose status isn't "approved" is sent to /supplier/pending,
+ * which reads the real status fresh from the DB and explains it — this
+ * is the actual server-side authorization boundary for "only an
+ * approved supplier can use the panel," re-checked on every request,
+ * not something a UI could route around.
+ */
+export async function requireSupplier(currentPath: string): Promise<SupplierContext> {
+  const session = await auth();
+  if (!session?.user?.id) {
+    redirect(`/supplier/login?redirectTo=${encodeURIComponent(currentPath)}`);
+  }
+  const supplier = await getSupplierContext();
+  if (!supplier) {
+    redirect(`/supplier/login?redirectTo=${encodeURIComponent(currentPath)}`);
+  }
+  if (supplier.status !== "approved") {
+    redirect("/supplier/pending");
+  }
+  return supplier;
 }

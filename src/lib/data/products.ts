@@ -135,9 +135,9 @@ function buildRelevanceScore(rawQuery: string): SQL<number> {
   const tokens = tokenizeSearchQuery(trimmed);
   const tokenTitleHits = tokens.length
     ? sql.join(
-        tokens.map((t) => sql`word_similarity(${t}, ${products.title})`),
-        sql` + `,
-      )
+      tokens.map((t) => sql`word_similarity(${t}, ${products.title})`),
+      sql` + `,
+    )
     : sql`0`;
 
   return sql<number>`(
@@ -402,6 +402,7 @@ export interface ProductOptionSummary {
   description: string | null;
   priceAmount: number;
   priceCurrency: string;
+  features: string[];
 }
 
 export interface ProductDetail {
@@ -441,6 +442,26 @@ export interface ProductDetail {
   categorySlug: string;
   categoryName: string;
   supplierName: string;
+  // New public-page content sections (2026 build) — see
+  // src/lib/db/schema.ts `products` table for field rationale. Every
+  // array is empty / every text is null when unset; the page only
+  // renders a section once it has real content.
+  whyVisit: string | null;
+  itinerary: { time: string; title: string; description: string }[];
+  secretHistoryPoints: string[];
+  entrances: { name: string; description: string }[];
+  ultimateExperienceTitle: string | null;
+  ultimateExperienceDescription: string | null;
+  ultimateExperiencePoints: string[];
+  openingHours: { day: string; hours: string }[];
+  operationalInfo: string | null;
+  gettingThereOptions: { mode: string; description: string }[];
+  bestTimeToVisit: string | null;
+  bestTimeToVisitTips: string[];
+  faqs: { question: string; answer: string }[];
+  relatedBlogSlugs: string[];
+  ctaHeadline: string | null;
+  ctaSubtext: string | null;
   images: { src: string; alt: string }[];
   options: ProductOptionSummary[];
 }
@@ -522,6 +543,22 @@ export async function getProductBySlug(
       badges: products.badges,
       videoUrl: products.videoUrl,
       timeSlots: products.timeSlots,
+      whyVisit: products.whyVisit,
+      itinerary: products.itinerary,
+      secretHistoryPoints: products.secretHistoryPoints,
+      entrances: products.entrances,
+      ultimateExperienceTitle: products.ultimateExperienceTitle,
+      ultimateExperienceDescription: products.ultimateExperienceDescription,
+      ultimateExperiencePoints: products.ultimateExperiencePoints,
+      openingHours: products.openingHours,
+      operationalInfo: products.operationalInfo,
+      gettingThereOptions: products.gettingThereOptions,
+      bestTimeToVisit: products.bestTimeToVisit,
+      bestTimeToVisitTips: products.bestTimeToVisitTips,
+      faqs: products.faqs,
+      relatedBlogSlugs: products.relatedBlogSlugs,
+      ctaHeadline: products.ctaHeadline,
+      ctaSubtext: products.ctaSubtext,
       categorySlug: categories.slug,
       categoryName: categories.name,
       supplierName: suppliers.name,
@@ -556,6 +593,7 @@ export async function getProductBySlug(
       description: productOptions.description,
       priceAmount: productOptions.priceAmount,
       priceCurrency: productOptions.priceCurrency,
+      features: productOptions.features,
     })
     .from(productOptions)
     .where(and(eq(productOptions.productId, row.id), eq(productOptions.isActive, true)))
@@ -583,11 +621,27 @@ export async function getProductBySlug(
     badges: row.badges as ProductBadge[],
     videoUrl: row.videoUrl,
     timeSlots: row.timeSlots as string[],
+    whyVisit: row.whyVisit,
+    itinerary: row.itinerary as ProductDetail["itinerary"],
+    secretHistoryPoints: row.secretHistoryPoints as string[],
+    entrances: row.entrances as ProductDetail["entrances"],
+    ultimateExperienceTitle: row.ultimateExperienceTitle,
+    ultimateExperienceDescription: row.ultimateExperienceDescription,
+    ultimateExperiencePoints: row.ultimateExperiencePoints as string[],
+    openingHours: row.openingHours as ProductDetail["openingHours"],
+    operationalInfo: row.operationalInfo,
+    gettingThereOptions: row.gettingThereOptions as ProductDetail["gettingThereOptions"],
+    bestTimeToVisit: row.bestTimeToVisit,
+    bestTimeToVisitTips: row.bestTimeToVisitTips as string[],
+    faqs: row.faqs as ProductDetail["faqs"],
+    relatedBlogSlugs: row.relatedBlogSlugs as string[],
+    ctaHeadline: row.ctaHeadline,
+    ctaSubtext: row.ctaSubtext,
     categorySlug: row.categorySlug,
     categoryName: row.categoryName,
     supplierName: row.supplierName,
     images: images.length > 0 ? images.map((i) => ({ src: i.url, alt: i.alt })) : [{ src: "/images/florence-hero.jpg", alt: row.title }],
-    options,
+    options: options.map((o) => ({ ...o, features: o.features as string[] })),
   };
 }
 

@@ -218,7 +218,7 @@ export function BlogPostEditor({ mode, postId, initialValues }: BlogPostEditorPr
                     placeholder="Write the article here…"
                     allowedHeadings={[2, 3]}
                     minHeight="26rem"
-                    stickyOffset="3.75rem"
+                    stickyOffset="130px"
                   />
                   <p className="mt-2 text-xs text-ink-faint">~{wordCount} words in the article body.</p>
                 </div>

@@ -9,6 +9,9 @@ import { SingleExperienceBookingCard } from "@/components/experiences/single-exp
 import { ExperienceCard } from "@/components/ui/experience-card";
 import { ProductBadgePill } from "@/components/ui/badge";
 import { ExperienceLocationMap } from "@/components/experiences/experience-location-map";
+import { ExperienceFaqAccordion } from "@/components/experiences/experience-faq-accordion";
+import { BlogPostCard } from "@/components/blog/blog-post-card";
+import { getBlogPostsBySlugs, getRelatedBlogPostsForCategory } from "@/lib/data/blog";
 import { DEFAULT_GOOD_TO_KNOW_TIPS } from "@/lib/constants";
 
 export async function generateStaticParams() {
@@ -186,6 +189,24 @@ export default async function ProductDetailPage({
 
   const related = await getRelatedProducts(product.id, product.categorySlug, 4);
 
+  // Related Travel Guides & Blog Articles — an admin-curated list (in the
+  // order picked) wins when set; otherwise real posts matched by this
+  // experience's own category (see getRelatedBlogPostsForCategory). Never
+  // padded with unrelated "filler" posts — an honest empty section (no
+  // fabricated relevance) is fine and simply doesn't render.
+  const relatedBlogPosts =
+    product.relatedBlogSlugs.length > 0
+      ? await getBlogPostsBySlugs(product.relatedBlogSlugs)
+      : await getRelatedBlogPostsForCategory(product.categoryName, 3);
+
+  // Comprehensive Ticket Comparison Table — built from the real pricing
+  // tiers + their admin-set feature checklists (src/lib/data/admin
+  // products.ts syncOptions). Only worth rendering once there's an
+  // actual comparison to make (2+ tiers, or at least one tier with real
+  // features set) — otherwise it would just repeat the booking card.
+  const comparisonFeatures = Array.from(new Set(product.options.flatMap((option) => option.features)));
+  const showTicketComparison = product.options.length > 0 && comparisonFeatures.length > 0;
+
   // SEO BreadcrumbList schema
   const jsonLd = {
     "@context": "https://schema.org",
@@ -237,12 +258,33 @@ export default async function ProductDetailPage({
   const galleryMain = product.images[0];
   const galleryThumbs = product.images.slice(1, 4);
 
+  // FAQPage structured data — only emitted when the experience actually
+  // has real, admin-authored FAQs; never fabricated.
+  const faqJsonLd =
+    product.faqs.length > 0
+      ? {
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          mainEntity: product.faqs.map((faq) => ({
+            "@type": "Question",
+            name: faq.question,
+            acceptedAnswer: { "@type": "Answer", text: faq.answer },
+          })),
+        }
+      : null;
+
   return (
     <div className="min-h-screen w-full bg-[#FAF8F5] text-neutral-900 selection:bg-[#a813c9] selection:text-white">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
+      {faqJsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+        />
+      )}
 
       {/* ================================================================= */}
       {/* 1. HERO SECTION                                                    */}
@@ -339,11 +381,10 @@ export default async function ProductDetailPage({
                     return (
                       <div
                         key={badge}
-                        className={`inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-xs font-semibold shadow-sm ${
-                          isLight
+                        className={`inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-xs font-semibold shadow-sm ${isLight
                             ? "bg-[#FAF6EE]/95 text-neutral-800 border border-neutral-200/60"
                             : "bg-[#2b0934] text-white"
-                        }`}
+                          }`}
                       >
                         <span className={isLight ? "text-amber-500 shrink-0" : "text-white shrink-0"}>
                           {meta.icon}
@@ -357,7 +398,7 @@ export default async function ProductDetailPage({
             </div>
 
             {/* Right Hero Column: Floating Booking Card */}
-            <div className="w-full lg:w-auto flex justify-center lg:justify-end shrink-0 lg:pt-6">
+            <div id="book" className="w-full lg:w-auto flex justify-center lg:justify-end shrink-0 lg:pt-6 scroll-mt-24">
               <SingleExperienceBookingCard
                 productSlug={product.slug}
                 options={product.options}
@@ -484,27 +525,190 @@ export default async function ProductDetailPage({
       </section>
 
       {/* ================================================================= */}
-      {/* 3. HIGHLIGHTS                                                      */}
+      {/* 3. WHY VISIT / HIGHLIGHTS                                          */}
       {/* ================================================================= */}
-      {product.highlights.length > 0 && (
+      {(product.whyVisit || product.highlights.length > 0) && (
         <section className="py-8 sm:py-12 border-t border-neutral-200/60">
           <Container>
-            <h2 className="font-display text-2xl font-bold text-neutral-900 tracking-tight mb-8">
-              Highlights
-            </h2>
+            {product.whyVisit && (
+              <div className="max-w-3xl mb-10">
+                <span className="inline-flex items-center gap-2 rounded-full bg-[#2b0934]/10 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-[#2b0934] mb-3">
+                  Why visit
+                </span>
+                <p className="font-serif text-lg sm:text-xl italic text-neutral-800 leading-relaxed">
+                  {product.whyVisit}
+                </p>
+              </div>
+            )}
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-6">
-              {product.highlights.map((highlight, index) => (
-                <div
-                  key={index}
-                  className="rounded-2xl bg-white p-5 border border-neutral-200/80 shadow-2xs flex items-start gap-4"
-                >
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-neutral-800">
-                    {HIGHLIGHT_ICONS[index % HIGHLIGHT_ICONS.length]}
+            {product.highlights.length > 0 && (
+              <>
+                <h2 className="font-display text-2xl font-bold text-neutral-900 tracking-tight mb-8">
+                  Highlights
+                </h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-6">
+                  {product.highlights.map((highlight, index) => (
+                    <div
+                      key={index}
+                      className="rounded-2xl bg-white p-5 border border-neutral-200/80 shadow-2xs flex items-start gap-4"
+                    >
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-neutral-800">
+                        {HIGHLIGHT_ICONS[index % HIGHLIGHT_ICONS.length]}
+                      </div>
+                      <p className="text-xs sm:text-sm font-bold text-neutral-900 leading-snug">{highlight}</p>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+          </Container>
+        </section>
+      )}
+
+      {/* ================================================================= */}
+      {/* 3B. SECRETS, HISTORY & ARTISTIC SIGNIFICANCE                       */}
+      {/* ================================================================= */}
+      {product.secretHistoryPoints.length > 0 && (
+        <section className="py-10 sm:py-14 border-t border-neutral-200/60 bg-[#2b0934]">
+          <Container>
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
+              <div className="lg:col-span-4">
+                <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-amber-200 mb-3">
+                  Did you know?
+                </span>
+                <h2 className="font-display text-2xl sm:text-3xl font-bold text-white tracking-tight leading-tight">
+                  Secrets, history &amp; artistic significance
+                </h2>
+              </div>
+              <div className="lg:col-span-8">
+                <ul className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {product.secretHistoryPoints.map((point, index) => (
+                    <li
+                      key={index}
+                      className="flex items-start gap-3 rounded-2xl bg-white/[0.06] border border-white/10 p-4"
+                    >
+                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-amber-200/90 text-[#2b0934] text-[11px] font-bold mt-0.5">
+                        {index + 1}
+                      </span>
+                      <span className="text-xs sm:text-sm text-neutral-100 leading-relaxed">{point}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </Container>
+        </section>
+      )}
+
+      {/* ================================================================= */}
+      {/* 3C. RECOMMENDED VISIT SCHEDULE / ITINERARY TIMELINE                */}
+      {/* ================================================================= */}
+      {product.itinerary.length > 0 && (
+        <section className="py-12 sm:py-16 border-t border-neutral-200/60">
+          <Container>
+            <h2 className="font-display text-2xl sm:text-3xl font-bold text-neutral-900 tracking-tight mb-2">
+              Recommended visit schedule
+            </h2>
+            <p className="text-xs sm:text-sm text-neutral-500 font-medium mb-10">
+              A suggested pace for making the most of your visit.
+            </p>
+            <ol className="relative max-w-2xl">
+              <div className="absolute left-[15px] top-2 bottom-2 w-px bg-neutral-200" aria-hidden="true" />
+              {product.itinerary.map((step, index) => (
+                <li key={index} className="relative flex gap-5 pb-9 last:pb-0">
+                  <div className="relative z-10 flex h-[31px] w-[31px] shrink-0 items-center justify-center rounded-full bg-[#2b0934] text-white text-xs font-bold shadow-sm">
+                    {index + 1}
                   </div>
-                  <p className="text-xs sm:text-sm font-bold text-neutral-900 leading-snug">{highlight}</p>
+                  <div className="flex-1 pt-0.5">
+                    <div className="flex flex-wrap items-baseline gap-x-3 gap-y-0.5">
+                      <h3 className="font-display text-base sm:text-lg font-bold text-neutral-900">{step.title}</h3>
+                      {step.time && (
+                        <span className="rounded-full bg-[#f7ecfb] px-2.5 py-0.5 text-[11px] font-bold text-[#a813c9]">
+                          {step.time}
+                        </span>
+                      )}
+                    </div>
+                    {step.description && (
+                      <p className="mt-1.5 text-xs sm:text-sm text-neutral-600 leading-relaxed">{step.description}</p>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </Container>
+        </section>
+      )}
+
+      {/* ================================================================= */}
+      {/* 3D. KEY ENTRANCES & ACCESS POINTS                                  */}
+      {/* ================================================================= */}
+      {product.entrances.length > 0 && (
+        <section className="py-10 sm:py-14 border-t border-neutral-200/60 bg-[#FAF8F5]/80">
+          <Container>
+            <h2 className="font-display text-2xl sm:text-3xl font-bold text-neutral-900 tracking-tight mb-8">
+              Key entrances &amp; access points
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+              {product.entrances.map((entrance, index) => (
+                <div key={index} className="rounded-2xl bg-white p-5 border border-[#e8e2eb] shadow-2xs">
+                  <div className="flex items-center gap-3 mb-2.5">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#f7ecfb] text-[#a813c9]">
+                      <svg viewBox="0 0 24 24" className="h-4 w-4 fill-none stroke-current stroke-2">
+                        <path d="M9 21V9a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v12" />
+                        <path d="M3 21h18M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16" />
+                      </svg>
+                    </div>
+                    <h3 className="font-display text-sm font-bold text-neutral-900">{entrance.name}</h3>
+                  </div>
+                  {entrance.description && (
+                    <p className="text-xs sm:text-[13px] text-neutral-600 leading-relaxed">{entrance.description}</p>
+                  )}
                 </div>
               ))}
+            </div>
+          </Container>
+        </section>
+      )}
+
+      {/* ================================================================= */}
+      {/* 3E. THE ULTIMATE EXPERIENCE                                        */}
+      {/* ================================================================= */}
+      {(product.ultimateExperienceTitle || product.ultimateExperienceDescription || product.ultimateExperiencePoints.length > 0) && (
+        <section className="py-12 sm:py-16 border-t border-neutral-200/60">
+          <Container>
+            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#2b0934] to-[#4a1259] p-8 sm:p-12 text-white shadow-xl">
+              <div className="absolute top-0 right-0 -mt-16 -mr-16 h-72 w-72 rounded-full bg-[#a813c9]/25 blur-3xl pointer-events-none" />
+              <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
+                <div className="lg:col-span-5">
+                  <span className="inline-flex items-center gap-2 rounded-full bg-amber-200/15 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-amber-200 mb-3">
+                    Premium pick
+                  </span>
+                  <h2 className="font-display text-2xl sm:text-3xl font-bold tracking-tight leading-tight">
+                    {product.ultimateExperienceTitle || "The Ultimate Experience"}
+                  </h2>
+                  {product.ultimateExperienceDescription && (
+                    <p className="mt-3 text-sm text-neutral-200 leading-relaxed">
+                      {product.ultimateExperienceDescription}
+                    </p>
+                  )}
+                </div>
+                {product.ultimateExperiencePoints.length > 0 && (
+                  <div className="lg:col-span-7">
+                    <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                      {product.ultimateExperiencePoints.map((point, index) => (
+                        <li key={index} className="flex items-start gap-3">
+                          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white/15 text-white mt-0.5">
+                            <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 fill-none stroke-current stroke-2">
+                              <polyline points="20 6 9 17 4 12" />
+                            </svg>
+                          </span>
+                          <span className="text-sm text-neutral-100 leading-snug pt-0.5">{point}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
             </div>
           </Container>
         </section>
@@ -637,6 +841,127 @@ export default async function ProductDetailPage({
       </section>
 
       {/* ================================================================= */}
+      {/* 4B. OPENING HOURS & OPERATIONAL INFO                               */}
+      {/* ================================================================= */}
+      {product.openingHours.length > 0 && (
+        <section className="py-10 sm:py-14 border-t border-neutral-200/60">
+          <Container>
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
+              <div className="lg:col-span-4">
+                <h2 className="font-display text-2xl sm:text-3xl font-bold text-neutral-900 tracking-tight mb-2">
+                  Opening hours
+                </h2>
+                <p className="text-xs sm:text-sm text-neutral-500 font-medium">
+                  Operational hours for this experience.
+                </p>
+              </div>
+              <div className="lg:col-span-8">
+                <div className="rounded-2xl border border-[#e8e2eb] bg-white overflow-hidden shadow-2xs">
+                  {product.openingHours.map((row, index) => (
+                    <div
+                      key={index}
+                      className={`flex items-center justify-between gap-4 px-5 py-3.5 text-xs sm:text-sm ${index % 2 === 1 ? "bg-[#FAF8F5]/70" : ""
+                        } ${index !== 0 ? "border-t border-neutral-100" : ""}`}
+                    >
+                      <span className="font-semibold text-neutral-900">{row.day}</span>
+                      <span className="text-neutral-600 font-medium">{row.hours}</span>
+                    </div>
+                  ))}
+                </div>
+                {product.operationalInfo && (
+                  <p className="mt-3 flex items-start gap-2 text-xs text-neutral-500 leading-relaxed">
+                    <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 shrink-0 mt-0.5 fill-none stroke-current stroke-2 text-[#a813c9]">
+                      <circle cx="12" cy="12" r="10" />
+                      <line x1="12" y1="16" x2="12" y2="12" />
+                      <line x1="12" y1="8" x2="12.01" y2="8" />
+                    </svg>
+                    <span>{product.operationalInfo}</span>
+                  </p>
+                )}
+              </div>
+            </div>
+          </Container>
+        </section>
+      )}
+
+      {/* ================================================================= */}
+      {/* 4C. LOCATION & HOW TO GET THERE                                    */}
+      {/* ================================================================= */}
+      {product.gettingThereOptions.length > 0 && (
+        <section className="py-10 sm:py-14 border-t border-neutral-200/60 bg-[#FAF8F5]/80">
+          <Container>
+            <h2 className="font-display text-2xl sm:text-3xl font-bold text-neutral-900 tracking-tight mb-8">
+              How to get there
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+              {product.gettingThereOptions.map((option, index) => (
+                <div key={index} className="rounded-2xl bg-white p-5 border border-[#e8e2eb] shadow-2xs flex items-start gap-4">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#f7ecfb] text-[#a813c9]">
+                    <svg viewBox="0 0 24 24" className="h-5 w-5 fill-none stroke-current stroke-2">
+                      <polygon points="3 11 22 2 13 21 11 13 3 11" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="font-display text-sm font-bold text-neutral-900 mb-1">{option.mode}</h3>
+                    {option.description && (
+                      <p className="text-xs sm:text-[13px] text-neutral-600 leading-relaxed">{option.description}</p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Container>
+        </section>
+      )}
+
+      {/* ================================================================= */}
+      {/* 4D. BEST TIME TO VISIT                                             */}
+      {/* ================================================================= */}
+      {(product.bestTimeToVisit || product.bestTimeToVisitTips.length > 0) && (
+        <section className="py-10 sm:py-14 border-t border-neutral-200/60">
+          <Container>
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
+              <div className="lg:col-span-5">
+                <h2 className="font-display text-2xl sm:text-3xl font-bold text-neutral-900 tracking-tight mb-3">
+                  Best time to visit
+                </h2>
+                {product.bestTimeToVisit && (
+                  <p className="text-sm text-neutral-700 leading-relaxed">{product.bestTimeToVisit}</p>
+                )}
+              </div>
+              {product.bestTimeToVisitTips.length > 0 && (
+                <div className="lg:col-span-7">
+                  <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                    {product.bestTimeToVisitTips.map((tip, index) => (
+                      <li
+                        key={index}
+                        className="flex items-start gap-3 rounded-2xl bg-[#F2EDE4] border border-[#E7E0D3] p-4"
+                      >
+                        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#2b0934] text-amber-200 mt-0.5">
+                          <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 fill-none stroke-current stroke-2">
+                            <circle cx="12" cy="12" r="5" />
+                            <line x1="12" y1="1" x2="12" y2="3" />
+                            <line x1="12" y1="21" x2="12" y2="23" />
+                            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+                            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+                            <line x1="1" y1="12" x2="3" y2="12" />
+                            <line x1="21" y1="12" x2="23" y2="12" />
+                            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+                            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+                          </svg>
+                        </span>
+                        <span className="text-xs sm:text-sm text-neutral-800 leading-relaxed pt-0.5">{tip}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          </Container>
+        </section>
+      )}
+
+      {/* ================================================================= */}
       {/* 5. GOOD TO KNOW & LOCATION MAP CARD                               */}
       {/* ================================================================= */}
       <section className="py-10 sm:py-14">
@@ -699,6 +1024,72 @@ export default async function ProductDetailPage({
       </section>
 
       {/* ================================================================= */}
+      {/* 5B. COMPREHENSIVE TICKET COMPARISON TABLE                          */}
+      {/* ================================================================= */}
+      {showTicketComparison && (
+        <section className="py-12 sm:py-16 border-t border-neutral-200/60 bg-[#FAF8F5]/80">
+          <Container>
+            <h2 className="font-display text-2xl sm:text-3xl font-bold text-neutral-900 tracking-tight mb-2">
+              Compare your options
+            </h2>
+            <p className="text-xs sm:text-sm text-neutral-500 font-medium mb-8">
+              What&apos;s included with each ticket type.
+            </p>
+
+            <div className="overflow-x-auto rounded-3xl border border-[#e8e2eb] bg-white shadow-[0_4px_24px_rgba(43,9,52,0.04)]">
+              <table className="w-full min-w-[560px] border-collapse text-left">
+                <thead>
+                  <tr>
+                    <th className="sticky left-0 bg-white p-4 sm:p-5 text-xs font-bold uppercase tracking-wider text-neutral-500 w-[38%]">
+                      Included
+                    </th>
+                    {product.options.map((option) => (
+                      <th key={option.id} className="p-4 sm:p-5 text-center border-l border-neutral-100">
+                        <div className="font-display text-sm sm:text-base font-bold text-[#2b0934]">{option.name}</div>
+                        <div className="mt-1 text-xs sm:text-sm font-semibold text-neutral-600">
+                          &euro;{option.priceAmount.toFixed(0)}
+                        </div>
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {comparisonFeatures.map((feature, rowIndex) => (
+                    <tr key={feature} className={rowIndex % 2 === 1 ? "bg-[#FAF8F5]/60" : ""}>
+                      <td className="sticky left-0 bg-inherit p-4 sm:p-5 text-xs sm:text-sm font-medium text-neutral-800 border-t border-neutral-100">
+                        {feature}
+                      </td>
+                      {product.options.map((option) => (
+                        <td
+                          key={option.id}
+                          className="p-4 sm:p-5 text-center border-t border-l border-neutral-100"
+                        >
+                          {option.features.includes(feature) ? (
+                            <span className="mx-auto flex h-6 w-6 items-center justify-center rounded-full bg-emerald-100 text-emerald-800">
+                              <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 fill-none stroke-current stroke-[2.5]">
+                                <polyline points="20 6 9 17 4 12" />
+                              </svg>
+                            </span>
+                          ) : (
+                            <span className="mx-auto flex h-6 w-6 items-center justify-center text-neutral-300">
+                              <svg viewBox="0 0 24 24" className="h-3 w-3 fill-none stroke-current stroke-2">
+                                <line x1="18" y1="6" x2="6" y2="18" />
+                                <line x1="6" y1="6" x2="18" y2="18" />
+                              </svg>
+                            </span>
+                          )}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Container>
+        </section>
+      )}
+
+      {/* ================================================================= */}
       {/* 6. YOU MIGHT ALSO LIKE — real related products, same category     */}
       {/* ================================================================= */}
       {related.length > 0 && (
@@ -727,6 +1118,54 @@ export default async function ProductDetailPage({
       )}
 
       {/* ================================================================= */}
+      {/* 6B. RELATED TRAVEL GUIDES & BLOG ARTICLES                          */}
+      {/* ================================================================= */}
+      {relatedBlogPosts.length > 0 && (
+        <section className="py-12 sm:py-16 border-t border-neutral-200/60 bg-[#FAF8F5]/80">
+          <Container>
+            <div className="flex items-center justify-between mb-8">
+              <div>
+                <h2 className="font-display text-2xl sm:text-3xl font-bold text-neutral-900 tracking-tight">
+                  Related travel guides
+                </h2>
+                <p className="mt-1.5 text-xs sm:text-sm text-neutral-500 font-medium">
+                  More from our Florence editorial team.
+                </p>
+              </div>
+              <Link
+                href="/blog"
+                className="hidden sm:flex text-xs sm:text-sm font-semibold text-neutral-700 hover:text-neutral-950 items-center gap-1 group shrink-0"
+              >
+                <span>Visit the blog</span>
+                <span className="transition-transform group-hover:translate-x-1">&rarr;</span>
+              </Link>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {relatedBlogPosts.map((post) => (
+                <BlogPostCard key={post.id} post={post} />
+              ))}
+            </div>
+          </Container>
+        </section>
+      )}
+
+      {/* ================================================================= */}
+      {/* 6C. FREQUENTLY ASKED QUESTIONS                                     */}
+      {/* ================================================================= */}
+      {product.faqs.length > 0 && (
+        <section className="py-12 sm:py-16 border-t border-neutral-200/60">
+          <Container>
+            <div className="max-w-3xl mx-auto">
+              <h2 className="font-display text-2xl sm:text-3xl font-bold text-neutral-900 tracking-tight mb-8 text-center">
+                Frequently asked questions
+              </h2>
+              <ExperienceFaqAccordion faqs={product.faqs} />
+            </div>
+          </Container>
+        </section>
+      )}
+
+      {/* ================================================================= */}
       {/* 7. READY TO EXPLORE FLORENCE? CTA BANNER                          */}
       {/* ================================================================= */}
       <section className="pb-16 sm:pb-24">
@@ -746,20 +1185,29 @@ export default async function ProductDetailPage({
             <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left">
               <div>
                 <h2 className="font-display text-2xl sm:text-3xl font-bold tracking-tight text-white">
-                  Ready to explore Florence?
+                  {product.ctaHeadline || "Ready to explore Florence?"}
                 </h2>
                 <p className="mt-1.5 text-xs sm:text-sm text-neutral-300 font-light max-w-xl">
-                  Skip the lines, discover iconic art, and make your trip unforgettable.
+                  {product.ctaSubtext || "Skip the lines, discover iconic art, and make your trip unforgettable."}
                 </p>
               </div>
 
-              <Link
-                href="/experiences"
-                className="inline-flex items-center gap-2 rounded-full border border-white/40 bg-white/10 hover:bg-white hover:text-[#2b0934] px-6 py-3.5 text-xs sm:text-sm font-semibold text-white transition-all hover:scale-105 shadow-md cursor-pointer shrink-0"
-              >
-                <span>View All Experiences</span>
-                <span>&rarr;</span>
-              </Link>
+              <div className="flex flex-wrap items-center justify-center gap-3 shrink-0">
+                <a
+                  href="#book"
+                  className="inline-flex items-center gap-2 rounded-full bg-white hover:bg-neutral-100 px-6 py-3.5 text-xs sm:text-sm font-semibold text-[#2b0934] transition-all hover:scale-105 shadow-md cursor-pointer"
+                >
+                  <span>Book This Experience</span>
+                  <span>&rarr;</span>
+                </a>
+                <Link
+                  href="/experiences"
+                  className="inline-flex items-center gap-2 rounded-full border border-white/40 bg-white/10 hover:bg-white hover:text-[#2b0934] px-6 py-3.5 text-xs sm:text-sm font-semibold text-white transition-all hover:scale-105 shadow-md cursor-pointer"
+                >
+                  <span>View All Experiences</span>
+                  <span>&rarr;</span>
+                </Link>
+              </div>
             </div>
           </div>
         </Container>
