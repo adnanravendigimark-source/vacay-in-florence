@@ -204,6 +204,24 @@ export function ExperienceEditor({
       form.images.map((img, i) => (i === realIndex ? { ...img, ...patch } : img)),
     );
   }
+  // The public product page only ever renders up to 3 gallery thumbnails
+  // (src/app/(public)/experiences/[slug]/page.tsx galleryThumbs =
+  // product.images.slice(1, 4)) — a 4th+ gallery image would be saved but
+  // never actually shown to a visitor, so the admin editor caps it here
+  // too rather than letting someone add images that silently do nothing.
+  const MAX_GALLERY_IMAGES = 3;
+
+  // Appends a new empty gallery slot (images[0] is always the main image,
+  // so a gallery entry always lands at images[1+]). If there's no main
+  // image row yet, seed an empty one first so the new slot still lands
+  // in the gallery rather than becoming the main image by accident.
+  function addGalleryImage() {
+    if (galleryImages.length >= MAX_GALLERY_IMAGES) return;
+    const nextImages =
+      form.images.length === 0 ? [{ url: "", alt: "" }, { url: "", alt: "" }] : [...form.images, { url: "", alt: "" }];
+    update("images", nextImages);
+    setExpandedGalleryIndex(nextImages.length - 2);
+  }
   function removeGalleryImage(index: number) {
     const realIndex = index + 1;
     update(
@@ -1371,9 +1389,17 @@ export function ExperienceEditor({
           </div>
 
           <div className="rounded-2xl border border-stone bg-white p-4">
-            <div className="mb-3">
+            <div className="mb-1 flex items-center justify-between gap-2">
               <h3 className="text-xs font-semibold uppercase tracking-wide text-ink-faint">Gallery Images</h3>
+              {galleryImages.length < MAX_GALLERY_IMAGES ? (
+                <Button type="button" variant="secondary" size="sm" onClick={addGalleryImage}>
+                  + Add Image
+                </Button>
+              ) : null}
             </div>
+            <p className="mb-3 text-[11px] text-ink-faint">
+              Up to {MAX_GALLERY_IMAGES} — that&apos;s all the public page displays ({galleryImages.length}/{MAX_GALLERY_IMAGES} used).
+            </p>
             {galleryImages.length > 0 ? (
               <div className="grid grid-cols-3 gap-2">
                 {galleryImages.map((img, i) => (

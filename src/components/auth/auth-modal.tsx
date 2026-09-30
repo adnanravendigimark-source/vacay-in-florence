@@ -348,7 +348,7 @@ export function AuthModal() {
                 </span>
               </div>
 
-              {/* Social Buttons Stack (Google, Apple, Facebook) */}
+              {/* Social Buttons Stack (Google) */}
               <div className="space-y-3">
                 {/* Google Button */}
                 <button
@@ -375,30 +375,6 @@ export function AuthModal() {
                     />
                   </svg>
                   <span>Continue with Google</span>
-                </button>
-
-                {/* Apple Button */}
-                <button
-                  type="button"
-                  onClick={() => handleSocialLogin("Apple")}
-                  className="w-full flex items-center justify-center gap-3 rounded-full border border-neutral-300 bg-white hover:bg-neutral-50 px-5 py-3 text-sm font-semibold text-neutral-800 shadow-2xs transition-all hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
-                >
-                  <svg className="h-4.5 w-4.5 fill-current text-black" viewBox="0 0 170 170">
-                    <path d="M150.37 130.25c-2.45 5.66-5.35 10.87-8.71 15.66-4.58 6.53-8.33 11.05-11.22 13.56-4.48 4.12-9.28 6.23-14.42 6.35-3.69 0-8.14-1.05-13.32-3.18-5.19-2.12-9.97-3.17-14.34-3.17-4.58 0-9.49 1.05-14.75 3.17-5.26 2.13-9.5 3.24-12.74 3.35-4.35.13-9.16-1.9-14.42-6.08-3.7-3.04-7.69-7.79-11.97-14.24-6.42-9.67-11.49-20.73-15.21-33.18-3.73-12.44-5.6-24.3-5.6-35.58 0-14.12 3.5-25.96 10.5-35.53 7-9.56 16.03-14.43 27.09-14.61 5.34 0 10.96 1.34 16.85 4.02 5.9 2.68 9.77 4.09 11.62 4.22 1.55-.13 5.48-1.55 11.78-4.26 6.3-2.71 11.69-3.95 16.17-3.73 12.39.63 22.36 5.09 29.9 13.38-10.89 6.56-16.22 15.82-16 27.79.23 9.4 3.82 17.26 10.77 23.58 6.95 6.32 15.27 10.02 24.96 11.11-2.18 6.53-4.8 12.72-7.85 18.57zM119.22 31.84c0-7.39 2.65-14.28 7.95-20.67 5.3-6.39 11.83-10.45 19.59-12.17.21 1.05.32 2.05.32 3 0 7.39-2.76 14.38-8.28 20.97-5.52 6.59-12.08 10.5-19.68 11.74-.21-.73-.32-1.68-.32-2.87z" />
-                  </svg>
-                  <span>Continue with Apple</span>
-                </button>
-
-                {/* Facebook Button (matching GetYourGuide) */}
-                <button
-                  type="button"
-                  onClick={() => handleSocialLogin("Facebook")}
-                  className="w-full flex items-center justify-center gap-3 rounded-full border border-neutral-300 bg-white hover:bg-neutral-50 px-5 py-3 text-sm font-semibold text-neutral-800 shadow-2xs transition-all hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
-                >
-                  <svg className="h-4.5 w-4.5 fill-[#1877F2]" viewBox="0 0 24 24">
-                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-                  </svg>
-                  <span>Continue with Facebook</span>
                 </button>
               </div>
 

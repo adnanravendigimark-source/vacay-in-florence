@@ -131,21 +131,6 @@ export function SiteHeader() {
 
             {/* Right Header Action Icons */}
             <div className="flex items-center gap-3">
-              {/* Quick Search Icon */}
-              <Link
-                href="/experiences"
-                aria-label="Search experiences"
-                className={`p-1.5 rounded-full transition-colors ${isLight
-                    ? "text-white hover:text-cream-deep drop-shadow-sm"
-                    : "text-neutral-700 hover:text-neutral-950 hover:bg-neutral-100"
-                  }`}
-              >
-                <svg viewBox="0 0 24 24" className="h-5 w-5 fill-none stroke-current stroke-[1.85]">
-                  <circle cx="11" cy="11" r="7.5" />
-                  <line x1="16.5" y1="16.5" x2="21.5" y2="21.5" strokeLinecap="round" />
-                </svg>
-              </Link>
-
               {/* User Profile Account Icon: Shows user name and icon when logged in, or opens Auth Modal if guest */}
               {isAuthenticated ? (
                 <div className="flex items-center gap-1 sm:gap-2">

@@ -263,14 +263,14 @@ export default async function ProductDetailPage({
   const faqJsonLd =
     product.faqs.length > 0
       ? {
-          "@context": "https://schema.org",
-          "@type": "FAQPage",
-          mainEntity: product.faqs.map((faq) => ({
-            "@type": "Question",
-            name: faq.question,
-            acceptedAnswer: { "@type": "Answer", text: faq.answer },
-          })),
-        }
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        mainEntity: product.faqs.map((faq) => ({
+          "@type": "Question",
+          name: faq.question,
+          acceptedAnswer: { "@type": "Answer", text: faq.answer },
+        })),
+      }
       : null;
 
   return (
@@ -382,8 +382,8 @@ export default async function ProductDetailPage({
                       <div
                         key={badge}
                         className={`inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-xs font-semibold shadow-sm ${isLight
-                            ? "bg-[#FAF6EE]/95 text-neutral-800 border border-neutral-200/60"
-                            : "bg-[#2b0934] text-white"
+                          ? "bg-[#FAF6EE]/95 text-neutral-800 border border-neutral-200/60"
+                          : "bg-[#2b0934] text-white"
                           }`}
                       >
                         <span className={isLight ? "text-amber-500 shrink-0" : "text-white shrink-0"}>
