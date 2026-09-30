@@ -1,5 +1,6 @@
 import { and, asc, desc, eq, gte, ilike, inArray, lt, or, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
+import { getPgErrorCode } from "@/lib/db/errors";
 import { products, categories, suppliers, productImages, productOptions, availability } from "@/lib/db/schema";
 import { ensureProductsSchemaUpToDate, getProductAvailability } from "@/lib/data/products";
 import { pctChange } from "@/lib/data/admin/dashboard";
@@ -256,17 +257,18 @@ export interface AdminProductDetail {
   // New public-page content sections (2026 build) — see
   // src/lib/db/schema.ts `products` table for field rationale.
   whyVisit: string | null;
-  itinerary: { time: string; title: string; description: string }[];
-  secretHistoryPoints: string[];
+  itinerary: { time?: string; title: string; description?: string; image?: string; tag?: string; icon?: string }[];
+  secretHistoryPoints: (string | { title: string; description?: string; image?: string })[];
   entrances: { name: string; description: string }[];
   ultimateExperienceTitle: string | null;
   ultimateExperienceDescription: string | null;
-  ultimateExperiencePoints: string[];
+  ultimateExperienceImage: string | null;
+  ultimateExperiencePoints: (string | { title: string; description?: string; icon?: string })[];
   openingHours: { day: string; hours: string }[];
   operationalInfo: string | null;
-  gettingThereOptions: { mode: string; description: string }[];
+  gettingThereOptions: { mode: string; description: string; image?: string; tag?: string; icon?: string }[];
   bestTimeToVisit: string | null;
-  bestTimeToVisitTips: string[];
+  bestTimeToVisitTips: (string | { season?: string; months?: string; title?: string; description: string; image?: string; icon?: string })[];
   faqs: { question: string; answer: string }[];
   relatedBlogSlugs: string[];
   ctaHeadline: string | null;
@@ -341,6 +343,7 @@ export async function getAdminProductById(id: string): Promise<AdminProductDetai
     entrances: row.entrances as AdminProductDetail["entrances"],
     ultimateExperienceTitle: row.ultimateExperienceTitle,
     ultimateExperienceDescription: row.ultimateExperienceDescription,
+    ultimateExperienceImage: row.ultimateExperienceImage,
     ultimateExperiencePoints: row.ultimateExperiencePoints as string[],
     openingHours: row.openingHours as AdminProductDetail["openingHours"],
     operationalInfo: row.operationalInfo,
@@ -425,6 +428,7 @@ function baseProductValues(input: ProductFormData) {
     entrances: input.entrances,
     ultimateExperienceTitle: input.ultimateExperienceTitle || null,
     ultimateExperienceDescription: input.ultimateExperienceDescription || null,
+    ultimateExperienceImage: input.ultimateExperienceImage || null,
     ultimateExperiencePoints: input.ultimateExperiencePoints,
     openingHours: input.openingHours,
     operationalInfo: input.operationalInfo || null,
@@ -566,7 +570,7 @@ export async function deleteProduct(id: string): Promise<MutationResult> {
     // Postgres foreign_key_violation — this product has real order_items
     // or cart_items pointing at it (no cascade there, on purpose: order
     // history and active carts must never silently vanish).
-    const code = (err as { code?: string } | null)?.code;
+    const code = getPgErrorCode(err);
     if (code === "23503") {
       return {
         success: false,

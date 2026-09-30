@@ -124,7 +124,7 @@ export function CartItemCard({ item }: { item: CartLineItem }) {
             {/* Date and Location Row */}
             <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-neutral-500">
               <div className="flex items-center gap-1.5">
-                <svg viewBox="0 0 24 24" className="h-4 w-4 text-[#a813c9] fill-none stroke-current stroke-2">
+                <svg viewBox="0 0 24 24" className="h-4 w-4 text-[#9e0ca0] fill-none stroke-current stroke-2">
                   <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
                   <line x1="16" y1="2" x2="16" y2="6" strokeLinecap="round" />
                   <line x1="8" y1="2" x2="8" y2="6" strokeLinecap="round" />
@@ -133,7 +133,7 @@ export function CartItemCard({ item }: { item: CartLineItem }) {
                 <span>{formattedDate}</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <svg viewBox="0 0 24 24" className="h-4 w-4 text-[#a813c9] fill-none stroke-current stroke-2">
+                <svg viewBox="0 0 24 24" className="h-4 w-4 text-[#9e0ca0] fill-none stroke-current stroke-2">
                   <path d="M12 21c-4-4.5-7-8.5-7-12a7 7 0 1 1 14 0c0 3.5-3 7.5-7 12z" />
                   <circle cx="12" cy="9" r="2.5" />
                 </svg>
@@ -207,21 +207,21 @@ export function CartItemCard({ item }: { item: CartLineItem }) {
       {/* Feature Badges Row */}
       <div className="mt-5 pt-4 border-t border-stone-100 flex flex-wrap items-center gap-x-6 gap-y-2 text-[11px] font-medium text-neutral-600">
         <div className="flex items-center gap-1.5">
-          <svg viewBox="0 0 24 24" className="h-4 w-4 text-[#a813c9] fill-none stroke-current stroke-2">
+          <svg viewBox="0 0 24 24" className="h-4 w-4 text-[#9e0ca0] fill-none stroke-current stroke-2">
             <circle cx="12" cy="12" r="10" />
             <polyline points="12 6 12 12 16 14" />
           </svg>
           <span>Skip-the-line entry</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <svg viewBox="0 0 24 24" className="h-4 w-4 text-[#a813c9] fill-none stroke-current stroke-2">
+          <svg viewBox="0 0 24 24" className="h-4 w-4 text-[#9e0ca0] fill-none stroke-current stroke-2">
             <path d="M3 18v-6a9 9 0 0 1 18 0v6" />
             <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z" />
           </svg>
           <span>Audio guide included</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <svg viewBox="0 0 24 24" className="h-4 w-4 text-[#a813c9] fill-none stroke-current stroke-2">
+          <svg viewBox="0 0 24 24" className="h-4 w-4 text-[#9e0ca0] fill-none stroke-current stroke-2">
             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
           </svg>
           <span>Free cancellation up to 24 hours</span>

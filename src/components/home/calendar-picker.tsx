@@ -110,21 +110,21 @@ export function CalendarPicker({
         <button
           type="button"
           onClick={() => handleQuickPreset("today")}
-          className="rounded-full bg-neutral-100/90 px-2.5 py-1.5 text-[11.5px] font-semibold text-neutral-800 transition-colors hover:bg-[#2b0934] hover:text-white cursor-pointer"
+          className="rounded-full bg-neutral-100/90 px-2.5 py-1.5 text-[11.5px] font-semibold text-neutral-800 transition-colors hover:bg-[#9e0ca0] hover:text-white cursor-pointer"
         >
           Today
         </button>
         <button
           type="button"
           onClick={() => handleQuickPreset("tomorrow")}
-          className="rounded-full bg-neutral-100/90 px-2.5 py-1.5 text-[11.5px] font-semibold text-neutral-800 transition-colors hover:bg-[#2b0934] hover:text-white cursor-pointer"
+          className="rounded-full bg-neutral-100/90 px-2.5 py-1.5 text-[11.5px] font-semibold text-neutral-800 transition-colors hover:bg-[#9e0ca0] hover:text-white cursor-pointer"
         >
           Tomorrow
         </button>
         <button
           type="button"
           onClick={() => handleQuickPreset("weekend")}
-          className="rounded-full bg-neutral-100/90 px-2.5 py-1.5 text-[11.5px] font-semibold text-neutral-800 transition-colors hover:bg-[#2b0934] hover:text-white cursor-pointer"
+          className="rounded-full bg-neutral-100/90 px-2.5 py-1.5 text-[11.5px] font-semibold text-neutral-800 transition-colors hover:bg-[#9e0ca0] hover:text-white cursor-pointer"
         >
           Weekend
         </button>
@@ -202,11 +202,11 @@ export function CalendarPicker({
               disabled={disabled}
               onClick={() => handleSelectDay(day)}
               className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-semibold transition-all ${active
-                  ? "bg-[#2b0934] text-white shadow-sm scale-105"
+                  ? "bg-[#9e0ca0] text-white shadow-sm scale-105"
                   : disabled
                     ? "text-neutral-300 cursor-not-allowed"
                     : current
-                      ? "border border-[#2b0934] text-[#2b0934] hover:bg-[#2b0934]/10"
+                      ? "border border-[#9e0ca0] text-[#9e0ca0] hover:bg-[#9e0ca0]/10"
                       : "text-neutral-800 hover:bg-neutral-100"
                 }`}
             >

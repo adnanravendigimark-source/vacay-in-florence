@@ -114,7 +114,7 @@ export function BlogListing({
     null;
 
   return (
-    <div id="articles" className="w-full bg-[#FCFBF9] pb-20 scroll-mt-20">
+    <div id="articles" className="w-full bg-white pb-20 scroll-mt-20">
       {/* Explore by Category Bar */}
       {showCategoryFilters && (
         <Container>
@@ -181,7 +181,7 @@ export function BlogListing({
                   real post to feature, rather than showing fabricated
                   content (see featuredPost above). */}
               {featuredPost && (
-              <div className="rounded-2xl border border-stone-200/90 bg-[#FAF8F5] p-5 shadow-xs transition-all hover:shadow-md">
+              <div className="rounded-2xl border border-stone-200/90 bg-white p-5 shadow-xs transition-all hover:shadow-md">
                 <div className="relative mb-2">
                   <span className="font-script text-2xl sm:text-3xl font-normal text-neutral-800 -rotate-1 inline-block">
                     Featured Post
@@ -238,35 +238,28 @@ export function BlogListing({
               )}
 
               {/* Newsletter Box */}
-              <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#2B0934] via-[#3D0D4A] to-[#1E0624] p-6 text-white shadow-md">
-                {/* Background decorative watermark */}
-                <div className="pointer-events-none absolute -right-6 -bottom-6 w-32 h-32 opacity-10">
-                  <svg viewBox="0 0 100 100" fill="currentColor">
-                    <circle cx="50" cy="50" r="40" />
-                  </svg>
-                </div>
-
+              <div className="relative overflow-hidden rounded-2xl border border-stone-200/90 bg-white p-6 shadow-xs">
                 <div className="flex items-center gap-3 mb-2">
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-white/20 bg-white/10 text-white shadow-inner">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[#9e0ca0]/20 bg-[#fdf2fe] text-[#9e0ca0] shadow-2xs">
                     <svg viewBox="0 0 24 24" className="h-5 w-5 fill-none stroke-current stroke-2">
                       <rect width="20" height="16" x="2" y="4" rx="2" />
                       <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
                     </svg>
                   </div>
-                  <h3 className="font-display text-lg font-bold text-white leading-tight">
+                  <h3 className="font-display text-lg font-bold text-neutral-900 leading-tight">
                     Get Travel Tips
                     <br />
                     in Your Inbox
                   </h3>
                 </div>
 
-                <p className="mt-2 text-xs leading-relaxed text-white/75">
+                <p className="mt-2 text-xs leading-relaxed text-neutral-600">
                   Be the first to know about new experiences, blog updates and special offers.
                 </p>
 
                 {subscribed ? (
-                  <div className="mt-4 flex items-center gap-2 rounded-full bg-white/15 px-4 py-2.5 text-xs font-semibold text-pink-200">
-                    <svg viewBox="0 0 20 20" className="h-4 w-4 fill-current text-white">
+                  <div className="mt-4 flex items-center gap-2 rounded-full bg-[#fdf2fe] border border-[#9e0ca0]/20 px-4 py-2.5 text-xs font-semibold text-[#9e0ca0]">
+                    <svg viewBox="0 0 20 20" className="h-4 w-4 fill-current text-[#9e0ca0]">
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                     </svg>
                     <span>Thank you for subscribing!</span>
@@ -279,12 +272,12 @@ export function BlogListing({
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="Your email address"
-                      className="w-full rounded-full bg-white px-4 py-2.5 pr-11 text-xs text-neutral-800 placeholder-neutral-400 shadow-inner focus:outline-none focus:ring-2 focus:ring-[#a813c9]/40"
+                      className="w-full rounded-full border border-stone-200/90 bg-neutral-50 px-4 py-2.5 pr-11 text-xs text-neutral-800 placeholder-neutral-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#9e0ca0]/40 transition"
                     />
                     <button
                       type="submit"
                       aria-label="Subscribe"
-                      className="absolute right-1 top-1 bottom-1 flex h-7 w-7 items-center justify-center rounded-full bg-[#a813c9] hover:bg-[#850b9e] text-white shadow-sm transition-all hover:scale-105 active:scale-95"
+                      className="absolute right-1 top-1 bottom-1 flex h-7 w-7 items-center justify-center rounded-full bg-[#9e0ca0] hover:bg-[#850b9e] text-white shadow-sm transition-all hover:scale-105 active:scale-95 cursor-pointer"
                     >
                       <svg viewBox="0 0 20 20" className="h-3.5 w-3.5 fill-none stroke-current stroke-[2.5]">
                         <path d="M4 10h11m-4-4l4 4-4 4" strokeLinecap="round" strokeLinejoin="round" />

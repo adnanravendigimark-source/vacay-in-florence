@@ -69,8 +69,8 @@ export function InteractiveExperienceExplorer({
         {/* Section Header */}
         <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-10">
           <div className="max-w-2xl">
-            <div className="inline-flex items-center gap-2 rounded-full bg-[#2b0934]/10 px-3 py-1 text-xs font-semibold text-[#2b0934] mb-3">
-              <span className="h-1.5 w-1.5 rounded-full bg-[#2b0934] animate-ping" />
+            <div className="inline-flex items-center gap-2 rounded-full bg-[#9e0ca0]/10 px-3 py-1 text-xs font-semibold text-[#9e0ca0] mb-3">
+              <span className="h-1.5 w-1.5 rounded-full bg-[#9e0ca0] animate-ping" />
               <span>{badge}</span>
             </div>
             <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl font-medium tracking-tight text-neutral-900 leading-[1.15]">
@@ -83,7 +83,7 @@ export function InteractiveExperienceExplorer({
 
           <Link
             href="/experiences"
-            className="inline-flex items-center gap-2 self-start lg:self-end rounded-full bg-[#2b0934] px-6 py-3 text-xs sm:text-sm font-semibold text-white shadow-md transition-all duration-200 hover:bg-[#3d0d4a] hover:shadow-lg hover:scale-[1.02]"
+            className="inline-flex items-center gap-2 self-start lg:self-end rounded-full bg-[#9e0ca0] px-6 py-3 text-xs sm:text-sm font-semibold text-white shadow-md transition-all duration-200 hover:bg-[#850b9e] hover:shadow-lg hover:scale-[1.02]"
           >
             <span>Explore All {experiences.length}+ Experiences</span>
             <span className="text-base">&rarr;</span>
@@ -100,7 +100,7 @@ export function InteractiveExperienceExplorer({
                 type="button"
                 onClick={() => setActiveTab(tab.filter)}
                 className={`shrink-0 rounded-full px-4 sm:px-5 py-2.5 text-xs sm:text-sm font-medium transition-all duration-200 cursor-pointer ${isSelected
-                    ? "bg-neutral-900 text-white shadow-md ring-2 ring-neutral-900 ring-offset-2 scale-100"
+                    ? "bg-[#9e0ca0] text-white shadow-md ring-2 ring-[#9e0ca0] ring-offset-2 scale-100"
                     : "bg-neutral-100 text-neutral-700 hover:bg-neutral-200 hover:text-neutral-900"
                   }`}
               >
@@ -180,7 +180,7 @@ export function InteractiveExperienceExplorer({
 
                   {/* Title */}
                   <Link href={`/experiences/${exp.slug}`}>
-                    <h3 className="mt-3 text-sm sm:text-base font-bold leading-snug text-neutral-900 group-hover:text-[#2b0934] transition-colors line-clamp-2">
+                    <h3 className="mt-3 text-sm sm:text-base font-bold leading-snug text-neutral-900 group-hover:text-[#9e0ca0] transition-colors line-clamp-2">
                       {exp.title}
                     </h3>
                   </Link>
@@ -193,11 +193,11 @@ export function InteractiveExperienceExplorer({
                   {/* Key Highlights Checklist */}
                   <div className="mt-3 pt-2.5 border-t border-neutral-100 flex flex-col gap-1.5 text-xs text-neutral-600">
                     <div className="flex items-center gap-2">
-                      <span className="text-[#2b0934] font-bold">✓</span>
+                      <span className="text-[#9e0ca0] font-bold">✓</span>
                       <span>Instant confirmation & mobile barcode entry</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-[#2b0934] font-bold">✓</span>
+                      <span className="text-[#9e0ca0] font-bold">✓</span>
                       <span>Free cancellation up to 24 hours in advance</span>
                     </div>
                   </div>
@@ -218,7 +218,7 @@ export function InteractiveExperienceExplorer({
 
                     <Link
                       href={`/experiences/${exp.slug}`}
-                      className="inline-flex items-center justify-center gap-1.5 rounded-2xl bg-[#2b0934] px-4 py-2.5 text-xs font-semibold text-white shadow-sm transition-all duration-200 hover:bg-[#3d0d4a] hover:shadow-md hover:scale-105 active:scale-95"
+                      className="inline-flex items-center justify-center gap-1.5 rounded-2xl bg-[#9e0ca0] px-4 py-2.5 text-xs font-semibold text-white shadow-sm transition-all duration-200 hover:bg-[#850b9e] hover:shadow-md hover:scale-105 active:scale-95"
                     >
                       <span>Book Ticket</span>
                       <span className="text-xs">&rarr;</span>

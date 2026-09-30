@@ -171,7 +171,7 @@ export function FlorenceItineraryBuilder({ content }: FlorenceItineraryBuilderPr
       <Container>
         {/* Section Title */}
         <div className="text-center max-w-3xl mx-auto mb-10">
-          <div className="inline-flex items-center gap-2 rounded-full bg-[#2b0934]/10 px-3.5 py-1 text-xs font-semibold text-[#2b0934] mb-3">
+          <div className="inline-flex items-center gap-2 rounded-full bg-[#9e0ca0]/10 px-3.5 py-1 text-xs font-semibold text-[#9e0ca0] mb-3">
             <span>{badge}</span>
           </div>
           <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl font-medium tracking-tight text-neutral-900 leading-[1.15]">
@@ -191,7 +191,7 @@ export function FlorenceItineraryBuilder({ content }: FlorenceItineraryBuilderPr
                   type="button"
                   onClick={() => setSelectedPlanId(plan.id)}
                   className={`rounded-full px-5 py-2 text-xs sm:text-sm font-semibold transition-all duration-200 cursor-pointer ${active
-                      ? "bg-[#2b0934] text-white shadow-md scale-100"
+                      ? "bg-[#9e0ca0] text-white shadow-md scale-100"
                       : "text-neutral-700 hover:text-neutral-950 hover:bg-neutral-200/60"
                     }`}
                 >
@@ -203,17 +203,18 @@ export function FlorenceItineraryBuilder({ content }: FlorenceItineraryBuilderPr
         </div>
 
         {/* Plan Header Card */}
-        <div className="rounded-3xl bg-neutral-900 text-white p-6 sm:p-8 mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xl">
+        <div className="rounded-3xl bg-white text-neutral-900 border border-[#e5dfd4] p-6 sm:p-8 mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-[0_12px_40px_rgba(0,0,0,0.04)]">
           <div>
-            <span className="inline-block text-xs font-bold uppercase tracking-wider text-amber-400 mb-1">
-              {currentPlan.badge}
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#fdf2fe] border border-[#9e0ca0]/20 px-3 py-0.5 text-xs font-bold uppercase tracking-wider text-[#9e0ca0] mb-2">
+              <span className="h-1.5 w-1.5 rounded-full bg-[#9e0ca0]" />
+              <span>{currentPlan.badge}</span>
             </span>
-            <h3 className="text-xl sm:text-2xl font-bold font-display">{currentPlan.title}</h3>
-            <p className="text-xs sm:text-sm text-neutral-300 mt-1">{currentPlan.subtitle}</p>
+            <h3 className="text-xl sm:text-2xl font-bold font-display text-neutral-900">{currentPlan.title}</h3>
+            <p className="text-xs sm:text-sm text-neutral-600 mt-1">{currentPlan.subtitle}</p>
           </div>
           <Link
             href="/experiences"
-            className="inline-flex items-center justify-center gap-2 rounded-full bg-white px-5 py-2.5 text-xs sm:text-sm font-bold text-neutral-900 shadow-md hover:bg-neutral-100 transition-transform active:scale-95 shrink-0"
+            className="inline-flex items-center justify-center gap-2 rounded-full bg-[#9e0ca0] hover:bg-[#850b9e] px-5 py-2.5 text-xs sm:text-sm font-bold text-white shadow-md transition-all hover:scale-105 active:scale-95 shrink-0"
           >
             <span>Explore All Included Tickets</span>
             <span>&rarr;</span>
@@ -225,7 +226,7 @@ export function FlorenceItineraryBuilder({ content }: FlorenceItineraryBuilderPr
           {currentPlan.steps.map((step, idx) => (
             <div
               key={idx}
-              className="group relative flex flex-col rounded-3xl bg-[#faf9f7] border border-neutral-200/90 overflow-hidden shadow-sm transition-all duration-300 hover:shadow-xl hover:bg-white hover:-translate-y-1"
+              className="group relative flex flex-col rounded-3xl bg-white border border-neutral-200/90 overflow-hidden shadow-sm transition-all duration-300 hover:shadow-xl hover:bg-white hover:-translate-y-1"
             >
               {/* Step Image */}
               <div className="relative aspect-[16/10] w-full overflow-hidden bg-neutral-200">
@@ -240,7 +241,7 @@ export function FlorenceItineraryBuilder({ content }: FlorenceItineraryBuilderPr
                 <span className="absolute top-3 left-3 rounded-full bg-neutral-900/85 backdrop-blur-md px-2.5 py-0.5 text-[10.5px] font-bold text-white">
                   {step.time}
                 </span>
-                <span className="absolute top-3 right-3 rounded-full bg-white/90 backdrop-blur-md px-2.5 py-0.5 text-[10.5px] font-bold text-[#2b0934]">
+                <span className="absolute top-3 right-3 rounded-full bg-white/90 backdrop-blur-md px-2.5 py-0.5 text-[10.5px] font-bold text-[#9e0ca0]">
                   {step.tag}
                 </span>
               </div>
@@ -248,7 +249,7 @@ export function FlorenceItineraryBuilder({ content }: FlorenceItineraryBuilderPr
               {/* Step Content */}
               <div className="flex flex-1 flex-col justify-between p-5">
                 <div>
-                  <h4 className="text-base font-bold text-neutral-900 leading-snug group-hover:text-[#2b0934] transition-colors">
+                  <h4 className="text-base font-bold text-neutral-900 leading-snug group-hover:text-[#9e0ca0] transition-colors">
                     {step.title}
                   </h4>
                   <p className="mt-2 text-xs text-neutral-600 leading-relaxed">
@@ -260,7 +261,7 @@ export function FlorenceItineraryBuilder({ content }: FlorenceItineraryBuilderPr
                   <div className="mt-4 pt-3 border-t border-neutral-200/70">
                     <Link
                       href={step.href}
-                      className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-[#2b0934] py-2 text-xs font-semibold text-white transition-all duration-200 hover:bg-[#3d0d4a]"
+                      className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-[#9e0ca0] py-2 text-xs font-semibold text-white transition-all duration-200 hover:bg-[#850b9e]"
                     >
                       <span>{step.actionText}</span>
                     </Link>

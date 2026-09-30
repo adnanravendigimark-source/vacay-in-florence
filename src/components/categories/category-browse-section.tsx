@@ -88,7 +88,7 @@ export function CategoryBrowseSection({
             <div
               className={`flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-full transition-all duration-200 ${
                 activeCategory === "all"
-                  ? "bg-[#2B0934] text-white shadow-md ring-2 ring-[#2B0934]/20"
+                  ? "bg-[#9e0ca0] text-white shadow-md ring-2 ring-[#9e0ca0]/20"
                   : "bg-[#F3EFE9] text-neutral-700 hover:bg-[#EAE4DC] hover:text-neutral-900"
               }`}
             >
@@ -110,7 +110,7 @@ export function CategoryBrowseSection({
                 All Categories
               </span>
               {activeCategory === "all" && (
-                <span className="w-6 h-[2px] bg-[#2B0934] rounded-full mt-1" />
+                <span className="w-6 h-[2px] bg-[#9e0ca0] rounded-full mt-1" />
               )}
             </div>
           </button>
@@ -128,7 +128,7 @@ export function CategoryBrowseSection({
                 <div
                   className={`flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-full transition-all duration-200 ${
                     isActive
-                      ? "bg-[#2B0934] text-white shadow-md ring-2 ring-[#2B0934]/20"
+                      ? "bg-[#9e0ca0] text-white shadow-md ring-2 ring-[#9e0ca0]/20"
                       : "bg-[#F3EFE9] text-neutral-700 hover:bg-[#EAE4DC] hover:text-neutral-900"
                   }`}
                 >
@@ -145,7 +145,7 @@ export function CategoryBrowseSection({
                     {item.name}
                   </span>
                   {isActive && (
-                    <span className="w-6 h-[2px] bg-[#2B0934] rounded-full mt-1" />
+                    <span className="w-6 h-[2px] bg-[#9e0ca0] rounded-full mt-1" />
                   )}
                 </div>
               </button>
@@ -171,7 +171,7 @@ export function CategoryBrowseSection({
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="appearance-none rounded-full border border-stone-200/90 bg-white py-1.5 pl-3.5 pr-8 text-xs font-semibold text-neutral-800 shadow-xs hover:border-stone-300 focus:outline-none focus:ring-1 focus:ring-[#a813c9] cursor-pointer"
+                className="appearance-none rounded-full border border-stone-200/90 bg-white py-1.5 pl-3.5 pr-8 text-xs font-semibold text-neutral-800 shadow-xs hover:border-stone-300 focus:outline-none focus:ring-1 focus:ring-[#9e0ca0] cursor-pointer"
               >
                 <option value="popular">Popular</option>
                 <option value="alphabetical">Alphabetical</option>
@@ -192,7 +192,7 @@ export function CategoryBrowseSection({
             onClick={() => setActiveCategory("all")}
             className={`rounded-full px-4 py-2 text-xs font-semibold transition-all cursor-pointer ${
               activeCategory === "all"
-                ? "bg-[#2B0934] text-white shadow-xs"
+                ? "bg-[#9e0ca0] text-white shadow-xs"
                 : "border border-stone-200 bg-white text-neutral-600 hover:bg-stone-50"
             }`}
           >
@@ -207,7 +207,7 @@ export function CategoryBrowseSection({
                 onClick={() => setActiveCategory(item.slug)}
                 className={`rounded-full px-4 py-2 text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
                   isActive
-                    ? "bg-[#2B0934] text-white shadow-xs"
+                    ? "bg-[#9e0ca0] text-white shadow-xs"
                     : "border border-stone-200 bg-white text-neutral-600 hover:bg-stone-50"
                 }`}
               >
@@ -244,7 +244,7 @@ export function CategoryBrowseSection({
                     {ICONS[item.icon]}
                   </div>
                   {item.badgeText ? (
-                    <span className="rounded-full bg-[#a813c9] px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-white shadow-md">
+                    <span className="rounded-full bg-[#9e0ca0] px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-white shadow-md">
                       {item.badgeText}
                     </span>
                   ) : null}
@@ -281,7 +281,7 @@ export function CategoryBrowseSection({
                   </div>
 
                   {/* Circular White Arrow Button (pill w/ CTA label when set) */}
-                  <div className="flex h-8 shrink-0 items-center justify-center gap-1.5 rounded-full bg-white px-3 text-neutral-900 shadow-md transition-all duration-300 group-hover:bg-[#2B0934] group-hover:text-white group-hover:scale-105">
+                  <div className="flex h-8 shrink-0 items-center justify-center gap-1.5 rounded-full bg-white px-3 text-neutral-900 shadow-md transition-all duration-300 group-hover:bg-[#9e0ca0] group-hover:text-white group-hover:scale-105">
                     {item.ctaLabel ? (
                       <span className="whitespace-nowrap text-[10.5px] font-bold">{item.ctaLabel}</span>
                     ) : null}
@@ -324,7 +324,7 @@ export function CategoryBrowseSection({
               <div className="mt-6">
                 <Link
                   href="/experiences"
-                  className="inline-flex items-center gap-2 rounded-full bg-[#2B0934] hover:bg-[#3D0D4A] text-white font-bold text-xs sm:text-sm px-6 sm:px-8 py-3.5 shadow-md transition-all hover:scale-105 active:scale-95"
+                  className="inline-flex items-center gap-2 rounded-full bg-[#9e0ca0] hover:bg-[#850b9e] text-white font-bold text-xs sm:text-sm px-6 sm:px-8 py-3.5 shadow-md transition-all hover:scale-105 active:scale-95"
                 >
                   <span>Get Inspired</span>
                   <span>&rarr;</span>
@@ -377,7 +377,7 @@ export function CategoryBrowseSection({
                       <br />
                       adventure awaits
                     </span>
-                    <span className="block text-xs text-[#a813c9]">♡</span>
+                    <span className="block text-xs text-[#9e0ca0]">♡</span>
                   </div>
                 </div>
               </div>

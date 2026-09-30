@@ -53,17 +53,75 @@ export default async function EditSupplierExperiencePage({ params }: { params: P
     exclusions: product.exclusions,
     goodToKnow: product.goodToKnow.length > 0 ? product.goodToKnow : DEFAULT_GOOD_TO_KNOW_TIPS,
     whyVisit: product.whyVisit,
-    itinerary: product.itinerary,
-    secretHistoryPoints: product.secretHistoryPoints,
+    itinerary: (product.itinerary || []).map((s) => ({
+      time: s.time ?? "",
+      title: s.title,
+      description: s.description ?? "",
+      image: s.image ?? "",
+      tag: s.tag ?? "",
+      icon: s.icon ?? "",
+    })),
+    secretHistoryPoints: (product.secretHistoryPoints || []).map((p) => {
+      if (typeof p === "object" && p !== null) {
+        return {
+          title: p.title || "",
+          description: p.description || "",
+          image: p.image || "",
+        };
+      }
+      return {
+        title: String(p || ""),
+        description: "",
+        image: "",
+      };
+    }),
     entrances: product.entrances,
     ultimateExperienceTitle: product.ultimateExperienceTitle,
     ultimateExperienceDescription: product.ultimateExperienceDescription,
-    ultimateExperiencePoints: product.ultimateExperiencePoints,
+    ultimateExperiencePoints: (product.ultimateExperiencePoints || []).map((p) => {
+      if (typeof p === "object" && p !== null) {
+        return {
+          title: p.title || "",
+          description: p.description || "",
+          icon: p.icon || "",
+        };
+      }
+      return {
+        title: String(p || ""),
+        description: "",
+        icon: "",
+      };
+    }),
     openingHours: product.openingHours,
     operationalInfo: product.operationalInfo,
-    gettingThereOptions: product.gettingThereOptions,
+    gettingThereOptions: (product.gettingThereOptions || []).map((g) => ({
+      mode: g.mode,
+      description: g.description ?? "",
+      image: g.image ?? "",
+      tag: g.tag ?? "",
+      icon: g.icon ?? "",
+    })),
     bestTimeToVisit: product.bestTimeToVisit,
-    bestTimeToVisitTips: product.bestTimeToVisitTips,
+    bestTimeToVisitTips: (product.bestTimeToVisitTips || []).map((t) => {
+      if (typeof t === "object" && t !== null) {
+        return {
+          season: t.season || "",
+          months: t.months || t.title || "",
+          title: t.title || t.months || "",
+          description: t.description || "",
+          image: t.image || "",
+          icon: t.icon || "",
+        };
+      }
+      return {
+        season: "",
+        months: "",
+        title: "",
+        description: String(t || ""),
+        image: "",
+        icon: "",
+      };
+    }),
     faqs: product.faqs,
     relatedBlogSlugs: product.relatedBlogSlugs,
     ctaHeadline: product.ctaHeadline,

@@ -1,15 +1,9 @@
 "use client";
 
-import { useMemo, useState, useTransition, type ReactNode } from "react";
+import { useState, useTransition, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import {
-  deleteProductAction,
-  bulkSetProductStatusAction,
-  bulkSetProductFeaturedAction,
-  bulkDeleteProductsAction,
-  type BulkTarget,
-} from "@/app/admin/(protected)/experiences/actions";
+import { deleteProductAction } from "@/app/admin/(protected)/experiences/actions";
 import type { AdminProductListItem, ProductStatus } from "@/lib/data/admin/products";
 import { Modal, useToast } from "@/components/admin/ui";
 
@@ -130,14 +124,10 @@ const bulkBtnDanger =
 
 function GridCard({
   item,
-  selected,
-  onToggleSelect,
   onDelete,
   isPending,
 }: {
   item: AdminProductListItem;
-  selected: boolean;
-  onToggleSelect: () => void;
   onDelete: () => void;
   isPending: boolean;
 }) {
@@ -148,15 +138,6 @@ function GridCard({
           // eslint-disable-next-line @next/next/no-img-element -- arbitrary admin-entered/uploaded URL, not an optimizable local asset
           <img src={item.image.src} alt="" className="h-full w-full object-cover" />
         ) : null}
-        <label className="absolute left-2.5 top-2.5 flex h-6 w-6 cursor-pointer items-center justify-center rounded-md bg-white/90 shadow">
-          <input
-            type="checkbox"
-            checked={selected}
-            onChange={onToggleSelect}
-            className="h-4 w-4 accent-[#2b0934]"
-            aria-label={`Select ${item.title}`}
-          />
-        </label>
         <div className="absolute right-2.5 top-2.5">
           <StatusBadge status={item.status} />
         </div>
@@ -198,28 +179,7 @@ export function ExperienceTable({ items, view }: { items: AdminProductListItem[]
   const router = useRouter();
   const { showToast } = useToast();
   const [isPending, startTransition] = useTransition();
-  const [selected, setSelected] = useState<Set<string>>(new Set());
   const [deleteTarget, setDeleteTarget] = useState<AdminProductListItem | null>(null);
-  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
-
-  const allSelected = items.length > 0 && items.every((i) => selected.has(i.id));
-  const selectedItems = useMemo(() => items.filter((i) => selected.has(i.id)), [items, selected]);
-  const selectedTargets: BulkTarget[] = selectedItems.map((i) => ({ id: i.id, slug: i.slug }));
-
-  function toggleAll() {
-    setSelected(allSelected ? new Set() : new Set(items.map((i) => i.id)));
-  }
-  function toggleOne(id: string) {
-    setSelected((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  }
-  function clearSelection() {
-    setSelected(new Set());
-  }
 
   function handleDelete() {
     if (!deleteTarget) return;
@@ -236,51 +196,6 @@ export function ExperienceTable({ items, view }: { items: AdminProductListItem[]
     });
   }
 
-  function handleBulkStatus(status: ProductStatus) {
-    startTransition(async () => {
-      const count = selectedTargets.length;
-      const result = await bulkSetProductStatusAction(selectedTargets, status);
-      if (result.success) {
-        showToast(`${count} experience${count === 1 ? "" : "s"} updated.`, "success");
-        clearSelection();
-        router.refresh();
-      } else {
-        showToast(result.error ?? "Could not update the selected experiences.", "error");
-      }
-    });
-  }
-
-  function handleBulkFeature(featured: boolean) {
-    startTransition(async () => {
-      const count = selectedTargets.length;
-      const result = await bulkSetProductFeaturedAction(selectedTargets, featured);
-      if (result.success) {
-        showToast(`${count} experience${count === 1 ? "" : "s"} updated.`, "success");
-        clearSelection();
-        router.refresh();
-      } else {
-        showToast(result.error ?? "Could not update the selected experiences.", "error");
-      }
-    });
-  }
-
-  function handleBulkDelete() {
-    startTransition(async () => {
-      const result = await bulkDeleteProductsAction(selectedTargets);
-      setBulkDeleteOpen(false);
-      clearSelection();
-      router.refresh();
-      if (result.blockedCount > 0) {
-        showToast(
-          `${result.deletedCount} deleted. ${result.error ?? ""}`.trim(),
-          result.deletedCount > 0 ? "success" : "error",
-        );
-      } else {
-        showToast(`${result.deletedCount} experience${result.deletedCount === 1 ? "" : "s"} deleted.`, "success");
-      }
-    });
-  }
-
   if (items.length === 0) {
     return (
       <div className="rounded-3xl border border-[#EAE6DF] bg-white p-12 text-center shadow-[0_4px_25px_rgba(0,0,0,0.02)]">
@@ -292,40 +207,12 @@ export function ExperienceTable({ items, view }: { items: AdminProductListItem[]
 
   return (
     <div className="space-y-3">
-      {selected.size > 0 ? (
-        <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-[#2b0934]/15 bg-[#FAF5FC] px-4 py-3">
-          <span className="text-xs font-semibold text-[#2b0934]">{selected.size} selected</span>
-          <div className="ml-1 flex flex-wrap items-center gap-1.5">
-            <button disabled={isPending} onClick={() => handleBulkStatus("live")} className={bulkBtn}>
-              Publish
-            </button>
-            <button disabled={isPending} onClick={() => handleBulkStatus("paused")} className={bulkBtn}>
-              Pause
-            </button>
-            <button disabled={isPending} onClick={() => handleBulkFeature(true)} className={bulkBtn}>
-              Feature
-            </button>
-            <button disabled={isPending} onClick={() => handleBulkFeature(false)} className={bulkBtn}>
-              Unfeature
-            </button>
-            <button disabled={isPending} onClick={() => setBulkDeleteOpen(true)} className={bulkBtnDanger}>
-              Delete
-            </button>
-          </div>
-          <button onClick={clearSelection} className="ml-auto text-xs font-medium text-neutral-500 hover:text-neutral-800">
-            Clear
-          </button>
-        </div>
-      ) : null}
-
       {view === "grid" ? (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {items.map((item) => (
             <GridCard
               key={item.id}
               item={item}
-              selected={selected.has(item.id)}
-              onToggleSelect={() => toggleOne(item.id)}
               onDelete={() => setDeleteTarget(item)}
               isPending={isPending}
             />
@@ -336,37 +223,19 @@ export function ExperienceTable({ items, view }: { items: AdminProductListItem[]
           <table className="w-full min-w-[920px] text-left text-xs">
             <thead>
               <tr className="border-b border-[#F0ECE6] text-[11px] font-semibold uppercase tracking-wider text-neutral-400">
-                <th className="w-10 py-3 pl-5">
-                  <input
-                    type="checkbox"
-                    checked={allSelected}
-                    onChange={toggleAll}
-                    className="h-4 w-4 accent-[#2b0934]"
-                    aria-label="Select all"
-                  />
-                </th>
-                <th className="px-3 py-3">Experience</th>
-                <th className="px-3 py-3">Category</th>
-                <th className="px-3 py-3">Price</th>
-                <th className="px-3 py-3">Duration</th>
-                <th className="px-3 py-3">Status</th>
-                <th className="px-3 py-3">Created</th>
-                <th className="py-3 pr-5 text-right">Actions</th>
+                <th className="px-3 py-3.5 pl-5">Experience</th>
+                <th className="px-3 py-3.5">Category</th>
+                <th className="px-3 py-3.5">Price</th>
+                <th className="px-3 py-3.5">Duration</th>
+                <th className="px-3 py-3.5">Status</th>
+                <th className="px-3 py-3.5">Created</th>
+                <th className="py-3.5 pr-5 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#F0ECE6]">
               {items.map((item) => (
                 <tr key={item.id} className="transition hover:bg-[#FAF8F5]/60">
-                  <td className="py-3.5 pl-5">
-                    <input
-                      type="checkbox"
-                      checked={selected.has(item.id)}
-                      onChange={() => toggleOne(item.id)}
-                      className="h-4 w-4 accent-[#2b0934]"
-                      aria-label={`Select ${item.title}`}
-                    />
-                  </td>
-                  <td className="min-w-[220px] px-3 py-3.5">
+                  <td className="min-w-[220px] px-3 py-3.5 pl-5">
                     <div className="flex items-center gap-3">
                       {item.image ? (
                         // eslint-disable-next-line @next/next/no-img-element -- arbitrary admin-entered/uploaded URL, not an optimizable local asset
@@ -445,34 +314,6 @@ export function ExperienceTable({ items, view }: { items: AdminProductListItem[]
         <p className="text-sm text-neutral-600">
           This permanently removes &ldquo;{deleteTarget?.title}&rdquo; and its images and pricing options. If it has
           any bookings or is in a customer&rsquo;s cart, the delete will be blocked — pause it instead.
-        </p>
-      </Modal>
-
-      <Modal
-        open={bulkDeleteOpen}
-        onClose={() => setBulkDeleteOpen(false)}
-        title={`Delete ${selected.size} experience${selected.size === 1 ? "" : "s"}?`}
-        footer={
-          <>
-            <button
-              onClick={() => setBulkDeleteOpen(false)}
-              className="rounded-xl border border-[#EAE6DF] px-3.5 py-2 text-xs font-semibold text-neutral-700 transition hover:bg-[#FAF8F5]"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleBulkDelete}
-              disabled={isPending}
-              className="rounded-xl bg-[#D94F3D] px-3.5 py-2 text-xs font-semibold text-white transition hover:bg-[#c2402f] disabled:opacity-50"
-            >
-              {isPending ? "Deleting…" : "Delete"}
-            </button>
-          </>
-        }
-      >
-        <p className="text-sm text-neutral-600">
-          This permanently removes the selected experiences and their images and pricing options. Any that have
-          existing bookings or are in a customer&rsquo;s cart will be skipped — pause those instead.
         </p>
       </Modal>
     </div>

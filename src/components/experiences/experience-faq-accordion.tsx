@@ -20,7 +20,7 @@ export function ExperienceFaqAccordion({ faqs }: { faqs: { question: string; ans
           <div
             key={index}
             className={`rounded-2xl border transition-all duration-200 overflow-hidden ${
-              isOpen ? "border-[#2b0934] bg-purple-50/20 shadow-sm" : "border-neutral-200 bg-white hover:border-neutral-300"
+              isOpen ? "border-[#9e0ca0] bg-[#fdf2fe]/50 shadow-sm" : "border-neutral-200 bg-white hover:border-neutral-300"
             }`}
           >
             <button
@@ -31,7 +31,7 @@ export function ExperienceFaqAccordion({ faqs }: { faqs: { question: string; ans
               <span>{faq.question}</span>
               <span
                 className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-sm font-bold text-neutral-700 transition-transform duration-200 ${
-                  isOpen ? "rotate-45 bg-[#2b0934] text-white" : ""
+                  isOpen ? "rotate-45 bg-[#9e0ca0] text-white" : ""
                 }`}
               >
                 +

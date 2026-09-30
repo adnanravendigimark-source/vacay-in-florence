@@ -30,14 +30,40 @@ const STATUS_LABEL: Record<ProductFormData["status"], string> = {
   changes_requested: "Changes requested",
 };
 
-function linesToText(lines: string[]): string {
-  return lines.join("\n");
+function linesToText(lines: (string | { category?: string; title: string; description?: string; badge?: string; icon?: string })[]): string {
+  return lines
+    .map((l) => {
+      if (typeof l === "object" && l !== null) {
+        if (l.description) return `${l.title} — ${l.description}`;
+        return l.title;
+      }
+      return String(l || "");
+    })
+    .join("\n");
 }
 function textToLines(text: string): string[] {
   return text.split("\n");
 }
 function cleanLines(lines: string[]): string[] {
   return lines.map((s) => s.trim()).filter(Boolean);
+}
+function cleanHighlights(
+  lines: (string | { category?: string; title: string; description?: string; badge?: string; icon?: string })[],
+): (string | { category: string; title: string; description: string; badge: string; icon: string })[] {
+  return lines
+    .map((l) => {
+      if (typeof l === "object" && l !== null) {
+        return {
+          category: l.category?.trim() || "",
+          title: l.title.trim(),
+          description: l.description?.trim() || "",
+          badge: l.badge?.trim() || "",
+          icon: l.icon?.trim() || "",
+        };
+      }
+      return String(l || "").trim();
+    })
+    .filter((l) => (typeof l === "object" ? Boolean(l.title) : Boolean(l)));
 }
 function fmtDate(iso: string): string {
   const [y, m, d] = iso.split("-").map(Number);
@@ -274,7 +300,7 @@ export function ExperienceEditor({
   function buildSubmission(): ProductFormData {
     return {
       ...form,
-      highlights: cleanLines(form.highlights),
+      highlights: cleanHighlights(form.highlights),
       inclusions: cleanLines(form.inclusions),
       exclusions: cleanLines(form.exclusions),
       badges: cleanLines(form.badges),
@@ -283,15 +309,73 @@ export function ExperienceEditor({
       images: form.images.filter((img) => img.url.trim() && img.alt.trim()),
       options: form.options.filter((o) => o.name.trim()).map((o) => ({ ...o, features: cleanLines(o.features) })),
       // New public-page content sections — same "drop empty rows, keep
-      // real ones" cleanup as every array field above.
-      secretHistoryPoints: cleanLines(form.secretHistoryPoints),
-      ultimateExperiencePoints: cleanLines(form.ultimateExperiencePoints),
-      bestTimeToVisitTips: cleanLines(form.bestTimeToVisitTips),
+      secretHistoryPoints: form.secretHistoryPoints
+        .map((p) => {
+          if (typeof p === "string") {
+            const trimmed = p.trim();
+            return trimmed ? { title: trimmed, description: "", image: "" } : null;
+          }
+          if (!p.title.trim()) return null;
+          return {
+            title: p.title.trim(),
+            description: p.description?.trim() ?? "",
+            image: p.image?.trim() ?? "",
+          };
+        })
+        .filter((p): p is { title: string; description: string; image: string } => p !== null),
+      ultimateExperiencePoints: form.ultimateExperiencePoints
+        .map((p) => {
+          if (typeof p === "string") {
+            const trimmed = p.trim();
+            return trimmed ? { title: trimmed, description: "", icon: "star" } : null;
+          }
+          if (!p.title.trim()) return null;
+          return {
+            title: p.title.trim(),
+            description: p.description?.trim() ?? "",
+            icon: p.icon?.trim() ?? "star",
+          };
+        })
+        .filter((p): p is { title: string; description: string; icon: string } => p !== null),
+      bestTimeToVisitTips: form.bestTimeToVisitTips
+        .map((t) => {
+          if (typeof t === "string") {
+            const trimmed = t.trim();
+            return trimmed ? { season: "", months: "", title: "", description: trimmed, image: "", icon: "" } : null;
+          }
+          if (!t.description?.trim() && !t.season?.trim() && !t.months?.trim() && !t.title?.trim()) return null;
+          return {
+            season: t.season?.trim() ?? "",
+            months: t.months?.trim() ?? t.title?.trim() ?? "",
+            title: t.title?.trim() ?? t.months?.trim() ?? "",
+            description: t.description?.trim() ?? "",
+            image: t.image?.trim() ?? "",
+            icon: t.icon?.trim() ?? "",
+          };
+        })
+        .filter((t): t is { season: string; months: string; title: string; description: string; image: string; icon: string } => t !== null),
       relatedBlogSlugs: cleanLines(form.relatedBlogSlugs),
-      itinerary: form.itinerary.filter((s) => s.title.trim()),
+      itinerary: form.itinerary
+        .filter((s) => s.title.trim())
+        .map((s) => ({
+          title: s.title.trim(),
+          time: s.time?.trim() ?? "",
+          description: s.description?.trim() ?? "",
+          image: s.image?.trim() ?? "",
+          tag: s.tag?.trim() ?? "",
+          icon: s.icon?.trim() ?? "store",
+        })),
       entrances: form.entrances.filter((e) => e.name.trim()),
       openingHours: form.openingHours.filter((r) => r.day.trim() && r.hours.trim()),
-      gettingThereOptions: form.gettingThereOptions.filter((g) => g.mode.trim()),
+      gettingThereOptions: form.gettingThereOptions
+        .filter((g) => g.mode.trim())
+        .map((g) => ({
+          mode: g.mode.trim(),
+          description: g.description?.trim() ?? "",
+          image: g.image?.trim() ?? "",
+          tag: g.tag?.trim() ?? "",
+          icon: g.icon?.trim() ?? "foot",
+        })),
       faqs: form.faqs.filter((f) => f.question.trim() && f.answer.trim()),
     };
   }
@@ -548,7 +632,7 @@ export function ExperienceEditor({
                 content: (
                   <div className="space-y-5">
                     <div className="rounded-2xl border border-stone bg-white p-5">
-                      <Field label="Highlights" hint="One per line">
+                      <Field label="Highlights" hint="One per line — 'Title — Description' format creates rich cards on the public page">
                         <Textarea
                           rows={4}
                           value={linesToText(form.highlights)}
@@ -626,90 +710,378 @@ export function ExperienceEditor({
                 content: (
                   <div className="space-y-5">
                     <div className="rounded-2xl border border-stone bg-white p-5">
-                      <h3 className="mb-1 text-sm font-semibold text-ink">Why Visit</h3>
-                      <p className="mb-3 text-xs text-ink-faint">
-                        A short hook shown above the Highlights grid on the public page.
-                      </p>
-                      <Textarea
-                        rows={3}
-                        value={form.whyVisit ?? ""}
-                        onChange={(e) => update("whyVisit", e.target.value || null)}
-                        placeholder="Why this experience is worth visitors' time — the pitch in 1-3 sentences."
-                      />
+                      <div className="mb-3">
+                        <h3 className="text-sm font-semibold text-ink">Why Visit &amp; 4 Feature Highlights</h3>
+                        <p className="mt-0.5 text-xs text-ink-faint">
+                          The prominent top hook and 4 highlight cards shown below the gallery on the public experience page.
+                        </p>
+                      </div>
+
+                      <div className="space-y-4">
+                        <div>
+                          <label className="block text-xs font-semibold text-ink mb-1">
+                            Why Visit Hook (Main Pitch)
+                          </label>
+                          <Textarea
+                            rows={3}
+                            value={form.whyVisit ?? ""}
+                            onChange={(e) => update("whyVisit", e.target.value || null)}
+                            placeholder="Why this experience is worth visitors' time — the pitch in 1-3 sentences (e.g. You don't just watch someone cook Tuscan food — you shop for it at a real local market, then cook and eat every course yourself.)."
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-semibold text-ink mb-1">
+                            Feature Highlight Cards (4 Cards)
+                          </label>
+                          <p className="text-[11px] text-ink-faint mb-1.5">
+                            One per line. Use <code className="bg-neutral-100 px-1 py-0.5 rounded text-neutral-800">Title — Description</code> format to show bold titles with descriptions on the cards.
+                          </p>
+                          <Textarea
+                            rows={4}
+                            value={linesToText(form.highlights)}
+                            onChange={(e) => update("highlights", textToLines(e.target.value))}
+                            placeholder={"Hands-on masterclass — Roll up your sleeves and prepare fresh pasta from scratch\nMarket visit included — Pick fresh, seasonal ingredients with your local chef\nThree-course feast — Enjoy your meal paired with fine Tuscan estate wine\nSmall group — Personalized attention with a genuine local guide"}
+                          />
+                        </div>
+                      </div>
                     </div>
 
                     <div className="rounded-2xl border border-stone bg-white p-5">
-                      <div className="mb-2 flex items-center justify-between">
+                      <div className="mb-4 flex items-center justify-between">
                         <div>
-                          <h3 className="text-sm font-semibold text-ink">Recommended Visit Schedule</h3>
-                          <p className="mt-0.5 text-xs text-ink-faint">Itinerary timeline, shown in this order.</p>
+                          <h3 className="text-sm font-semibold text-ink">Recommended Visit Schedule (Day at a Glance)</h3>
+                          <p className="mt-0.5 text-xs text-ink-faint">
+                            Step-by-step visual cards shown on the public experience page with photos, badges, and itinerary details.
+                          </p>
                         </div>
                         <Button
                           variant="secondary"
                           size="sm"
-                          onClick={() => update("itinerary", [...form.itinerary, { time: "", title: "", description: "" }])}
+                          onClick={() =>
+                            update("itinerary", [
+                              ...form.itinerary,
+                              { time: "", title: "", description: "", image: "", tag: "", icon: "store" },
+                            ])
+                          }
                         >
                           + Add step
                         </Button>
                       </div>
-                      <div className="space-y-3">
+
+                      <div className="space-y-4">
                         {form.itinerary.map((step, index) => (
-                          <div key={index} className="rounded-xl border border-stone bg-white p-3">
-                            <div className="grid gap-3 sm:grid-cols-[1fr_2fr_auto]">
-                              <Field label="Time" hint="Optional">
-                                <Input
-                                  value={step.time}
-                                  placeholder="e.g. 9:00 AM"
-                                  onChange={(e) =>
-                                    update("itinerary", form.itinerary.map((s, i) => (i === index ? { ...s, time: e.target.value } : s)))
-                                  }
-                                />
-                              </Field>
-                              <Field label="Title">
-                                <Input
-                                  value={step.title}
-                                  onChange={(e) =>
-                                    update("itinerary", form.itinerary.map((s, i) => (i === index ? { ...s, title: e.target.value } : s)))
-                                  }
-                                />
-                              </Field>
-                              <div className="flex items-end">
-                                <Button variant="ghost" size="sm" onClick={() => update("itinerary", form.itinerary.filter((_, i) => i !== index))}>
+                          <div key={index} className="rounded-xl border border-stone/80 bg-[#faf9f6] p-4 transition hover:border-neutral-400">
+                            {/* Step Header */}
+                            <div className="mb-3 flex items-center justify-between border-b border-stone/60 pb-2.5">
+                              <div className="flex items-center gap-2">
+                                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#183D2B] text-[11px] font-bold text-white">
+                                  {String(index + 1).padStart(2, "0")}
+                                </span>
+                                <span className="text-xs font-bold text-ink">
+                                  {step.title ? step.title : `Step ${index + 1}`}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <button
+                                  type="button"
+                                  disabled={index === 0}
+                                  onClick={() => {
+                                    if (index === 0) return;
+                                    const next = [...form.itinerary];
+                                    const [moved] = next.splice(index, 1);
+                                    next.splice(index - 1, 0, moved);
+                                    update("itinerary", next);
+                                  }}
+                                  className="rounded p-1 text-xs text-ink-faint hover:bg-stone hover:text-ink disabled:opacity-30"
+                                  title="Move Up"
+                                >
+                                  ↑
+                                </button>
+                                <button
+                                  type="button"
+                                  disabled={index === form.itinerary.length - 1}
+                                  onClick={() => {
+                                    if (index === form.itinerary.length - 1) return;
+                                    const next = [...form.itinerary];
+                                    const [moved] = next.splice(index, 1);
+                                    next.splice(index + 1, 0, moved);
+                                    update("itinerary", next);
+                                  }}
+                                  className="rounded p-1 text-xs text-ink-faint hover:bg-stone hover:text-ink disabled:opacity-30"
+                                  title="Move Down"
+                                >
+                                  ↓
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => update("itinerary", form.itinerary.filter((_, i) => i !== index))}
+                                  className="rounded px-2 py-0.5 text-xs font-semibold text-rose-600 hover:bg-rose-50"
+                                >
                                   Remove
-                                </Button>
+                                </button>
                               </div>
                             </div>
-                            <div className="mt-3">
-                              <Field label="Description" hint="Optional">
+
+                            {/* Step Inputs */}
+                            <div className="grid gap-3 sm:grid-cols-3">
+                              <Field label="Step Title" required>
                                 <Input
-                                  value={step.description}
+                                  value={step.title}
+                                  placeholder="e.g. Meet at Sant'Ambrogio Market"
                                   onChange={(e) =>
-                                    update("itinerary", form.itinerary.map((s, i) => (i === index ? { ...s, description: e.target.value } : s)))
+                                    update(
+                                      "itinerary",
+                                      form.itinerary.map((s, i) => (i === index ? { ...s, title: e.target.value } : s)),
+                                    )
+                                  }
+                                />
+                              </Field>
+
+                              <Field label="Tag / Time Pill" hint="e.g. Start, Mid-morning, 9:30 AM">
+                                <Input
+                                  value={step.tag || step.time || ""}
+                                  placeholder="e.g. Start or Mid-morning"
+                                  onChange={(e) =>
+                                    update(
+                                      "itinerary",
+                                      form.itinerary.map((s, i) =>
+                                        i === index ? { ...s, tag: e.target.value, time: e.target.value } : s,
+                                      ),
+                                    )
+                                  }
+                                />
+                              </Field>
+
+                              <Field label="Step Icon">
+                                <select
+                                  value={step.icon || "store"}
+                                  onChange={(e) =>
+                                    update(
+                                      "itinerary",
+                                      form.itinerary.map((s, i) => (i === index ? { ...s, icon: e.target.value } : s)),
+                                    )
+                                  }
+                                  className="w-full rounded-xl border border-neutral-300 bg-white px-3 py-2 text-sm text-ink focus:border-ink focus:outline-none"
+                                >
+                                  <option value="store">🛒 Market / Store</option>
+                                  <option value="chef">👨‍🍳 Chef / Kitchen</option>
+                                  <option value="utensils">🍽️ Dining / Food</option>
+                                  <option value="wine">🍷 Wine & Drinks</option>
+                                  <option value="ticket">🎟️ Ticket / Entry</option>
+                                  <option value="museum">🏛️ Museum / Gallery</option>
+                                  <option value="landmark">🏰 Monument / Landmark</option>
+                                  <option value="camera">📷 Viewpoint / Photo</option>
+                                  <option value="bike">🚲 Bike / Active</option>
+                                  <option value="compass">🧭 Guided Walk / Tour</option>
+                                  <option value="bus">🚌 Transport / Pickup</option>
+                                  <option value="clock">⏱️ Timed Check-in</option>
+                                </select>
+                              </Field>
+                            </div>
+
+                            {/* Image Uploader & Preview */}
+                            <div className="mt-3">
+                              <ImageField
+                                label="Step Photo"
+                                hint="Upload or paste image URL for this schedule card"
+                                value={step.image || ""}
+                                onChange={(url) =>
+                                  update(
+                                    "itinerary",
+                                    form.itinerary.map((s, i) => (i === index ? { ...s, image: url } : s)),
+                                  )
+                                }
+                              />
+                            </div>
+
+                            {/* Step Description */}
+                            <div className="mt-3">
+                              <Field label="Description" hint="Detailed instructions or overview for this phase">
+                                <Textarea
+                                  rows={2}
+                                  value={step.description || ""}
+                                  placeholder="e.g. Your instructor walks the stalls with you, picking seasonal ingredients for the day's menu."
+                                  onChange={(e) =>
+                                    update(
+                                      "itinerary",
+                                      form.itinerary.map((s, i) => (i === index ? { ...s, description: e.target.value } : s)),
+                                    )
                                   }
                                 />
                               </Field>
                             </div>
                           </div>
                         ))}
+
                         {form.itinerary.length === 0 ? (
-                          <p className="rounded-xl border border-dashed border-stone p-4 text-center text-sm text-ink-faint">
-                            No itinerary steps yet — add one above.
-                          </p>
+                          <div className="rounded-xl border border-dashed border-stone bg-[#faf9f6] p-6 text-center">
+                            <p className="text-sm font-medium text-ink">No itinerary steps yet.</p>
+                            <p className="mt-1 text-xs text-ink-faint">
+                              Click "+ Add step" above to build the recommended visit schedule with images and icons.
+                            </p>
+                          </div>
                         ) : null}
                       </div>
                     </div>
 
                     <div className="rounded-2xl border border-stone bg-white p-5">
-                      <Field
-                        label="Secrets, History & Artistic Significance"
-                        hint="One per line — bullet points about hidden details, history, and artistic significance"
-                      >
-                        <Textarea
-                          rows={4}
-                          value={linesToText(form.secretHistoryPoints)}
-                          onChange={(e) => update("secretHistoryPoints", textToLines(e.target.value))}
-                        />
-                      </Field>
+                      <div className="mb-4 flex items-center justify-between">
+                        <div>
+                          <h3 className="text-sm font-semibold text-ink">Secrets, History &amp; Artistic Significance</h3>
+                          <p className="mt-0.5 text-xs text-ink-faint">
+                            Curated stories, hidden facts, and art historical insights shown with photo cards on the public page.
+                          </p>
+                        </div>
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => {
+                            const normalized = form.secretHistoryPoints.map((p) =>
+                              typeof p === "string" ? { title: p, description: "", image: "" } : p,
+                            );
+                            update("secretHistoryPoints", [
+                              ...normalized,
+                              { title: "", description: "", image: "" },
+                            ]);
+                          }}
+                        >
+                          + Add story
+                        </Button>
+                      </div>
+
+                      <div className="space-y-4">
+                        {form.secretHistoryPoints.map((rawPoint, index) => {
+                          const point =
+                            typeof rawPoint === "string"
+                              ? { title: rawPoint, description: "", image: "" }
+                              : rawPoint;
+
+                          return (
+                            <div
+                              key={index}
+                              className="rounded-xl border border-stone/80 bg-[#faf9f6] p-4 transition hover:border-neutral-400"
+                            >
+                              {/* Card Header */}
+                              <div className="mb-3 flex items-center justify-between border-b border-stone/60 pb-2.5">
+                                <div className="flex items-center gap-2">
+                                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#183D2B] text-[11px] font-bold text-white">
+                                    {String(index + 1).padStart(2, "0")}
+                                  </span>
+                                  <span className="text-xs font-bold text-ink">
+                                    {point.title ? point.title : `Story ${index + 1}`}
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  <button
+                                    type="button"
+                                    disabled={index === 0}
+                                    onClick={() => {
+                                      if (index === 0) return;
+                                      const normalized = form.secretHistoryPoints.map((p) =>
+                                        typeof p === "string" ? { title: p, description: "", image: "" } : p,
+                                      );
+                                      const [moved] = normalized.splice(index, 1);
+                                      normalized.splice(index - 1, 0, moved);
+                                      update("secretHistoryPoints", normalized);
+                                    }}
+                                    className="rounded p-1 text-xs text-ink-faint hover:bg-stone hover:text-ink disabled:opacity-30"
+                                    title="Move Up"
+                                  >
+                                    ↑
+                                  </button>
+                                  <button
+                                    type="button"
+                                    disabled={index === form.secretHistoryPoints.length - 1}
+                                    onClick={() => {
+                                      if (index === form.secretHistoryPoints.length - 1) return;
+                                      const normalized = form.secretHistoryPoints.map((p) =>
+                                        typeof p === "string" ? { title: p, description: "", image: "" } : p,
+                                      );
+                                      const [moved] = normalized.splice(index, 1);
+                                      normalized.splice(index + 1, 0, moved);
+                                      update("secretHistoryPoints", normalized);
+                                    }}
+                                    className="rounded p-1 text-xs text-ink-faint hover:bg-stone hover:text-ink disabled:opacity-30"
+                                    title="Move Down"
+                                  >
+                                    ↓
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      update(
+                                        "secretHistoryPoints",
+                                        form.secretHistoryPoints.filter((_, i) => i !== index),
+                                      )
+                                    }
+                                    className="rounded px-2 py-0.5 text-xs font-semibold text-rose-600 hover:bg-rose-50"
+                                  >
+                                    Remove
+                                  </button>
+                                </div>
+                              </div>
+
+                              {/* Card Inputs */}
+                              <div className="space-y-3">
+                                <Field label="Story Title / Headline" required>
+                                  <Input
+                                    value={point.title}
+                                    placeholder="e.g. The Uffizi was originally built in 1560"
+                                    onChange={(e) => {
+                                      const normalized = form.secretHistoryPoints.map((p, i) => {
+                                        const obj =
+                                          typeof p === "string" ? { title: p, description: "", image: "" } : { ...p };
+                                        return i === index ? { ...obj, title: e.target.value } : obj;
+                                      });
+                                      update("secretHistoryPoints", normalized);
+                                    }}
+                                  />
+                                </Field>
+
+                                <Field label="Story Context / Description" hint="Historical background and significance">
+                                  <Textarea
+                                    rows={2}
+                                    value={point.description || ""}
+                                    placeholder="e.g. as government offices ('uffizi' literally means offices) for Cosimo I de' Medici."
+                                    onChange={(e) => {
+                                      const normalized = form.secretHistoryPoints.map((p, i) => {
+                                        const obj =
+                                          typeof p === "string" ? { title: p, description: "", image: "" } : { ...p };
+                                        return i === index ? { ...obj, description: e.target.value } : obj;
+                                      });
+                                      update("secretHistoryPoints", normalized);
+                                    }}
+                                  />
+                                </Field>
+
+                                <ImageField
+                                  label="Story Photo"
+                                  hint="Upload or paste image URL for this historical card"
+                                  value={point.image || ""}
+                                  onChange={(url) => {
+                                    const normalized = form.secretHistoryPoints.map((p, i) => {
+                                      const obj =
+                                        typeof p === "string" ? { title: p, description: "", image: "" } : { ...p };
+                                      return i === index ? { ...obj, image: url } : obj;
+                                    });
+                                    update("secretHistoryPoints", normalized);
+                                  }}
+                                />
+                              </div>
+                            </div>
+                          );
+                        })}
+
+                        {form.secretHistoryPoints.length === 0 ? (
+                          <div className="rounded-xl border border-dashed border-stone bg-[#faf9f6] p-6 text-center">
+                            <p className="text-sm font-medium text-ink">No secret history stories yet.</p>
+                            <p className="mt-1 text-xs text-ink-faint">
+                              Click "+ Add story" above to create engaging history cards with images and titles.
+                            </p>
+                          </div>
+                        ) : null}
+                      </div>
                     </div>
 
                     <div className="rounded-2xl border border-stone bg-white p-5">
@@ -760,29 +1132,209 @@ export function ExperienceEditor({
                     </div>
 
                     <div className="rounded-2xl border border-stone bg-white p-5">
-                      <h3 className="mb-4 text-sm font-semibold text-ink">The Ultimate Experience</h3>
+                      <div className="mb-4 flex items-center justify-between">
+                        <div>
+                          <h3 className="text-sm font-semibold text-ink">The Ultimate Experience / Premium Highlights</h3>
+                          <p className="mt-0.5 text-xs text-ink-faint">
+                            Headline, overview paragraph, and feature highlight cards that explain why this experience stands out.
+                          </p>
+                        </div>
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => {
+                            const normalized = form.ultimateExperiencePoints.map((p) =>
+                              typeof p === "string" ? { title: p, description: "", icon: "star" } : p,
+                            );
+                            update("ultimateExperiencePoints", [
+                              ...normalized,
+                              { title: "", description: "", icon: "chef" },
+                            ]);
+                          }}
+                        >
+                          + Add feature
+                        </Button>
+                      </div>
+
                       <div className="space-y-4">
-                        <Field label="Title" hint="Optional">
+                        <Field label="Section Headline" hint='e.g. "Cook It Yourself — Don&#39;t Just Watch"'>
                           <Input
                             value={form.ultimateExperienceTitle ?? ""}
                             onChange={(e) => update("ultimateExperienceTitle", e.target.value || null)}
-                            placeholder="e.g. The Ultimate Duomo Experience"
+                            placeholder="e.g. Cook It Yourself — Don't Just Watch"
                           />
                         </Field>
-                        <Field label="Description" hint="Optional">
+
+                        <Field label="Section Subtitle / Overview" hint="e.g. Small groups, hands-on every course, and a market visit that actually shapes what you cook that day.">
                           <Textarea
-                            rows={3}
+                            rows={2}
                             value={form.ultimateExperienceDescription ?? ""}
+                            placeholder="Small groups, hands-on every course, and a market visit that actually shapes what you cook that day."
                             onChange={(e) => update("ultimateExperienceDescription", e.target.value || null)}
                           />
                         </Field>
-                        <Field label="Points" hint="One per line">
-                          <Textarea
-                            rows={3}
-                            value={linesToText(form.ultimateExperiencePoints)}
-                            onChange={(e) => update("ultimateExperiencePoints", textToLines(e.target.value))}
+
+                        <div>
+                          <ImageField
+                            label="Section Feature Photo (Arched Card)"
+                            hint="Upload or paste image URL for the prominent arched photo in this section (e.g. /images/hero2-chianti-wine.jpg)"
+                            value={form.ultimateExperienceImage || ""}
+                            onChange={(url) => update("ultimateExperienceImage", url || null)}
                           />
-                        </Field>
+                        </div>
+
+                        <div className="mt-4 space-y-4">
+                          <label className="text-xs font-bold uppercase tracking-wider text-ink-faint">
+                            Feature Highlight Cards
+                          </label>
+
+                          {form.ultimateExperiencePoints.map((rawPoint, index) => {
+                            const point =
+                              typeof rawPoint === "string"
+                                ? { title: rawPoint, description: "", icon: "star" }
+                                : rawPoint;
+
+                            return (
+                              <div
+                                key={index}
+                                className="rounded-xl border border-stone/80 bg-[#faf9f6] p-4 transition hover:border-neutral-400"
+                              >
+                                {/* Card Header */}
+                                <div className="mb-3 flex items-center justify-between border-b border-stone/60 pb-2.5">
+                                  <div className="flex items-center gap-2">
+                                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#183D2B] text-[11px] font-bold text-white">
+                                      {String(index + 1).padStart(2, "0")}
+                                    </span>
+                                    <span className="text-xs font-bold text-ink">
+                                      {point.title || `Feature ${index + 1}`}
+                                    </span>
+                                  </div>
+                                  <div className="flex items-center gap-1">
+                                    <button
+                                      type="button"
+                                      disabled={index === 0}
+                                      onClick={() => {
+                                        if (index === 0) return;
+                                        const normalized = form.ultimateExperiencePoints.map((p) =>
+                                          typeof p === "string" ? { title: p, description: "", icon: "star" } : p,
+                                        );
+                                        const [moved] = normalized.splice(index, 1);
+                                        normalized.splice(index - 1, 0, moved);
+                                        update("ultimateExperiencePoints", normalized);
+                                      }}
+                                      className="rounded p-1 text-xs text-ink-faint hover:bg-stone hover:text-ink disabled:opacity-30"
+                                      title="Move Up"
+                                    >
+                                      ↑
+                                    </button>
+                                    <button
+                                      type="button"
+                                      disabled={index === form.ultimateExperiencePoints.length - 1}
+                                      onClick={() => {
+                                        if (index === form.ultimateExperiencePoints.length - 1) return;
+                                        const normalized = form.ultimateExperiencePoints.map((p) =>
+                                          typeof p === "string" ? { title: p, description: "", icon: "star" } : p,
+                                        );
+                                        const [moved] = normalized.splice(index, 1);
+                                        normalized.splice(index + 1, 0, moved);
+                                        update("ultimateExperiencePoints", normalized);
+                                      }}
+                                      className="rounded p-1 text-xs text-ink-faint hover:bg-stone hover:text-ink disabled:opacity-30"
+                                      title="Move Down"
+                                    >
+                                      ↓
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        update(
+                                          "ultimateExperiencePoints",
+                                          form.ultimateExperiencePoints.filter((_, i) => i !== index),
+                                        )
+                                      }
+                                      className="rounded px-2 py-0.5 text-xs font-semibold text-rose-600 hover:bg-rose-50"
+                                    >
+                                      Remove
+                                    </button>
+                                  </div>
+                                </div>
+
+                                {/* Card Inputs */}
+                                <div className="grid gap-3 sm:grid-cols-3">
+                                  <div className="sm:col-span-2">
+                                    <Field label="Feature Title" required>
+                                      <Input
+                                        value={point.title || ""}
+                                        placeholder='e.g. "You cook every course — this isn&#39;t a demonstration"'
+                                        onChange={(e) => {
+                                          const normalized = form.ultimateExperiencePoints.map((p, i) => {
+                                            const obj =
+                                              typeof p === "string" ? { title: p, description: "", icon: "star" } : { ...p };
+                                            return i === index ? { ...obj, title: e.target.value } : obj;
+                                          });
+                                          update("ultimateExperiencePoints", normalized);
+                                        }}
+                                      />
+                                    </Field>
+                                  </div>
+
+                                  <Field label="Feature Icon">
+                                    <select
+                                      value={point.icon || "star"}
+                                      onChange={(e) => {
+                                        const normalized = form.ultimateExperiencePoints.map((p, i) => {
+                                          const obj =
+                                            typeof p === "string" ? { title: p, description: "", icon: "star" } : { ...p };
+                                          return i === index ? { ...obj, icon: e.target.value } : obj;
+                                        });
+                                        update("ultimateExperiencePoints", normalized);
+                                      }}
+                                      className="w-full rounded-xl border border-neutral-300 bg-white px-3 py-2 text-sm text-ink focus:border-ink focus:outline-none"
+                                    >
+                                      <option value="chef">👨‍🍳 Chef / Hands-on Cooking</option>
+                                      <option value="book">📖 Recipe Booklet / Take-home</option>
+                                      <option value="wine">🍷 Wine Pairing / Drinks</option>
+                                      <option value="ticket">🎟️ Skip-the-line / Fast Track</option>
+                                      <option value="museum">🏛️ Museum Masterpieces</option>
+                                      <option value="crown">👑 VIP / Small Group</option>
+                                      <option value="guide">🧭 Local Florentine Guide</option>
+                                      <option value="camera">📷 Scenic Views / Terrace</option>
+                                      <option value="star">⭐ Premium Feature</option>
+                                    </select>
+                                  </Field>
+                                </div>
+
+                                {/* Description */}
+                                <div className="mt-3">
+                                  <Field label="Feature Description" hint="Detailed benefit or takeaway">
+                                    <Textarea
+                                      rows={2}
+                                      value={point.description || ""}
+                                      placeholder="Get hands-on with every dish, from start to finish, with expert guidance at your side."
+                                      onChange={(e) => {
+                                        const normalized = form.ultimateExperiencePoints.map((p, i) => {
+                                          const obj =
+                                            typeof p === "string" ? { title: p, description: "", icon: "star" } : { ...p };
+                                          return i === index ? { ...obj, description: e.target.value } : obj;
+                                        });
+                                        update("ultimateExperiencePoints", normalized);
+                                      }}
+                                    />
+                                  </Field>
+                                </div>
+                              </div>
+                            );
+                          })}
+
+                          {form.ultimateExperiencePoints.length === 0 ? (
+                            <div className="rounded-xl border border-dashed border-stone bg-[#faf9f6] p-6 text-center">
+                              <p className="text-sm font-medium text-ink">No feature highlights yet.</p>
+                              <p className="mt-1 text-xs text-ink-faint">
+                                Click "+ Add feature" above to showcase why this experience is extraordinary.
+                              </p>
+                            </div>
+                          ) : null}
+                        </div>
                       </div>
                     </div>
 
@@ -842,78 +1394,423 @@ export function ExperienceEditor({
                     </div>
 
                     <div className="rounded-2xl border border-stone bg-white p-5">
-                      <div className="mb-2 flex items-center justify-between">
+                      <div className="mb-4 flex items-center justify-between">
                         <div>
-                          <h3 className="text-sm font-semibold text-ink">Location & How to Get There</h3>
+                          <h3 className="text-sm font-semibold text-ink">Location &amp; How to Get There</h3>
                           <p className="mt-0.5 text-xs text-ink-faint">
-                            The meeting point and map already come from the Content &amp; Location tab — these are the transport options shown alongside it.
+                            Curate transport cards (On foot, By bus, Taxi, Shuttle) with photos, duration pills, and icons.
                           </p>
                         </div>
                         <Button
                           variant="secondary"
                           size="sm"
-                          onClick={() => update("gettingThereOptions", [...form.gettingThereOptions, { mode: "", description: "" }])}
+                          onClick={() =>
+                            update("gettingThereOptions", [
+                              ...form.gettingThereOptions,
+                              { mode: "", description: "", image: "", tag: "", icon: "foot" },
+                            ])
+                          }
                         >
-                          + Add option
+                          + Add transport option
                         </Button>
                       </div>
-                      <div className="space-y-3">
+
+                      <div className="space-y-4">
                         {form.gettingThereOptions.map((opt, index) => (
-                          <div key={index} className="rounded-xl border border-stone bg-white p-3">
-                            <div className="grid gap-3 sm:grid-cols-[1fr_2fr_auto]">
-                              <Field label="Mode" hint='e.g. "By Metro"'>
-                                <Input
-                                  value={opt.mode}
-                                  onChange={(e) =>
-                                    update("gettingThereOptions", form.gettingThereOptions.map((g, i) => (i === index ? { ...g, mode: e.target.value } : g)))
+                          <div
+                            key={index}
+                            className="rounded-xl border border-stone/80 bg-[#faf9f6] p-4 transition hover:border-neutral-400"
+                          >
+                            {/* Card Header */}
+                            <div className="mb-3 flex items-center justify-between border-b border-stone/60 pb-2.5">
+                              <div className="flex items-center gap-2">
+                                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#183D2B] text-[11px] font-bold text-white">
+                                  {String(index + 1).padStart(2, "0")}
+                                </span>
+                                <span className="text-xs font-bold text-ink">
+                                  {opt.mode ? opt.mode : `Option ${index + 1}`}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <button
+                                  type="button"
+                                  disabled={index === 0}
+                                  onClick={() => {
+                                    if (index === 0) return;
+                                    const next = [...form.gettingThereOptions];
+                                    const [moved] = next.splice(index, 1);
+                                    next.splice(index - 1, 0, moved);
+                                    update("gettingThereOptions", next);
+                                  }}
+                                  className="rounded p-1 text-xs text-ink-faint hover:bg-stone hover:text-ink disabled:opacity-30"
+                                  title="Move Up"
+                                >
+                                  ↑
+                                </button>
+                                <button
+                                  type="button"
+                                  disabled={index === form.gettingThereOptions.length - 1}
+                                  onClick={() => {
+                                    if (index === form.gettingThereOptions.length - 1) return;
+                                    const next = [...form.gettingThereOptions];
+                                    const [moved] = next.splice(index, 1);
+                                    next.splice(index + 1, 0, moved);
+                                    update("gettingThereOptions", next);
+                                  }}
+                                  className="rounded p-1 text-xs text-ink-faint hover:bg-stone hover:text-ink disabled:opacity-30"
+                                  title="Move Down"
+                                >
+                                  ↓
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    update(
+                                      "gettingThereOptions",
+                                      form.gettingThereOptions.filter((_, i) => i !== index),
+                                    )
                                   }
-                                />
-                              </Field>
-                              <Field label="Description" hint="Optional">
-                                <Input
-                                  value={opt.description}
-                                  onChange={(e) =>
-                                    update("gettingThereOptions", form.gettingThereOptions.map((g, i) => (i === index ? { ...g, description: e.target.value } : g)))
-                                  }
-                                />
-                              </Field>
-                              <div className="flex items-end">
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => update("gettingThereOptions", form.gettingThereOptions.filter((_, i) => i !== index))}
+                                  className="rounded px-2 py-0.5 text-xs font-semibold text-rose-600 hover:bg-rose-50"
                                 >
                                   Remove
-                                </Button>
+                                </button>
                               </div>
+                            </div>
+
+                            {/* Card Inputs */}
+                            <div className="grid gap-3 sm:grid-cols-3">
+                              <Field label="Transport Mode" required>
+                                <Input
+                                  value={opt.mode}
+                                  placeholder='e.g. "On Foot", "By Bus", "By Taxi"'
+                                  onChange={(e) =>
+                                    update(
+                                      "gettingThereOptions",
+                                      form.gettingThereOptions.map((g, i) =>
+                                        i === index ? { ...g, mode: e.target.value } : g,
+                                      ),
+                                    )
+                                  }
+                                />
+                              </Field>
+
+                              <Field label="Duration / Stops Tag" hint='e.g. "15 minutes", "14 stops"'>
+                                <Input
+                                  value={opt.tag || ""}
+                                  placeholder='e.g. "15 minutes" or "Line 14"'
+                                  onChange={(e) =>
+                                    update(
+                                      "gettingThereOptions",
+                                      form.gettingThereOptions.map((g, i) =>
+                                        i === index ? { ...g, tag: e.target.value } : g,
+                                      ),
+                                    )
+                                  }
+                                />
+                              </Field>
+
+                              <Field label="Icon">
+                                <select
+                                  value={opt.icon || "foot"}
+                                  onChange={(e) =>
+                                    update(
+                                      "gettingThereOptions",
+                                      form.gettingThereOptions.map((g, i) =>
+                                        i === index ? { ...g, icon: e.target.value } : g,
+                                      ),
+                                    )
+                                  }
+                                  className="w-full rounded-xl border border-neutral-300 bg-white px-3 py-2 text-sm text-ink focus:border-ink focus:outline-none"
+                                >
+                                  <option value="foot">🚶 On Foot / Walking</option>
+                                  <option value="bus">🚌 Public Bus</option>
+                                  <option value="taxi">🚕 Taxi / Car</option>
+                                  <option value="train">🚆 Train / Tram</option>
+                                  <option value="bike">🚲 Bicycle</option>
+                                  <option value="pickup">🚐 Coach / Shuttle Pickup</option>
+                                  <option value="pin">📍 Meeting Point</option>
+                                </select>
+                              </Field>
+                            </div>
+
+                            {/* Image Uploader & Preview */}
+                            <div className="mt-3">
+                              <ImageField
+                                label="Option Photo"
+                                hint="Upload or paste image URL for this transport card"
+                                value={opt.image || ""}
+                                onChange={(url) =>
+                                  update(
+                                    "gettingThereOptions",
+                                    form.gettingThereOptions.map((g, i) =>
+                                      i === index ? { ...g, image: url } : g,
+                                    ),
+                                  )
+                                }
+                              />
+                            </div>
+
+                            {/* Option Description */}
+                            <div className="mt-3">
+                              <Field label="Directions &amp; Details" hint="Walking directions, bus lines, or taxi instructions">
+                                <Textarea
+                                  rows={2}
+                                  value={opt.description || ""}
+                                  placeholder="e.g. Sant'Ambrogio Market is about a 15-minute walk east of the Duomo, in a quieter part of the historic center."
+                                  onChange={(e) =>
+                                    update(
+                                      "gettingThereOptions",
+                                      form.gettingThereOptions.map((g, i) =>
+                                        i === index ? { ...g, description: e.target.value } : g,
+                                      ),
+                                    )
+                                  }
+                                />
+                              </Field>
                             </div>
                           </div>
                         ))}
+
                         {form.gettingThereOptions.length === 0 ? (
-                          <p className="rounded-xl border border-dashed border-stone p-4 text-center text-sm text-ink-faint">
-                            No transport options yet — add one above.
-                          </p>
+                          <div className="rounded-xl border border-dashed border-stone bg-[#faf9f6] p-6 text-center">
+                            <p className="text-sm font-medium text-ink">No transport options yet.</p>
+                            <p className="mt-1 text-xs text-ink-faint">
+                              Click "+ Add transport option" above to build the travel guide cards.
+                            </p>
+                          </div>
                         ) : null}
                       </div>
                     </div>
 
                     <div className="rounded-2xl border border-stone bg-white p-5">
-                      <h3 className="mb-4 text-sm font-semibold text-ink">Best Time to Visit</h3>
+                      <div className="mb-4 flex items-center justify-between">
+                        <div>
+                          <h3 className="text-sm font-semibold text-ink">When to Visit &amp; Seasonal Highlights</h3>
+                          <p className="mt-0.5 text-xs text-ink-faint">
+                            Overview description and seasonal cards (Spring, Summer, Autumn &amp; Winter) with photos and weather tips.
+                          </p>
+                        </div>
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => {
+                            const normalized = form.bestTimeToVisitTips.map((t) =>
+                              typeof t === "string"
+                                ? { season: "", months: "", title: "", description: t, image: "", icon: "flower" }
+                                : t,
+                            );
+                            update("bestTimeToVisitTips", [
+                              ...normalized,
+                              { season: "Spring", months: "March – May", title: "March – May", description: "", image: "", icon: "flower" },
+                            ]);
+                          }}
+                        >
+                          + Add season
+                        </Button>
+                      </div>
+
                       <div className="space-y-4">
-                        <Field label="Description" hint="Optional">
+                        <Field label="Section Subtitle / Overview" hint="e.g. The experience is enjoyable year-round, but genuinely varies with the seasons...">
                           <Textarea
-                            rows={3}
+                            rows={2}
                             value={form.bestTimeToVisit ?? ""}
+                            placeholder="The market is enjoyable year-round, but the experience genuinely varies with the seasons..."
                             onChange={(e) => update("bestTimeToVisit", e.target.value || null)}
                           />
                         </Field>
-                        <Field label="Quick tips" hint="One per line, optional">
-                          <Textarea
-                            rows={3}
-                            value={linesToText(form.bestTimeToVisitTips)}
-                            onChange={(e) => update("bestTimeToVisitTips", textToLines(e.target.value))}
-                          />
-                        </Field>
+
+                        <div className="mt-4 space-y-4">
+                          <label className="text-xs font-bold uppercase tracking-wider text-ink-faint">
+                            Seasonal Recommendation Cards
+                          </label>
+
+                          {form.bestTimeToVisitTips.map((rawTip, index) => {
+                            const tip =
+                              typeof rawTip === "string"
+                                ? { season: "", months: "", title: "", description: rawTip, image: "", icon: "flower" }
+                                : rawTip;
+
+                            return (
+                              <div
+                                key={index}
+                                className="rounded-xl border border-stone/80 bg-[#faf9f6] p-4 transition hover:border-neutral-400"
+                              >
+                                {/* Card Header */}
+                                <div className="mb-3 flex items-center justify-between border-b border-stone/60 pb-2.5">
+                                  <div className="flex items-center gap-2">
+                                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#183D2B] text-[11px] font-bold text-white">
+                                      {String(index + 1).padStart(2, "0")}
+                                    </span>
+                                    <span className="text-xs font-bold text-ink">
+                                      {tip.season || tip.months || tip.title || `Season ${index + 1}`}
+                                    </span>
+                                  </div>
+                                  <div className="flex items-center gap-1">
+                                    <button
+                                      type="button"
+                                      disabled={index === 0}
+                                      onClick={() => {
+                                        if (index === 0) return;
+                                        const normalized = form.bestTimeToVisitTips.map((t) =>
+                                          typeof t === "string"
+                                            ? { season: "", months: "", title: "", description: t, image: "", icon: "flower" }
+                                            : t,
+                                        );
+                                        const [moved] = normalized.splice(index, 1);
+                                        normalized.splice(index - 1, 0, moved);
+                                        update("bestTimeToVisitTips", normalized);
+                                      }}
+                                      className="rounded p-1 text-xs text-ink-faint hover:bg-stone hover:text-ink disabled:opacity-30"
+                                      title="Move Up"
+                                    >
+                                      ↑
+                                    </button>
+                                    <button
+                                      type="button"
+                                      disabled={index === form.bestTimeToVisitTips.length - 1}
+                                      onClick={() => {
+                                        if (index === form.bestTimeToVisitTips.length - 1) return;
+                                        const normalized = form.bestTimeToVisitTips.map((t) =>
+                                          typeof t === "string"
+                                            ? { season: "", months: "", title: "", description: t, image: "", icon: "flower" }
+                                            : t,
+                                        );
+                                        const [moved] = normalized.splice(index, 1);
+                                        normalized.splice(index + 1, 0, moved);
+                                        update("bestTimeToVisitTips", normalized);
+                                      }}
+                                      className="rounded p-1 text-xs text-ink-faint hover:bg-stone hover:text-ink disabled:opacity-30"
+                                      title="Move Down"
+                                    >
+                                      ↓
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        update(
+                                          "bestTimeToVisitTips",
+                                          form.bestTimeToVisitTips.filter((_, i) => i !== index),
+                                        )
+                                      }
+                                      className="rounded px-2 py-0.5 text-xs font-semibold text-rose-600 hover:bg-rose-50"
+                                    >
+                                      Remove
+                                    </button>
+                                  </div>
+                                </div>
+
+                                {/* Card Inputs */}
+                                <div className="grid gap-3 sm:grid-cols-3">
+                                  <Field label="Season Label" hint='e.g. "Spring", "Summer"'>
+                                    <Input
+                                      value={tip.season || ""}
+                                      placeholder='e.g. "Spring" or "Autumn & Winter"'
+                                      onChange={(e) => {
+                                        const normalized = form.bestTimeToVisitTips.map((t, i) => {
+                                          const obj =
+                                            typeof t === "string"
+                                              ? { season: "", months: "", title: "", description: t, image: "", icon: "flower" }
+                                              : { ...t };
+                                          return i === index ? { ...obj, season: e.target.value } : obj;
+                                        });
+                                        update("bestTimeToVisitTips", normalized);
+                                      }}
+                                    />
+                                  </Field>
+
+                                  <Field label="Months / Period" hint='e.g. "March – May"'>
+                                    <Input
+                                      value={tip.months || tip.title || ""}
+                                      placeholder='e.g. "March – May"'
+                                      onChange={(e) => {
+                                        const normalized = form.bestTimeToVisitTips.map((t, i) => {
+                                          const obj =
+                                            typeof t === "string"
+                                              ? { season: "", months: "", title: "", description: t, image: "", icon: "flower" }
+                                              : { ...t };
+                                          return i === index ? { ...obj, months: e.target.value, title: e.target.value } : obj;
+                                        });
+                                        update("bestTimeToVisitTips", normalized);
+                                      }}
+                                    />
+                                  </Field>
+
+                                  <Field label="Season Icon">
+                                    <select
+                                      value={tip.icon || "flower"}
+                                      onChange={(e) => {
+                                        const normalized = form.bestTimeToVisitTips.map((t, i) => {
+                                          const obj =
+                                            typeof t === "string"
+                                              ? { season: "", months: "", title: "", description: t, image: "", icon: "flower" }
+                                              : { ...t };
+                                          return i === index ? { ...obj, icon: e.target.value } : obj;
+                                        });
+                                        update("bestTimeToVisitTips", normalized);
+                                      }}
+                                      className="w-full rounded-xl border border-neutral-300 bg-white px-3 py-2 text-sm text-ink focus:border-ink focus:outline-none"
+                                    >
+                                      <option value="flower">🌸 Spring / Flowers</option>
+                                      <option value="sun">☀️ Summer / Sunshine</option>
+                                      <option value="leaf">🍃 Autumn / Harvest Leaf</option>
+                                      <option value="snow">❄️ Winter / Crisp &amp; Cozy</option>
+                                      <option value="clock">⏱️ Time / Hours</option>
+                                    </select>
+                                  </Field>
+                                </div>
+
+                                {/* Image Uploader & Preview */}
+                                <div className="mt-3">
+                                  <ImageField
+                                    label="Season Photo"
+                                    hint="Upload or paste image URL for this seasonal card"
+                                    value={tip.image || ""}
+                                    onChange={(url) => {
+                                      const normalized = form.bestTimeToVisitTips.map((t, i) => {
+                                        const obj =
+                                          typeof t === "string"
+                                            ? { season: "", months: "", title: "", description: t, image: "", icon: "flower" }
+                                            : { ...t };
+                                        return i === index ? { ...obj, image: url } : obj;
+                                      });
+                                      update("bestTimeToVisitTips", normalized);
+                                    }}
+                                  />
+                                </div>
+
+                                {/* Description */}
+                                <div className="mt-3">
+                                  <Field label="Seasonal Description / Advice" hint="Atmosphere, crowd levels, and weather tips">
+                                    <Textarea
+                                      rows={2}
+                                      value={tip.description || ""}
+                                      placeholder="Mild weather, blooming flowers and a lively atmosphere make spring a great time to visit."
+                                      onChange={(e) => {
+                                        const normalized = form.bestTimeToVisitTips.map((t, i) => {
+                                          const obj =
+                                            typeof t === "string"
+                                              ? { season: "", months: "", title: "", description: t, image: "", icon: "flower" }
+                                              : { ...t };
+                                          return i === index ? { ...obj, description: e.target.value } : obj;
+                                        });
+                                        update("bestTimeToVisitTips", normalized);
+                                      }}
+                                    />
+                                  </Field>
+                                </div>
+                              </div>
+                            );
+                          })}
+
+                          {form.bestTimeToVisitTips.length === 0 ? (
+                            <div className="rounded-xl border border-dashed border-stone bg-[#faf9f6] p-6 text-center">
+                              <p className="text-sm font-medium text-ink">No seasonal recommendation cards yet.</p>
+                              <p className="mt-1 text-xs text-ink-faint">
+                                Click "+ Add season" above to create Spring, Summer, and Autumn/Winter cards.
+                              </p>
+                            </div>
+                          ) : null}
+                        </div>
                       </div>
                     </div>
 

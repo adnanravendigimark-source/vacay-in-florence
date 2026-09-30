@@ -58,17 +58,17 @@ export async function QuickCategoryRibbon({ content }: QuickCategoryRibbonProps)
   const subtitle = content?.categoriesSubtitle;
 
   return (
-    <section className="border-b border-neutral-200/80 bg-[#faf9f6] py-6 sm:py-8">
+    <section className="border-b border-neutral-200/80 bg-white py-6 sm:py-8">
       <Container>
         <div className="flex items-center justify-between gap-4 mb-4">
           <div>
             {badge ? (
-              <span className="inline-block mb-1 text-[10px] font-bold uppercase tracking-widest text-[#2b0934]/70">
+              <span className="inline-block mb-1 text-[10px] font-bold uppercase tracking-widest text-[#9e0ca0]">
                 {badge}
               </span>
             ) : null}
             <div className="flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-[#2b0934]" />
+              <span className="h-2 w-2 rounded-full bg-[#9e0ca0]" />
               <span className="text-xs font-bold uppercase tracking-wider text-neutral-800">
                 {title}
               </span>
@@ -79,7 +79,7 @@ export async function QuickCategoryRibbon({ content }: QuickCategoryRibbonProps)
           </div>
           <Link
             href="/experiences"
-            className="text-xs font-semibold text-[#2b0934] hover:underline shrink-0"
+            className="text-xs font-semibold text-[#9e0ca0] hover:underline shrink-0"
           >
             All Categories &rarr;
           </Link>
@@ -90,13 +90,13 @@ export async function QuickCategoryRibbon({ content }: QuickCategoryRibbonProps)
             <Link
               key={category.id}
               href={`/experiences/category/${category.slug}`}
-              className="group flex items-center gap-3 p-3 rounded-2xl bg-white border border-neutral-200/90 shadow-sm transition-all duration-200 hover:shadow-md hover:border-[#2b0934]/40 hover:-translate-y-0.5"
+              className="group flex items-center gap-3 p-3 rounded-2xl bg-white border border-neutral-200/90 shadow-sm transition-all duration-200 hover:shadow-md hover:border-[#9e0ca0]/40 hover:-translate-y-0.5"
             >
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-neutral-100 text-[#2b0934] transition-all duration-200 group-hover:bg-[#2b0934] group-hover:text-white">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-neutral-100 text-[#9e0ca0] transition-all duration-200 group-hover:bg-[#9e0ca0] group-hover:text-white">
                 {ICONS[category.icon]}
               </div>
               <div className="min-w-0 flex-1">
-                <h3 className="text-xs font-bold leading-snug text-neutral-900 group-hover:text-[#2b0934]">
+                <h3 className="text-xs font-bold leading-snug text-neutral-900 group-hover:text-[#9e0ca0]">
                   {category.name}
                 </h3>
                 <p className="text-[10.5px] text-neutral-500 truncate">

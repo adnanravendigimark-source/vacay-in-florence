@@ -1,7 +1,13 @@
 import "server-only";
-import { desc, eq, isNotNull, sql } from "drizzle-orm";
+import crypto from "node:crypto";
+import { desc, eq, and, isNotNull, sql } from "drizzle-orm";
+import bcrypt from "bcryptjs";
 import { db } from "@/lib/db";
-import { roles, permissions, rolePermissions, users } from "@/lib/db/schema";
+import { getPgErrorCode } from "@/lib/db/errors";
+import { roles, permissions, rolePermissions, users, verificationTokens } from "@/lib/db/schema";
+import { sendStaffInviteEmail } from "@/lib/email";
+
+const PASSWORD_SETUP_TTL_MS = 24 * 60 * 60 * 1000;
 
 export interface MutationResult {
   success: boolean;
@@ -110,7 +116,7 @@ export async function createRole(input: RoleEditInput): Promise<MutationResult> 
     await replaceRolePermissions(created.id, input.permissionKeys);
     return { success: true, id: created.id };
   } catch (err) {
-    const code = (err as { code?: string } | null)?.code;
+    const code = getPgErrorCode(err);
     if (code === "23505") {
       return { success: false, error: "A role with this name already exists." };
     }
@@ -135,7 +141,7 @@ export async function updateRole(id: string, input: RoleEditInput): Promise<Muta
     await replaceRolePermissions(id, input.permissionKeys);
     return { success: true, id };
   } catch (err) {
-    const code = (err as { code?: string } | null)?.code;
+    const code = getPgErrorCode(err);
     if (code === "23505") {
       return { success: false, error: "A role with this name already exists." };
     }
@@ -154,7 +160,7 @@ export async function deleteRole(id: string): Promise<MutationResult> {
     await db.delete(roles).where(eq(roles.id, id));
     return { success: true };
   } catch (err) {
-    const code = (err as { code?: string } | null)?.code;
+    const code = getPgErrorCode(err);
     if (code === "23503") {
       return {
         success: false,
@@ -184,24 +190,88 @@ export async function listStaffMembers(): Promise<AdminStaffMember[]> {
 }
 
 /**
- * Promotes an existing customer account to staff (or moves an existing
- * staff member to a different role) by email — there's no separate
- * "create user" flow here; every account starts as an ordinary
- * `/register` signup, and this just points its roleId at a role.
+ * Grants admin/staff access by email. Staff accounts are now a fully
+ * separate `accountType: "staff"` row from any customer or supplier
+ * account on the same email (see the account-isolation overhaul in
+ * claude/auth-email-verification-and-account-isolation-summary.md) — this
+ * NEVER reuses or mutates an existing customer/supplier row, so granting
+ * an admin's own personal email staff access can't affect their separate
+ * customer account.
+ *
+ * - If a staff row already exists for this email (including a
+ *   previously-revoked one, whose accountType stays "staff" forever with
+ *   roleId cleared — see removeStaffAccess below), this just (re)points
+ *   its roleId. No new email is sent; they already have credentials.
+ * - Otherwise, this creates a brand-new staff account with a random,
+ *   cryptographically unusable password (nobody knows it — the row
+ *   exists so the invite can be emailed and so audit_logs has someone to
+ *   attribute future actions to), emailVerified left null, and a
+ *   password_setup token emailed via sendStaffInviteEmail. The invited
+ *   person sets their real password (and proves mailbox ownership) by
+ *   following that link to /reset-password.
  */
-export async function assignUserRoleByEmail(email: string, roleId: string): Promise<MutationResult> {
+export async function assignUserRoleByEmail(email: string, name: string, roleId: string): Promise<MutationResult> {
+  const normalized = email.trim().toLowerCase();
+  const displayName = name.trim() || normalized;
+
   try {
-    const [user] = await db.select({ id: users.id }).from(users).where(eq(users.email, email.trim().toLowerCase()));
-    if (!user) return { success: false, error: "No account found with that email. They need to register first." };
-    await db.update(users).set({ roleId, updatedAt: new Date() }).where(eq(users.id, user.id));
-    return { success: true, id: user.id };
+    const [role] = await db.select({ name: roles.name }).from(roles).where(eq(roles.id, roleId));
+    if (!role) return { success: false, error: "Role not found." };
+
+    const [existingStaff] = await db
+      .select({ id: users.id })
+      .from(users)
+      .where(and(eq(users.email, normalized), eq(users.accountType, "staff")));
+
+    if (existingStaff) {
+      await db.update(users).set({ roleId, updatedAt: new Date() }).where(eq(users.id, existingStaff.id));
+      return { success: true, id: existingStaff.id };
+    }
+
+    const passwordHash = await bcrypt.hash(crypto.randomBytes(32).toString("hex"), 12);
+    const [created] = await db
+      .insert(users)
+      .values({
+        email: normalized,
+        name: displayName,
+        passwordHash,
+        accountType: "staff",
+        roleId,
+        emailVerified: null,
+      })
+      .returning({ id: users.id });
+
+    const token = crypto.randomUUID();
+    await db.insert(verificationTokens).values({
+      userId: created.id,
+      token,
+      type: "password_setup",
+      expiresAt: new Date(Date.now() + PASSWORD_SETUP_TTL_MS),
+    });
+    await sendStaffInviteEmail(normalized, displayName, token, role.name);
+
+    return { success: true, id: created.id };
   } catch (err) {
+    const code = getPgErrorCode(err);
+    if (code === "23505") {
+      return { success: false, error: "That email already has a staff account." };
+    }
     console.error("[admin/roles] assignUserRoleByEmail failed:", err);
     return { success: false, error: "Could not assign this role." };
   }
 }
 
-/** Demotes a staff member back to an ordinary customer (roleId -> null). */
+/**
+ * Demotes a staff member back out of the admin panel (roleId -> null).
+ * The row itself, its accountType ("staff"), and its email are kept
+ * forever rather than deleted: audit_logs.actorUserId has no ON DELETE
+ * rule, so deleting it would break the history of everything they ever
+ * did, and keeping accountType "staff" reserves that (email, "staff")
+ * slot so a later re-invite via assignUserRoleByEmail finds this same
+ * row instead of colliding with it. authorizeAgainstRole's staff path
+ * requires roleId IS NOT NULL, so a revoked row behaves exactly like "no
+ * account" for login purposes.
+ */
 export async function removeStaffAccess(userId: string, actingUserId: string): Promise<MutationResult> {
   if (userId === actingUserId) {
     return { success: false, error: "You can't remove your own admin access." };

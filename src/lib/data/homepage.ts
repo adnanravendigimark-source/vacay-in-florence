@@ -56,6 +56,7 @@ export const DEFAULT_HOMEPAGE_CONTENT: HomepageContentInsert = {
     { id: "exp-3", title: "Tuscany Countryside Day Trip", slug: "chianti-countryside-and-wine-tasting-day-trip", imageUrl: "/images/experiences/chianti-vineyards.jpg", badgeText: "Top Rated", duration: "8h", priceFrom: "€62", enabled: true },
     { id: "exp-4", title: "Arno River Sunset Cruise", slug: "bike-tour-florence-viewpoint", imageUrl: "/images/experiences/bike-tour-ponte-vecchio.jpg", badgeText: "New", duration: "1h", priceFrom: "€40", enabled: true },
   ],
+  featuredExperienceIds: [],
 
   // 4. Landmark Spotlight Section
   landmarkEnabled: true,
@@ -329,7 +330,8 @@ async function ensureHomepageTableExistsUncached() {
         ADD COLUMN IF NOT EXISTS "testimonials_rating_value" text NOT NULL DEFAULT '4.9 / 5.0',
         ADD COLUMN IF NOT EXISTS "testimonials_rating_count" text NOT NULL DEFAULT '14,200+ Reviews',
         ADD COLUMN IF NOT EXISTS "cta_promo_code" text NOT NULL DEFAULT 'FLORENCE10',
-        ADD COLUMN IF NOT EXISTS "categories_limit" integer NOT NULL DEFAULT 6;
+        ADD COLUMN IF NOT EXISTS "categories_limit" integer NOT NULL DEFAULT 6,
+        ADD COLUMN IF NOT EXISTS "featured_experience_ids" jsonb;
     `);
   } catch (err) {
     console.error("Error migrating homepage_content columns:", err);

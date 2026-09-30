@@ -20,6 +20,7 @@ export default async function LoginPage({
       activeTab="login"
       title="Welcome back"
       subtitle="Sign in to your account"
+      redirectTo={redirectTo ?? "/account"}
     >
       <LoginForm
         redirectTo={redirectTo ?? "/account"}

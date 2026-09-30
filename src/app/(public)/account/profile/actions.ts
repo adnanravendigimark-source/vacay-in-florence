@@ -21,10 +21,14 @@ export async function updateProfileAction(formData: FormData): Promise<void> {
     redirect(`/account/profile?error=${encodeURIComponent(message)}`);
   }
 
+  // Scoped to accountType "customer" — under the account-isolation model
+  // the same email can also exist as a separate staff or supplier
+  // account without conflict, so only another customer row on this
+  // email is a real collision here.
   const [emailTaken] = await db
     .select()
     .from(users)
-    .where(and(eq(users.email, parsed.data.email), ne(users.id, user.id)));
+    .where(and(eq(users.email, parsed.data.email), eq(users.accountType, "customer"), ne(users.id, user.id)));
   if (emailTaken) {
     redirect(`/account/profile?error=${encodeURIComponent("That email is already in use.")}`);
   }

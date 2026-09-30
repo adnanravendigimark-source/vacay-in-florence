@@ -25,7 +25,7 @@ export function BlogSearchBox({
   return (
     <form
       onSubmit={handleSubmit}
-      className={`relative flex items-center w-full max-w-md bg-white rounded-full p-1.5 pl-4 shadow-md border border-neutral-200/90 focus-within:border-[#a813c9] focus-within:shadow-lg transition-all ${className}`}
+      className={`relative flex items-center w-full max-w-md bg-white rounded-full p-1.5 pl-4 shadow-md border border-neutral-200/90 focus-within:border-[#9e0ca0] focus-within:shadow-lg transition-all ${className}`}
     >
       <svg
         viewBox="0 0 20 20"
@@ -46,7 +46,7 @@ export function BlogSearchBox({
       <button
         type="submit"
         aria-label="Search"
-        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#2B0934] hover:bg-[#3D0D4A] text-white shadow-sm transition-all hover:scale-105 active:scale-95 cursor-pointer"
+        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#9e0ca0] hover:bg-[#850b9e] text-white shadow-sm transition-all hover:scale-105 active:scale-95 cursor-pointer"
       >
         <svg viewBox="0 0 20 20" className="h-4 w-4 fill-none stroke-current stroke-[2.2]">
           <path d="M4 10h11m-4-4l4 4-4 4" strokeLinecap="round" strokeLinejoin="round" />

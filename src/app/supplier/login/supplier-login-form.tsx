@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { loginSchema } from "@/lib/validation/auth";
 import { checkSupplierLoginStatusAction } from "./actions";
+import { RecaptchaCheckbox, type RecaptchaCheckboxHandle } from "@/components/auth/recaptcha-checkbox";
 
 interface StatusBannerInfo {
   title: string;
@@ -38,6 +39,8 @@ export function SupplierLoginForm({ redirectTo }: { redirectTo: string }) {
   const [pending, setPending] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
+  const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
+  const recaptchaRef = useRef<RecaptchaCheckboxHandle>(null);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -54,10 +57,24 @@ export function SupplierLoginForm({ redirectTo }: { redirectTo: string }) {
       return;
     }
 
+    if (!recaptchaToken) {
+      setGenericError("Please complete the reCAPTCHA verification.");
+      return;
+    }
+
     setPending(true);
 
     try {
       const status = await checkSupplierLoginStatusAction(parsed.data.email);
+      if (status.found && status.emailVerified === false) {
+        setPending(false);
+        setErrorBanner({
+          title: "Confirm your email address",
+          body: "We sent a confirmation link to your email when you registered. Please confirm it before signing in.",
+          type: "warning",
+        });
+        return;
+      }
       if (status.found && status.status && status.status !== "approved") {
         setPending(false);
         setErrorBanner(
@@ -73,11 +90,14 @@ export function SupplierLoginForm({ redirectTo }: { redirectTo: string }) {
       const result = await signIn("supplier-credentials", {
         email: parsed.data.email,
         password: parsed.data.password,
+        recaptchaToken,
         redirect: false,
       });
 
       if (result?.error) {
         setPending(false);
+        recaptchaRef.current?.reset();
+        setRecaptchaToken(null);
         setGenericError("Invalid email or password. Please check your credentials and try again.");
         return;
       }
@@ -181,16 +201,18 @@ export function SupplierLoginForm({ redirectTo }: { redirectTo: string }) {
           </label>
 
           <Link
-            href="/forgot-password"
+            href="/forgot-password?role=supplier"
             className="text-xs font-medium text-neutral-500 hover:text-[#1b3b36] hover:underline"
           >
             Forgot password?
           </Link>
         </div>
 
+        <RecaptchaCheckbox ref={recaptchaRef} onChange={setRecaptchaToken} />
+
         <button
           type="submit"
-          disabled={pending}
+          disabled={pending || !recaptchaToken}
           className="w-full rounded-xl bg-[#1b3b36] hover:bg-[#132c28] active:scale-[0.99] text-white py-3.5 text-sm font-semibold shadow-md transition-all cursor-pointer flex items-center justify-center gap-2 disabled:opacity-75 disabled:cursor-not-allowed mt-2"
         >
           {pending ? (

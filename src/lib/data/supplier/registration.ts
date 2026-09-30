@@ -1,9 +1,13 @@
 import "server-only";
-import { eq } from "drizzle-orm";
+import crypto from "node:crypto";
+import { eq, and } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import { db } from "@/lib/db";
-import { users, suppliers } from "@/lib/db/schema";
+import { users, suppliers, verificationTokens } from "@/lib/db/schema";
 import type { SupplierRegisterInput } from "@/lib/validation/supplier";
+import { sendEmailVerificationEmail } from "@/lib/email";
+
+const EMAIL_VERIFICATION_TTL_MS = 24 * 60 * 60 * 1000;
 
 export interface MutationResult {
   success: boolean;
@@ -33,18 +37,26 @@ async function uniqueSlug(base: string): Promise<string> {
 }
 
 /**
- * Creates a real, immediately-usable account for a new supplier applicant:
- * a `users` row (roleId left null — a supplier is never staff) plus a
- * `suppliers` row with status "pending" and `userId` set to the new user,
- * inside one transaction. No session is created here — the caller redirects
- * to /supplier/pending, which reads status fresh from the DB rather than
- * trusting anything client-side. Mirrors the existing customer
- * `registerAction` (src/app/(public)/register/actions.ts) for the
- * duplicate-email check and bcrypt cost.
+ * Creates a supplier applicant's account: a `users` row with accountType
+ * "supplier" (see schema.ts's users table comment on per-role email
+ * isolation — a customer or staff account on the same email is a
+ * separate row and never conflicts with this) plus a `suppliers` row
+ * with status "pending" and `userId` set to the new user, inside one
+ * transaction. No session is created — the caller redirects to
+ * /supplier/pending. The account also can't sign in yet even once
+ * approved: emailVerified starts null and a verification email is sent,
+ * mirroring the customer registration flow (see authorizeSupplier in
+ * src/lib/auth.ts, which requires both emailVerified and an approved
+ * supplier row).
  */
-export async function registerSupplier(input: SupplierRegisterInput): Promise<MutationResult> {
+export async function registerSupplier(
+  input: SupplierRegisterInput,
+): Promise<MutationResult & { verificationLink?: string }> {
   try {
-    const [existing] = await db.select({ id: users.id }).from(users).where(eq(users.email, input.email));
+    const [existing] = await db
+      .select({ id: users.id })
+      .from(users)
+      .where(and(eq(users.email, input.email), eq(users.accountType, "supplier")));
     if (existing) {
       return { success: false, error: "An account with that email already exists." };
     }
@@ -52,10 +64,10 @@ export async function registerSupplier(input: SupplierRegisterInput): Promise<Mu
     const passwordHash = await bcrypt.hash(input.password, 12);
     const slug = await uniqueSlug(input.companyName);
 
-    const supplier = await db.transaction(async (tx) => {
+    const { supplier, userId } = await db.transaction(async (tx) => {
       const [user] = await tx
         .insert(users)
-        .values({ email: input.email, name: input.name, passwordHash })
+        .values({ email: input.email, name: input.name, passwordHash, accountType: "supplier" })
         .returning({ id: users.id });
 
       const [row] = await tx
@@ -87,10 +99,23 @@ export async function registerSupplier(input: SupplierRegisterInput): Promise<Mu
         })
         .returning({ id: suppliers.id });
 
-      return row;
+      return { supplier: row, userId: user.id };
     });
 
-    return { success: true, id: supplier.id };
+    const token = crypto.randomUUID();
+    await db.insert(verificationTokens).values({
+      userId,
+      token,
+      type: "email_verification",
+      expiresAt: new Date(Date.now() + EMAIL_VERIFICATION_TTL_MS),
+    });
+    const sendResult = await sendEmailVerificationEmail(input.email, input.name, token);
+
+    return {
+      success: true,
+      id: supplier.id,
+      verificationLink: sendResult.ok ? undefined : `/verify-email?token=${token}`,
+    };
   } catch (err) {
     console.error("[data/supplier/registration] registerSupplier failed:", err);
     return { success: false, error: "Could not submit your application. Please try again." };
@@ -103,26 +128,34 @@ export interface SupplierLoginStatus {
   found: boolean;
   status?: SupplierAccountStatus;
   supplierName?: string;
+  emailVerified?: boolean;
 }
 
 /**
  * Non-auth status lookup by email, used by two ungated pages: the
  * /supplier/pending status page (for a just-registered applicant with no
- * session yet) and /supplier/login's pre-check (so a pending/rejected/
- * suspended supplier sees the real reason instead of a bare "invalid
- * credentials" — the NextAuth provider itself never returns a session for
- * a non-approved supplier no matter what this reports).
+ * session yet) and /supplier/login's pre-check (so "account not found",
+ * "verify your email first", and pending/rejected/suspended all show
+ * their real reason instead of a bare "invalid credentials" — the
+ * NextAuth provider itself (authorizeSupplier in src/lib/auth.ts)
+ * independently re-verifies accountType, emailVerified, and approval
+ * status itself and is the only thing that can ever return a session).
  */
 export async function getSupplierLoginStatus(email: string): Promise<SupplierLoginStatus> {
   const normalized = email.trim().toLowerCase();
   if (!normalized) return { found: false };
 
   const [row] = await db
-    .select({ status: suppliers.status, name: suppliers.name })
+    .select({ status: suppliers.status, name: suppliers.name, emailVerified: users.emailVerified })
     .from(users)
     .innerJoin(suppliers, eq(suppliers.userId, users.id))
-    .where(eq(users.email, normalized));
+    .where(and(eq(users.email, normalized), eq(users.accountType, "supplier")));
 
   if (!row) return { found: false };
-  return { found: true, status: row.status as SupplierAccountStatus, supplierName: row.name };
+  return {
+    found: true,
+    status: row.status as SupplierAccountStatus,
+    supplierName: row.name,
+    emailVerified: Boolean(row.emailVerified),
+  };
 }

@@ -20,6 +20,7 @@ export default async function RegisterPage({
       activeTab="register"
       title="Travel with us"
       subtitle="Join us today"
+      redirectTo="/account"
     >
       <RegisterForm defaultEmail={email} />
     </AuthCard>

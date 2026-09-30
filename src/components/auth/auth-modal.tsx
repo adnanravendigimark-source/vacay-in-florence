@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useTransition, useEffect } from "react";
+import { useState, useTransition, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { signIn } from "next-auth/react";
 import { useAuthModal } from "./auth-modal-context";
+import { RecaptchaCheckbox, type RecaptchaCheckboxHandle } from "./recaptcha-checkbox";
 
 export function AuthModal() {
   const {
@@ -32,6 +33,16 @@ export function AuthModal() {
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [isCheckingEmail, setIsCheckingEmail] = useState(false);
+  const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
+  const recaptchaRef = useRef<RecaptchaCheckboxHandle>(null);
+  // Set once register-modal succeeds; the account can't sign in until its
+  // emailed verification link is used (see authorizeAgainstRole in
+  // src/lib/auth.ts), so this replaces the old auto-login with a "check
+  // your email" state instead. verificationFallbackLink is an honest
+  // fallback if the response says the email may not have been delivered
+  // (see register-modal/route.ts's doc comment).
+  const [registeredEmail, setRegisteredEmail] = useState<string | null>(null);
+  const [verificationFallbackLink, setVerificationFallbackLink] = useState<string | undefined>(undefined);
 
   // Sync initial email when modal opens or email changes in context, and
   // reset errors/password fields when the view changes. Both are cases of
@@ -52,6 +63,9 @@ export function AuthModal() {
     setNotice(null);
     setPassword("");
     setConfirmPassword("");
+    setRecaptchaToken(null);
+    setRegisteredEmail(null);
+    setVerificationFallbackLink(undefined);
   }
 
   // Handle escape key
@@ -111,16 +125,23 @@ export function AuthModal() {
       setError("Please enter your password.");
       return;
     }
+    if (!recaptchaToken) {
+      setError("Please complete the reCAPTCHA verification.");
+      return;
+    }
 
     startTransition(async () => {
       try {
         const result = await signIn("credentials", {
           email: inputEmail.trim().toLowerCase(),
           password,
+          recaptchaToken,
           redirect: false,
         });
 
         if (result?.error) {
+          recaptchaRef.current?.reset();
+          setRecaptchaToken(null);
           setError("Incorrect password or account not found. Please try again.");
           return;
         }
@@ -154,6 +175,10 @@ export function AuthModal() {
       setError("Passwords do not match.");
       return;
     }
+    if (!recaptchaToken) {
+      setError("Please complete the reCAPTCHA verification.");
+      return;
+    }
 
     startTransition(async () => {
       try {
@@ -165,39 +190,33 @@ export function AuthModal() {
             email: inputEmail.trim().toLowerCase(),
             password,
             confirmPassword,
+            recaptchaToken,
           }),
         });
 
         const data = await res.json();
         if (!res.ok || data.error) {
+          recaptchaRef.current?.reset();
+          setRecaptchaToken(null);
           setError(data.error || "Failed to create account.");
           return;
         }
 
-        // Auto sign in with the new credentials
-        const signResult = await signIn("credentials", {
-          email: inputEmail.trim().toLowerCase(),
-          password,
-          redirect: false,
-        });
-
-        if (signResult?.error) {
-          // If auto-login had an issue, transition to login view
-          setView("login");
-          setNotice("Account created! Please enter your password to sign in.");
-        } else {
-          closeAuthModal();
-          router.refresh();
-        }
+        setRegisteredEmail(inputEmail.trim().toLowerCase());
+        setVerificationFallbackLink(data.verificationLink);
       } catch {
         setError("Network error while creating account. Please try again.");
       }
     });
   }
 
-  // Handle Social Login alerts (live OAuth placeholders)
-  function handleSocialLogin(provider: string) {
-    alert(`${provider} Sign-In will connect once live OAuth credentials are configured in your environment.`);
+  // Google OAuth sign-in. This navigates away to Google's consent screen
+  // and back via NextAuth's redirect flow, so there's no local
+  // pending/error state to manage here the way the credentials forms
+  // below have — a successful round trip lands back on `redirectTo`
+  // with a real session already set.
+  function handleGoogleSignIn() {
+    void signIn("google", { callbackUrl: redirectTo || "/account" });
   }
 
   return (
@@ -317,7 +336,7 @@ export function AuthModal() {
                     value={inputEmail}
                     onChange={(e) => setInputEmail(e.target.value)}
                     placeholder="name@example.com"
-                    className="w-full rounded-2xl border border-neutral-300 bg-white px-4 py-3.5 text-sm text-neutral-900 placeholder:text-neutral-400 outline-none transition-all focus:border-[#a813c9] focus:ring-1 focus:ring-[#a813c9]"
+                    className="w-full rounded-2xl border border-neutral-300 bg-white px-4 py-3.5 text-sm text-neutral-900 placeholder:text-neutral-400 outline-none transition-all focus:border-[#9e0ca0] focus:ring-1 focus:ring-[#9e0ca0]"
                   />
                 </div>
 
@@ -325,7 +344,7 @@ export function AuthModal() {
                 <button
                   type="submit"
                   disabled={isCheckingEmail}
-                  className="w-full rounded-full bg-[#2b0934] hover:bg-[#3d0d4a] text-white py-3.5 text-sm font-semibold shadow-sm transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-60 flex items-center justify-center gap-2 cursor-pointer"
+                  className="w-full rounded-full bg-[#9e0ca0] hover:bg-[#850b9e] text-white py-3.5 text-sm font-semibold shadow-sm transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-60 flex items-center justify-center gap-2 cursor-pointer"
                 >
                   {isCheckingEmail ? (
                     <>
@@ -353,7 +372,7 @@ export function AuthModal() {
                 {/* Google Button */}
                 <button
                   type="button"
-                  onClick={() => handleSocialLogin("Google")}
+                  onClick={handleGoogleSignIn}
                   className="w-full flex items-center justify-center gap-3 rounded-full border border-neutral-300 bg-white hover:bg-neutral-50 px-5 py-3 text-sm font-semibold text-neutral-700 shadow-2xs transition-all hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
                 >
                   <svg className="h-4.5 w-4.5" viewBox="0 0 24 24">
@@ -415,7 +434,7 @@ export function AuthModal() {
                 <button
                   type="button"
                   onClick={() => setView("email")}
-                  className="text-xs font-semibold text-[#a813c9] hover:underline shrink-0 cursor-pointer"
+                  className="text-xs font-semibold text-[#9e0ca0] hover:underline shrink-0 cursor-pointer"
                 >
                   Edit
                 </button>
@@ -448,7 +467,7 @@ export function AuthModal() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Enter your password"
-                    className="w-full rounded-2xl border border-neutral-300 bg-white px-4 py-3.5 pr-11 text-sm text-neutral-900 placeholder:text-neutral-400 outline-none transition-all focus:border-[#a813c9] focus:ring-1 focus:ring-[#a813c9]"
+                    className="w-full rounded-2xl border border-neutral-300 bg-white px-4 py-3.5 pr-11 text-sm text-neutral-900 placeholder:text-neutral-400 outline-none transition-all focus:border-[#9e0ca0] focus:ring-1 focus:ring-[#9e0ca0]"
                   />
                   <button
                     type="button"
@@ -478,18 +497,20 @@ export function AuthModal() {
                   type="checkbox"
                   checked={rememberMe}
                   onChange={(e) => setRememberMe(e.target.checked)}
-                  className="h-4 w-4 rounded border-neutral-300 text-[#2b0934] focus:ring-[#a813c9] accent-[#a813c9]"
+                  className="h-4 w-4 rounded border-neutral-300 text-[#9e0ca0] focus:ring-[#9e0ca0] accent-[#9e0ca0]"
                 />
                 <label htmlFor="modal-remember-me" className="cursor-pointer select-none">
                   Remember me on this browser
                 </label>
               </div>
 
+              <RecaptchaCheckbox ref={recaptchaRef} onChange={setRecaptchaToken} />
+
               {/* Submit Button */}
               <button
                 type="submit"
-                disabled={isPending}
-                className="w-full rounded-full bg-[#2b0934] hover:bg-[#3d0d4a] text-white py-3.5 text-sm font-semibold shadow-sm transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-60 flex items-center justify-center gap-2 cursor-pointer mt-2"
+                disabled={isPending || !recaptchaToken}
+                className="w-full rounded-full bg-[#9e0ca0] hover:bg-[#850b9e] text-white py-3.5 text-sm font-semibold shadow-sm transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-60 flex items-center justify-center gap-2 cursor-pointer mt-2"
               >
                 {isPending ? (
                   <>
@@ -508,7 +529,7 @@ export function AuthModal() {
                   onClick={() => setView("register")}
                   className="text-xs font-semibold text-neutral-600 hover:text-neutral-900 cursor-pointer"
                 >
-                  Don&apos;t have an account? <span className="underline text-[#2b0934]">Create one</span>
+                  Don&apos;t have an account? <span className="underline text-[#9e0ca0]">Create one</span>
                 </button>
               </div>
             </form>
@@ -517,7 +538,32 @@ export function AuthModal() {
           {/* ------------------------------------------------------------- */}
           {/* VIEW 3: New User -> Name & Password to Register */}
           {/* ------------------------------------------------------------- */}
-          {view === "register" && (
+          {view === "register" && registeredEmail && (
+            <div className="space-y-4">
+              <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3.5 text-sm text-emerald-900">
+                We&apos;ve sent a confirmation link to <strong>{registeredEmail}</strong>. Confirm it to
+                activate your account, then sign in.
+              </div>
+              {verificationFallbackLink && (
+                <Link
+                  href={verificationFallbackLink}
+                  onClick={closeAuthModal}
+                  className="block w-full rounded-full bg-[#9e0ca0] px-6 py-3.5 text-center text-sm font-semibold text-white shadow-sm transition-all hover:scale-[1.01] hover:bg-[#850b9e] active:scale-[0.99]"
+                >
+                  Continue to confirm your email
+                </Link>
+              )}
+              <button
+                type="button"
+                onClick={() => setView("login")}
+                className="w-full text-center text-xs font-semibold text-neutral-600 hover:text-neutral-900 cursor-pointer"
+              >
+                Back to sign in
+              </button>
+            </div>
+          )}
+
+          {view === "register" && !registeredEmail && (
             <form onSubmit={handleRegisterSubmit} className="space-y-4">
               {/* Selected Email Badge */}
               <div className="flex items-center justify-between bg-neutral-50 border border-neutral-200 rounded-2xl px-4 py-2.5">
@@ -528,7 +574,7 @@ export function AuthModal() {
                 <button
                   type="button"
                   onClick={() => setView("email")}
-                  className="text-xs font-semibold text-[#a813c9] hover:underline shrink-0 cursor-pointer"
+                  className="text-xs font-semibold text-[#9e0ca0] hover:underline shrink-0 cursor-pointer"
                 >
                   Edit
                 </button>
@@ -550,7 +596,7 @@ export function AuthModal() {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="e.g. Leonardo da Vinci"
-                  className="w-full rounded-2xl border border-neutral-300 bg-white px-4 py-3 text-sm text-neutral-900 placeholder:text-neutral-400 outline-none transition-all focus:border-[#a813c9] focus:ring-1 focus:ring-[#a813c9]"
+                  className="w-full rounded-2xl border border-neutral-300 bg-white px-4 py-3 text-sm text-neutral-900 placeholder:text-neutral-400 outline-none transition-all focus:border-[#9e0ca0] focus:ring-1 focus:ring-[#9e0ca0]"
                 />
               </div>
 
@@ -570,7 +616,7 @@ export function AuthModal() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Create a secure password"
-                    className="w-full rounded-2xl border border-neutral-300 bg-white px-4 py-3 pr-11 text-sm text-neutral-900 placeholder:text-neutral-400 outline-none transition-all focus:border-[#a813c9] focus:ring-1 focus:ring-[#a813c9]"
+                    className="w-full rounded-2xl border border-neutral-300 bg-white px-4 py-3 pr-11 text-sm text-neutral-900 placeholder:text-neutral-400 outline-none transition-all focus:border-[#9e0ca0] focus:ring-1 focus:ring-[#9e0ca0]"
                   />
                   <button
                     type="button"
@@ -608,15 +654,17 @@ export function AuthModal() {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="Repeat your password"
-                  className="w-full rounded-2xl border border-neutral-300 bg-white px-4 py-3 text-sm text-neutral-900 placeholder:text-neutral-400 outline-none transition-all focus:border-[#a813c9] focus:ring-1 focus:ring-[#a813c9]"
+                  className="w-full rounded-2xl border border-neutral-300 bg-white px-4 py-3 text-sm text-neutral-900 placeholder:text-neutral-400 outline-none transition-all focus:border-[#9e0ca0] focus:ring-1 focus:ring-[#9e0ca0]"
                 />
               </div>
+
+              <RecaptchaCheckbox ref={recaptchaRef} onChange={setRecaptchaToken} />
 
               {/* Submit Button */}
               <button
                 type="submit"
-                disabled={isPending}
-                className="w-full rounded-full bg-[#2b0934] hover:bg-[#3d0d4a] text-white py-3.5 text-sm font-semibold shadow-sm transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-60 flex items-center justify-center gap-2 cursor-pointer mt-2"
+                disabled={isPending || !recaptchaToken}
+                className="w-full rounded-full bg-[#9e0ca0] hover:bg-[#850b9e] text-white py-3.5 text-sm font-semibold shadow-sm transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-60 flex items-center justify-center gap-2 cursor-pointer mt-2"
               >
                 {isPending ? (
                   <>
@@ -635,7 +683,7 @@ export function AuthModal() {
                   onClick={() => setView("login")}
                   className="text-xs font-semibold text-neutral-600 hover:text-neutral-900 cursor-pointer"
                 >
-                  Already have an account? <span className="underline text-[#2b0934]">Sign in</span>
+                  Already have an account? <span className="underline text-[#9e0ca0]">Sign in</span>
                 </button>
               </div>
             </form>
@@ -664,7 +712,7 @@ export function AuthModal() {
                   value={inputEmail}
                   onChange={(e) => setInputEmail(e.target.value)}
                   placeholder="name@example.com"
-                  className="w-full rounded-2xl border border-neutral-300 bg-white px-4 py-3.5 text-sm text-neutral-900 placeholder:text-neutral-400 outline-none transition-all focus:border-[#a813c9] focus:ring-1 focus:ring-[#a813c9]"
+                  className="w-full rounded-2xl border border-neutral-300 bg-white px-4 py-3.5 text-sm text-neutral-900 placeholder:text-neutral-400 outline-none transition-all focus:border-[#9e0ca0] focus:ring-1 focus:ring-[#9e0ca0]"
                 />
               </div>
 
@@ -674,7 +722,7 @@ export function AuthModal() {
                   setNotice("If an account exists for this email, password reset instructions have been sent.");
                   setTimeout(() => setView("login"), 2000);
                 }}
-                className="w-full rounded-full bg-[#2b0934] hover:bg-[#3d0d4a] text-white py-3.5 text-sm font-semibold shadow-sm transition-all hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
+                className="w-full rounded-full bg-[#9e0ca0] hover:bg-[#850b9e] text-white py-3.5 text-sm font-semibold shadow-sm transition-all hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
               >
                 Send reset link
               </button>

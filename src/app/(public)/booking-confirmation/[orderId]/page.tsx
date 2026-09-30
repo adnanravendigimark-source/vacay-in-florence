@@ -56,13 +56,13 @@ export default async function BookingConfirmationPage({ params }: { params: Prom
     : "/images/florence-hero.jpg";
 
   return (
-    <div className="w-full bg-[#FCFBF9] min-h-[90vh] py-8 sm:py-12">
+    <div className="w-full bg-white min-h-[90vh] py-8 sm:py-12">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Stepper Header (All checked up to Confirmation) */}
         <div className="flex items-center justify-center gap-3 sm:gap-6 mb-8 sm:mb-12 text-xs sm:text-sm font-semibold select-none">
           {/* Step 1: Your Details (Completed) */}
           <div className="flex items-center gap-2 text-neutral-800 font-bold">
-            <div className="flex h-6 w-6 sm:h-7 sm:w-7 items-center justify-center rounded-full text-xs bg-[#2B0934] text-white">
+            <div className="flex h-6 w-6 sm:h-7 sm:w-7 items-center justify-center rounded-full text-xs bg-[#9e0ca0] text-white">
               <svg viewBox="0 0 20 20" className="h-3.5 w-3.5 fill-current">
                 <path
                   fillRule="evenodd"
@@ -79,7 +79,7 @@ export default async function BookingConfirmationPage({ params }: { params: Prom
 
           {/* Step 2: Payment (Completed) */}
           <div className="flex items-center gap-2 text-neutral-800 font-bold">
-            <div className="flex h-6 w-6 sm:h-7 sm:w-7 items-center justify-center rounded-full text-xs bg-[#2B0934] text-white">
+            <div className="flex h-6 w-6 sm:h-7 sm:w-7 items-center justify-center rounded-full text-xs bg-[#9e0ca0] text-white">
               <svg viewBox="0 0 20 20" className="h-3.5 w-3.5 fill-current">
                 <path
                   fillRule="evenodd"
@@ -96,7 +96,7 @@ export default async function BookingConfirmationPage({ params }: { params: Prom
 
           {/* Step 3: Confirmation (Active) */}
           <div className="flex items-center gap-2 text-neutral-900 font-bold">
-            <div className="flex h-6 w-6 sm:h-7 sm:w-7 items-center justify-center rounded-full text-xs bg-[#2B0934] text-white shadow-sm">
+            <div className="flex h-6 w-6 sm:h-7 sm:w-7 items-center justify-center rounded-full text-xs bg-[#9e0ca0] text-white shadow-sm">
               3
             </div>
             <span>Confirmation</span>
@@ -105,7 +105,7 @@ export default async function BookingConfirmationPage({ params }: { params: Prom
 
         {/* Confirmation Header Banner */}
         <div className="text-center mb-8">
-          <div className="inline-flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-full bg-[#2B0934] text-white shadow-md mb-3">
+          <div className="inline-flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-full bg-[#9e0ca0] text-white shadow-md mb-3">
             <svg viewBox="0 0 24 24" className="h-6 w-6 sm:h-7 sm:w-7 fill-none stroke-current stroke-[2.5]">
               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
             </svg>
@@ -146,7 +146,7 @@ export default async function BookingConfirmationPage({ params }: { params: Prom
                       {item.productTitle}
                     </h3>
                     <div className="mt-1 flex items-center gap-1.5 text-xs text-neutral-600">
-                      <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 text-[#a813c9] fill-none stroke-current stroke-2">
+                      <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 text-[#9e0ca0] fill-none stroke-current stroke-2">
                         <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
                         <line x1="16" y1="2" x2="16" y2="6" strokeLinecap="round" />
                         <line x1="8" y1="2" x2="8" y2="6" strokeLinecap="round" />
@@ -194,7 +194,7 @@ export default async function BookingConfirmationPage({ params }: { params: Prom
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           {/* Card 1: Confirmation Email */}
           <div className="flex flex-col items-center text-center rounded-2xl border border-stone-200/80 bg-white p-5 shadow-xs">
-            <div className="mb-3 text-[#a813c9]">
+            <div className="mb-3 text-[#9e0ca0]">
               <svg viewBox="0 0 24 24" className="h-6 w-6 fill-none stroke-current stroke-2">
                 <rect width="20" height="16" x="2" y="4" rx="2" />
                 <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
@@ -208,7 +208,7 @@ export default async function BookingConfirmationPage({ params }: { params: Prom
 
           {/* Card 2: Manage Booking */}
           <div className="flex flex-col items-center text-center rounded-2xl border border-stone-200/80 bg-white p-5 shadow-xs">
-            <div className="mb-3 text-[#a813c9]">
+            <div className="mb-3 text-[#9e0ca0]">
               <svg viewBox="0 0 24 24" className="h-6 w-6 fill-none stroke-current stroke-2">
                 <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
                 <line x1="16" y1="2" x2="16" y2="6" strokeLinecap="round" />
@@ -224,7 +224,7 @@ export default async function BookingConfirmationPage({ params }: { params: Prom
 
           {/* Card 3: 24/7 Support */}
           <div className="flex flex-col items-center text-center rounded-2xl border border-stone-200/80 bg-white p-5 shadow-xs">
-            <div className="mb-3 text-[#a813c9]">
+            <div className="mb-3 text-[#9e0ca0]">
               <svg viewBox="0 0 24 24" className="h-6 w-6 fill-none stroke-current stroke-2">
                 <path d="M3 18v-6a9 9 0 0 1 18 0v6" />
                 <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z" />
@@ -238,7 +238,7 @@ export default async function BookingConfirmationPage({ params }: { params: Prom
 
           {/* Card 4: Free Cancellation */}
           <div className="flex flex-col items-center text-center rounded-2xl border border-stone-200/80 bg-white p-5 shadow-xs">
-            <div className="mb-3 text-[#a813c9]">
+            <div className="mb-3 text-[#9e0ca0]">
               <svg viewBox="0 0 24 24" className="h-6 w-6 fill-none stroke-current stroke-2">
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
                 <path d="m9 12 2 2 4-4" />
@@ -255,7 +255,7 @@ export default async function BookingConfirmationPage({ params }: { params: Prom
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
           <Link
             href="/account/bookings"
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-full bg-[#2B0934] hover:bg-[#3D0D4A] text-white font-bold text-sm px-8 py-3.5 shadow-md transition-all hover:scale-[1.02] active:scale-[0.98]"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-full bg-[#9e0ca0] hover:bg-[#850b9e] text-white font-bold text-sm px-8 py-3.5 shadow-md transition-all hover:scale-[1.02] active:scale-[0.98]"
           >
             <span>View My Booking</span>
             <span>&rarr;</span>

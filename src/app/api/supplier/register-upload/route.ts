@@ -1,20 +1,14 @@
 import { NextResponse } from "next/server";
 import { put } from "@vercel/blob";
+import { writeFile, mkdir } from "fs/promises";
+import path from "path";
 
 /**
  * Upload for the "Upload Business Documents" step of the self-registration
- * wizard (src/app/supplier/register/supplier-register-flow.tsx). Runs
- * before any account exists, so — unlike src/app/api/admin/upload/route.ts
- * — this is deliberately unauthenticated: there is no staff or supplier
- * session to check yet. It validates the file server-side (type + size —
- * the client's <input accept> is a UX hint only) and stores it under a
- * dedicated, non-guessable path so an unauthenticated caller can't collide
- * with or overwrite another applicant's file. The returned URL is saved on
- * the new suppliers row (documentUrl) once registration completes, and
- * shown to admin as the applicant's compliance document.
+ * wizard (src/app/supplier/register/supplier-register-flow.tsx).
  */
 
-const MAX_BYTES = 10 * 1024 * 1024; // 10MB — matches the wizard's stated "Max 10MB"
+const MAX_BYTES = 10 * 1024 * 1024; // 10MB
 
 const ALLOWED_TYPES: Record<string, string> = {
   "application/pdf": "pdf",
@@ -25,13 +19,6 @@ const ALLOWED_TYPES: Record<string, string> = {
 };
 
 export async function POST(req: Request) {
-  if (!process.env.BLOB_READ_WRITE_TOKEN) {
-    return NextResponse.json(
-      { error: "File uploads aren't configured yet. Please contact support." },
-      { status: 503 },
-    );
-  }
-
   let formData: FormData;
   try {
     formData = await req.formData();
@@ -60,16 +47,35 @@ export async function POST(req: Request) {
   }
 
   const random = Math.random().toString(36).slice(2, 10);
-  const pathname = `supplier-applications/${Date.now()}-${random}.${ext}`;
+  const filename = `${Date.now()}-${random}.${ext}`;
+  let finalUrl = "";
 
-  try {
-    const blob = await put(pathname, file, {
-      access: "public",
-      contentType: file.type,
-    });
-    return NextResponse.json({ url: blob.url, filename: file.name, size: file.size });
-  } catch (err) {
-    console.error("Supplier registration document upload failed", err);
-    return NextResponse.json({ error: "Upload failed. Please try again." }, { status: 500 });
+  if (process.env.BLOB_READ_WRITE_TOKEN) {
+    try {
+      const pathname = `supplier-applications/${filename}`;
+      const blob = await put(pathname, file, {
+        access: "public",
+        contentType: file.type,
+      });
+      finalUrl = blob.url;
+    } catch (err) {
+      console.warn("Vercel Blob supplier upload failed, attempting local fallback:", err);
+    }
   }
+
+  if (!finalUrl) {
+    try {
+      const uploadsDir = path.join(process.cwd(), "public", "uploads", "supplier-applications");
+      await mkdir(uploadsDir, { recursive: true });
+      const filePath = path.join(uploadsDir, filename);
+      const arrayBuffer = await file.arrayBuffer();
+      await writeFile(filePath, Buffer.from(arrayBuffer));
+      finalUrl = `/uploads/supplier-applications/${filename}`;
+    } catch (fsErr) {
+      console.error("Local supplier registration upload failed:", fsErr);
+      return NextResponse.json({ error: "Upload failed. Please try again." }, { status: 500 });
+    }
+  }
+
+  return NextResponse.json({ url: finalUrl, filename: file.name, size: file.size });
 }

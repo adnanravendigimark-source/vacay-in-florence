@@ -132,7 +132,7 @@ export function BlogCategoryPills({
                 <div
                   className={`flex h-12 w-12 sm:h-13 sm:w-13 items-center justify-center rounded-full transition-all duration-200 ${
                     isActive
-                      ? "bg-[#2B0934] text-white shadow-md ring-2 ring-[#2B0934]/20"
+                      ? "bg-[#9e0ca0] text-white shadow-md ring-2 ring-[#9e0ca0]/20"
                       : "bg-[#F3EFE9] text-neutral-700 hover:bg-[#EAE4DC] hover:text-neutral-900 hover:scale-105"
                   }`}
                 >
@@ -141,7 +141,7 @@ export function BlogCategoryPills({
                 <span
                   className={`text-xs tracking-tight transition-colors ${
                     isActive
-                      ? "font-bold text-neutral-900"
+                      ? "font-bold text-[#9e0ca0]"
                       : "font-medium text-neutral-500 group-hover:text-neutral-900"
                   }`}
                 >
@@ -159,7 +159,7 @@ export function BlogCategoryPills({
             <select
               value={currentSort}
               onChange={handleSortChange}
-              className="appearance-none rounded-full border border-stone-200/90 bg-white py-1.5 pl-3.5 pr-8 text-xs font-semibold text-neutral-800 shadow-xs hover:border-stone-300 focus:outline-none focus:ring-1 focus:ring-[#a813c9] cursor-pointer"
+              className="appearance-none rounded-full border border-stone-200/90 bg-white py-1.5 pl-3.5 pr-8 text-xs font-semibold text-neutral-800 shadow-xs hover:border-stone-300 focus:outline-none focus:ring-1 focus:ring-[#9e0ca0] cursor-pointer"
             >
               <option value="latest">Latest</option>
               <option value="popular">Most Popular</option>

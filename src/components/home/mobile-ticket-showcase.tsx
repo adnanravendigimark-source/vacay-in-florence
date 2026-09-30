@@ -13,7 +13,7 @@ const SAMPLE_PASSES = [
     date: "Today &bull; Confirmed",
     gate: "Fast-Track Door #3",
     code: "UFF-8492-VIP",
-    color: "from-[#2b0934] to-[#3d0d4a]",
+    color: "from-[#9e0ca0] to-[#850b9e]",
     slug: "uffizi-gallery-skip-the-line-ticket",
     price: "€29",
   },

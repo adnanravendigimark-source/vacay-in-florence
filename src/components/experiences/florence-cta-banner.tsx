@@ -28,10 +28,10 @@ export function FlorenceCtaBanner({
               <div className="inline-flex items-center gap-2 text-[10.5px] sm:text-[11px] font-bold tracking-[0.2em] text-[#6b766d] uppercase mb-2">
                 <span>LOCAL FLORENTINE CONCIERGE</span>
               </div>
-              <h3 className="font-display text-2xl sm:text-3xl lg:text-[34px] text-[#2b0934] font-normal leading-tight">
-                Need help planning your <span className="italic font-light">Florence visit?</span>
+              <h3 className="font-display text-2xl sm:text-3xl lg:text-[34px] text-neutral-900 font-normal leading-tight">
+                Need help planning your <span className="italic font-light text-[#9e0ca0]">Florence visit?</span>
               </h3>
-              <p className="mt-2 text-xs sm:text-sm text-[#5a665d] leading-relaxed max-w-lg">
+              <p className="mt-2 text-xs sm:text-sm text-neutral-600 leading-relaxed max-w-lg">
                 Our local Florence team is available 7 days a week to help arrange custom private tours, group tickets, and personalized Tuscan itineraries.
               </p>
             </div>
@@ -40,7 +40,7 @@ export function FlorenceCtaBanner({
             <div className="flex flex-wrap items-center justify-center gap-3 shrink-0">
               <Link
                 href={primaryHref}
-                className="inline-flex items-center gap-2 rounded-full bg-[#2b0934] hover:bg-[#3d0d4a] px-6 py-3 text-xs sm:text-sm font-semibold text-white transition-all duration-200 shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
+                className="inline-flex items-center gap-2 rounded-full bg-[#9e0ca0] hover:bg-[#850b9e] px-6 py-3 text-xs sm:text-sm font-semibold text-white transition-all duration-200 shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
               >
                 <span>{primaryLabel}</span>
                 <svg viewBox="0 0 20 20" className="h-4 w-4 fill-none stroke-current stroke-[2.2]">
@@ -49,7 +49,7 @@ export function FlorenceCtaBanner({
               </Link>
               <Link
                 href="/contact"
-                className="inline-flex items-center gap-2 rounded-full border border-[#ded8cb] bg-white hover:bg-[#f6f4ee] px-5 py-3 text-xs sm:text-sm font-semibold text-[#2b0934] transition-all duration-200 shadow-xs cursor-pointer"
+                className="inline-flex items-center gap-2 rounded-full border border-neutral-300 bg-white hover:bg-neutral-50 px-5 py-3 text-xs sm:text-sm font-semibold text-neutral-800 hover:text-[#9e0ca0] transition-all duration-200 shadow-xs cursor-pointer"
               >
                 <span>Contact Concierge</span>
               </Link>

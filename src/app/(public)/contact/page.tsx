@@ -60,7 +60,7 @@ export default async function ContactPage() {
 
         {/* Email card */}
         <div className="mt-10 rounded-3xl bg-gradient-to-br from-cream-deep to-white p-8 text-center shadow-[var(--shadow-card)] ring-1 ring-stone/60 sm:p-10">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#2b0934] shadow-md">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#9e0ca0] shadow-md">
             <svg viewBox="0 0 24 24" className="h-6 w-6 fill-none stroke-white stroke-[1.8]">
               <rect x="3" y="5" width="18" height="14" rx="2" strokeLinecap="round" strokeLinejoin="round" />
               <path d="m4 7 8 6 8-6" strokeLinecap="round" strokeLinejoin="round" />
@@ -97,13 +97,12 @@ export default async function ContactPage() {
         </div>
 
         {/* Not booked yet CTA */}
-        <div className="relative mt-8 overflow-hidden rounded-3xl bg-[#2b0934] p-8 text-center shadow-xl sm:p-10">
-          <div className="absolute top-0 right-0 -mt-12 -mr-12 h-56 w-56 rounded-full bg-[#a813c9]/25 blur-3xl pointer-events-none" />
+        <div className="relative mt-8 overflow-hidden rounded-3xl bg-white border border-[#e8e2eb] p-8 text-center shadow-[var(--shadow-card)] sm:p-10">
           <div className="relative z-10">
-            <p className="text-sm font-bold uppercase tracking-[0.14em] text-white">{content.ctaEyebrow}</p>
+            <p className="text-sm font-bold uppercase tracking-[0.14em] text-neutral-800">{content.ctaEyebrow}</p>
             <Link
               href={content.ctaButtonHref}
-              className="mt-4 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-terracotta to-[#2b0934] px-6 py-3.5 text-xs font-semibold text-white shadow-md transition-all hover:scale-105 sm:text-sm"
+              className="mt-4 inline-flex items-center gap-2 rounded-full bg-[#9e0ca0] hover:bg-[#850b9e] px-6 py-3.5 text-xs font-semibold text-white shadow-md transition-all hover:scale-105 sm:text-sm"
             >
               <span>{content.ctaButtonLabel}</span>
               <span>&rarr;</span>

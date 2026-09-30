@@ -3,6 +3,7 @@
 import { useState, type ReactNode } from "react";
 import Link from "next/link";
 import { useFormStatus } from "react-dom";
+import { signIn } from "next-auth/react";
 import { VacayLogo } from "@/components/ui/vacay-logo";
 
 interface AuthCardProps {
@@ -11,6 +12,8 @@ interface AuthCardProps {
   children: ReactNode;
   footer?: ReactNode;
   activeTab?: "login" | "register" | "forgot" | "reset";
+  /** Where Google OAuth should send the visitor back to after a successful sign-in. */
+  redirectTo?: string;
 }
 
 export function AuthCard({
@@ -19,6 +22,7 @@ export function AuthCard({
   children,
   footer,
   activeTab = "login",
+  redirectTo,
 }: AuthCardProps) {
   const isRegister = activeTab === "register";
 
@@ -91,7 +95,7 @@ export function AuthCard({
               <div className="space-y-3 mb-6">
                 <button
                   type="button"
-                  onClick={() => alert("Google Sign-In will connect to your account once live OAuth keys are configured in your environment.")}
+                  onClick={() => signIn("google", { callbackUrl: redirectTo ?? "/account" })}
                   className="w-full flex items-center justify-center gap-3 rounded-full border border-neutral-300 bg-white hover:bg-neutral-50 px-6 py-3 text-sm font-semibold text-neutral-700 shadow-2xs transition-all hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
                 >
                   {/* Official Google 4-Color Icon */}
@@ -205,7 +209,7 @@ export function FormField({
           defaultValue={defaultValue}
           autoComplete={autoComplete}
           placeholder={placeholder}
-          className={`w-full rounded-2xl border border-neutral-300 bg-white px-4 py-3 text-sm text-neutral-900 placeholder:text-neutral-400 transition-all outline-none focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 ${
+          className={`w-full rounded-2xl border border-neutral-300 bg-white px-4 py-3 text-sm text-neutral-900 placeholder:text-neutral-400 transition-all outline-none focus:border-[#9e0ca0] focus:ring-1 focus:ring-[#9e0ca0] ${
             isPassword ? "pr-11" : ""
           }`}
         />
@@ -267,14 +271,14 @@ export function FormNotice({ message }: { message?: string }) {
   );
 }
 
-export function SubmitButton({ label }: { label: string }) {
+export function SubmitButton({ label, disabled }: { label: string; disabled?: boolean }) {
   const { pending } = useFormStatus();
 
   return (
     <button
       type="submit"
-      disabled={pending}
-      className="w-full rounded-full bg-neutral-900 hover:bg-black text-white px-6 py-3.5 text-sm font-semibold shadow-sm transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-75 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2"
+      disabled={pending || disabled}
+      className="w-full rounded-full bg-[#9e0ca0] hover:bg-[#850b9e] text-white px-6 py-3.5 text-sm font-semibold shadow-sm transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-75 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2"
     >
       {pending ? (
         <>

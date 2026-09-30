@@ -73,6 +73,12 @@ export function ProfileForm({ initialUser, error, success, formAction }: Profile
     }
   }
 
+  function handleRemovePhoto() {
+    setLocalPreview(null);
+    setAvatarUrl("");
+    setUploadError(null);
+  }
+
   const displayedPhoto = localPreview || avatarUrl;
 
   return (
@@ -108,7 +114,7 @@ export function ProfileForm({ initialUser, error, success, formAction }: Profile
               name="name"
               defaultValue={initialUser.name ?? ""}
               required
-              className="w-full px-4 py-2.5 rounded-2xl bg-white border border-stone text-xs sm:text-[13px] text-ink focus:outline-none focus:border-[#2b0934] focus:ring-1 focus:ring-[#2b0934] transition shadow-2xs"
+              className="w-full px-4 py-2.5 rounded-2xl bg-white border border-stone text-xs sm:text-[13px] text-ink focus:outline-none focus:border-[#9e0ca0] focus:ring-1 focus:ring-[#9e0ca0] transition shadow-2xs"
             />
           </div>
 
@@ -123,7 +129,7 @@ export function ProfileForm({ initialUser, error, success, formAction }: Profile
               name="email"
               defaultValue={initialUser.email ?? ""}
               required
-              className="w-full px-4 py-2.5 rounded-2xl bg-white border border-stone text-xs sm:text-[13px] text-ink focus:outline-none focus:border-[#2b0934] focus:ring-1 focus:ring-[#2b0934] transition shadow-2xs"
+              className="w-full px-4 py-2.5 rounded-2xl bg-white border border-stone text-xs sm:text-[13px] text-ink focus:outline-none focus:border-[#9e0ca0] focus:ring-1 focus:ring-[#9e0ca0] transition shadow-2xs"
             />
           </div>
 
@@ -135,7 +141,7 @@ export function ProfileForm({ initialUser, error, success, formAction }: Profile
             <button
               type="submit"
               disabled={uploading}
-              className="inline-flex items-center gap-2 bg-[#2b0934] hover:bg-[#3d0d4a] disabled:opacity-60 disabled:cursor-not-allowed text-white text-xs font-semibold px-6 py-2.5 rounded-full transition-all duration-150 shadow-sm hover:shadow hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
+              className="inline-flex items-center gap-2 bg-[#9e0ca0] hover:bg-[#850b9e] disabled:opacity-60 disabled:cursor-not-allowed text-white text-xs font-semibold px-6 py-2.5 rounded-full transition-all duration-150 shadow-sm hover:shadow hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
             >
               <svg viewBox="0 0 24 24" className="w-4 h-4 fill-none stroke-current stroke-2">
                 <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z" />
@@ -160,7 +166,7 @@ export function ProfileForm({ initialUser, error, success, formAction }: Profile
               className={`w-20 h-20 rounded-full object-cover ring-4 ring-brand-light shadow-xs mb-4 bg-stone/40 ${uploading ? "opacity-50" : ""}`}
             />
           ) : (
-            <div className="w-20 h-20 rounded-full ring-4 ring-brand-light shadow-xs mb-4 bg-[#2b0934] text-white flex items-center justify-center font-display text-2xl">
+            <div className="w-20 h-20 rounded-full ring-4 ring-brand-light shadow-xs mb-4 bg-[#9e0ca0] text-white flex items-center justify-center font-display text-2xl">
               {getInitials(initialUser.name)}
             </div>
           )}
@@ -173,19 +179,34 @@ export function ProfileForm({ initialUser, error, success, formAction }: Profile
             onChange={handleFileSelected}
             className="hidden"
           />
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={uploading}
-            className="mt-4 inline-flex items-center gap-1.5 border border-stone-dark text-ink text-xs font-semibold px-4 py-2 rounded-full hover:bg-stone/30 disabled:opacity-60 disabled:cursor-not-allowed transition cursor-pointer"
-          >
-            <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 fill-none stroke-current stroke-2">
-              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
-              <polyline points="17 8 12 3 7 8" />
-              <line x1="12" y1="3" x2="12" y2="15" />
-            </svg>
-            <span>{uploading ? "Uploading…" : initialUser.avatarUrl ? "Change Photo" : "Upload Photo"}</span>
-          </button>
+          <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploading}
+              className="inline-flex items-center gap-1.5 border border-stone-dark text-ink text-xs font-semibold px-4 py-2 rounded-full hover:bg-stone/30 disabled:opacity-60 disabled:cursor-not-allowed transition cursor-pointer"
+            >
+              <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 fill-none stroke-current stroke-2">
+                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                <polyline points="17 8 12 3 7 8" />
+                <line x1="12" y1="3" x2="12" y2="15" />
+              </svg>
+              <span>{uploading ? "Uploading…" : displayedPhoto ? "Change Photo" : "Upload Photo"}</span>
+            </button>
+
+            {displayedPhoto && !uploading && (
+              <button
+                type="button"
+                onClick={handleRemovePhoto}
+                className="inline-flex items-center gap-1 border border-rose-200 text-rose-600 hover:bg-rose-50 text-xs font-semibold px-3 py-2 rounded-full transition cursor-pointer"
+              >
+                <svg viewBox="0 0 24 24" className="w-3 h-3 fill-none stroke-current stroke-2">
+                  <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />
+                </svg>
+                <span>Remove</span>
+              </button>
+            )}
+          </div>
 
           {uploadError ? (
             <p className="mt-2.5 text-[11px] text-[#D94F3D] max-w-[190px]">{uploadError}</p>

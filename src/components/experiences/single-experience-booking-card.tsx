@@ -313,8 +313,8 @@ export function SingleExperienceBookingCard({
                       className={`h-6.5 w-6.5 mx-auto rounded-full flex items-center justify-center font-medium transition-colors text-xs ${isPast
                         ? "text-neutral-300 cursor-not-allowed"
                         : isSelected
-                        ? "bg-[#2b0934] text-white font-bold cursor-pointer"
-                        : "text-neutral-700 hover:bg-[#f7ecfb] hover:text-[#2b0934] cursor-pointer"
+                        ? "bg-[#9e0ca0] text-white font-bold cursor-pointer"
+                        : "text-neutral-700 hover:bg-[#fdf2fe] hover:text-[#9e0ca0] cursor-pointer"
                         }`}
                     >
                       {day}
@@ -344,8 +344,8 @@ export function SingleExperienceBookingCard({
                   type="button"
                   onClick={() => setSelectedTimeSlot(slot)}
                   className={`py-1.5 px-3 text-center text-xs font-semibold rounded-xl transition-all cursor-pointer ${isSelected
-                    ? "bg-[#2b0934] text-white shadow-xs"
-                    : "bg-white text-neutral-700 hover:text-neutral-900 border border-neutral-200/90 hover:border-[#a813c9]/40"
+                    ? "bg-[#9e0ca0] text-white shadow-xs"
+                    : "bg-white text-neutral-700 hover:text-neutral-900 border border-neutral-200/90 hover:border-[#9e0ca0]/40"
                     }`}
                 >
                   {slot}
@@ -436,9 +436,9 @@ export function SingleExperienceBookingCard({
           </p>
         )}
         {state.status === "success" && (
-          <div className="rounded-xl bg-[#f7ecfb] border border-[#d2c8d6] px-3 py-1.5 text-xs font-semibold text-[#2b0934] flex items-center justify-between">
+          <div className="rounded-xl bg-[#fdf2fe] border border-[#ede7ef] px-3 py-1.5 text-xs font-semibold text-[#9e0ca0] flex items-center justify-between">
             <span>✓ Added to cart!</span>
-            <a href="/cart" className="underline hover:text-[#a813c9]">
+            <a href="/cart" className="underline hover:text-[#850b9e]">
               View cart &rarr;
             </a>
           </div>
@@ -450,7 +450,7 @@ export function SingleExperienceBookingCard({
         <button
           type="submit"
           disabled={isPending || totalTickets === 0}
-          className="w-full rounded-full bg-[#2b0934] hover:bg-[#3d0d4a] disabled:opacity-50 text-white py-2.5 sm:py-3 text-xs sm:text-sm font-semibold shadow-xs transition-all hover:scale-[1.01] active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer"
+          className="w-full rounded-full bg-[#9e0ca0] hover:bg-[#850b9e] disabled:opacity-50 text-white py-2.5 sm:py-3 text-xs sm:text-sm font-semibold shadow-xs transition-all hover:scale-[1.01] active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer"
         >
           {isPending ? (
             <span>Adding to cart...</span>

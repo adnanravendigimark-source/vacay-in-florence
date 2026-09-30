@@ -5,11 +5,13 @@ import Image from "next/image";
 import Link from "next/link";
 import { saveHomepageContentAction } from "@/app/admin/(protected)/content/homepage/actions";
 import type { HomepageContentData } from "@/lib/data/homepage";
+import type { AdminProductListItem } from "@/lib/data/admin/products";
 import { useToast } from "@/components/admin/ui/toast";
 import { HomepageMediaField } from "@/components/admin/homepage-media-field";
 
 interface HomepageEditorProps {
   initialData: HomepageContentData;
+  allExperiences?: AdminProductListItem[];
 }
 
 type TabKey =
@@ -41,9 +43,10 @@ const TABS: { key: TabKey; label: string }[] = [
   { key: "seo", label: "SEO & Meta" },
 ];
 
-export function HomepageEditor({ initialData }: HomepageEditorProps) {
+export function HomepageEditor({ initialData, allExperiences = [] }: HomepageEditorProps) {
   const [data, setData] = useState<HomepageContentData>(initialData);
   const [activeTab, setActiveTab] = useState<TabKey>("hero");
+  const [expSearch, setExpSearch] = useState("");
   const [isPending, startTransition] = useTransition();
   const { showToast } = useToast();
 
@@ -61,6 +64,60 @@ export function HomepageEditor({ initialData }: HomepageEditorProps) {
 
   const updateField = <K extends keyof HomepageContentData>(field: K, value: HomepageContentData[K]) => {
     setData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const selectedExpIds = data.featuredExperienceIds ?? [];
+  const selectedExperiences = selectedExpIds
+    .map((id) => allExperiences.find((e) => e.id === id))
+    .filter(Boolean) as AdminProductListItem[];
+
+  const availableExperiences = allExperiences.filter(
+    (exp) => !selectedExpIds.includes(exp.id) && exp.status === "live"
+  );
+
+  const filteredAvailable = availableExperiences.filter((exp) =>
+    exp.title.toLowerCase().includes(expSearch.toLowerCase()) ||
+    exp.categoryName.toLowerCase().includes(expSearch.toLowerCase())
+  );
+
+  const handleAddExperience = (id: string) => {
+    if (selectedExpIds.length >= 8) {
+      showToast("You can select up to 8 experiences for the homepage.", "error");
+      return;
+    }
+    if (!selectedExpIds.includes(id)) {
+      updateField("featuredExperienceIds", [...selectedExpIds, id]);
+    }
+  };
+
+  const handleRemoveExperience = (id: string) => {
+    updateField(
+      "featuredExperienceIds",
+      selectedExpIds.filter((item) => item !== id)
+    );
+  };
+
+  const handleMoveExperience = (index: number, direction: "up" | "down") => {
+    const targetIndex = direction === "up" ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= selectedExpIds.length) return;
+    const updated = [...selectedExpIds];
+    const [moved] = updated.splice(index, 1);
+    updated.splice(targetIndex, 0, moved);
+    updateField("featuredExperienceIds", updated);
+  };
+
+  const handleAutoFillTop8 = () => {
+    const top8 = allExperiences
+      .filter((e) => e.status === "live")
+      .slice(0, 8)
+      .map((e) => e.id);
+    updateField("featuredExperienceIds", top8);
+    showToast("Selected top 8 published experiences.", "success");
+  };
+
+  const handleClearExperiences = () => {
+    updateField("featuredExperienceIds", []);
+    showToast("Cleared homepage selection (will show default top 8).", "success");
   };
 
   return (
@@ -487,22 +544,195 @@ export function HomepageEditor({ initialData }: HomepageEditorProps) {
             </div>
           </div>
 
-          {/* Info note: the cards themselves are live catalog data, not editable here */}
-          <div className="rounded-2xl bg-[#FAF8F5] border border-[#EAE6DF] p-4 flex items-start gap-3">
-            <svg viewBox="0 0 24 24" className="w-4 h-4 mt-0.5 shrink-0 fill-none stroke-neutral-400 stroke-2">
-              <circle cx="12" cy="12" r="10" />
-              <line x1="12" y1="16" x2="12" y2="12" />
-              <line x1="12" y1="8" x2="12.01" y2="8" />
-            </svg>
-            <p className="text-[11.5px] text-neutral-500 leading-relaxed">
-              The experience cards shown in this section are pulled live from your product catalog — every experience marked{" "}
-              <span className="font-semibold text-neutral-700">Live</span> appears here automatically. To add, remove, reorder,
-              or feature a specific experience, go to{" "}
-              <Link href="/admin/experiences" className="font-semibold text-[#183D2B] hover:underline">
-                Admin → Experiences
-              </Link>
-              .
-            </p>
+          {/* Experience Selection Manager (8 Slots) */}
+          <div className="pt-4 border-t border-[#F0ECE6] space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="font-display text-sm font-semibold text-neutral-900">
+                    Curated Homepage Experiences
+                  </h3>
+                  <span
+                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                      selectedExpIds.length === 8
+                        ? "bg-emerald-100 text-emerald-800"
+                        : selectedExpIds.length > 0
+                          ? "bg-amber-100 text-amber-800"
+                          : "bg-neutral-100 text-neutral-600"
+                    }`}
+                  >
+                    {selectedExpIds.length} / 8 Selected
+                  </span>
+                </div>
+                <p className="text-xs text-neutral-500 mt-0.5">
+                  Pick and arrange the exact 8 experiences that appear on the homepage.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleAutoFillTop8}
+                  className="px-3 py-1.5 rounded-xl border border-[#EAE6DF] bg-[#FAF8F5] hover:bg-neutral-100 text-xs font-semibold text-neutral-700 transition cursor-pointer"
+                >
+                  ⚡ Auto-fill Top 8
+                </button>
+                {selectedExpIds.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={handleClearExperiences}
+                    className="px-3 py-1.5 rounded-xl border border-rose-200 text-rose-600 hover:bg-rose-50 text-xs font-semibold transition cursor-pointer"
+                  >
+                    Clear All
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Currently Selected Experiences List */}
+            {selectedExperiences.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {selectedExperiences.map((exp, index) => (
+                  <div
+                    key={exp.id}
+                    className="flex items-center justify-between gap-3 p-3 rounded-2xl bg-white border border-[#EAE6DF] shadow-2xs hover:border-[#183D2B]/30 transition"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      {/* Slot Order Number */}
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-xl bg-[#183D2B] text-white text-xs font-bold shadow-2xs">
+                        {index + 1}
+                      </span>
+
+                      {/* Thumbnail */}
+                      {exp.image ? (
+                        <div className="relative h-12 w-14 rounded-xl overflow-hidden bg-neutral-100 shrink-0 border border-neutral-200">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={exp.image.src} alt="" className="h-full w-full object-cover" />
+                        </div>
+                      ) : (
+                        <div className="h-12 w-14 rounded-xl bg-neutral-100 shrink-0 border border-neutral-200" />
+                      )}
+
+                      {/* Info */}
+                      <div className="min-w-0">
+                        <p className="text-xs font-bold text-neutral-900 truncate leading-snug">{exp.title}</p>
+                        <div className="flex items-center gap-2 mt-0.5 text-[11px] text-neutral-500">
+                          <span className="truncate">{exp.categoryName}</span>
+                          <span>&bull;</span>
+                          <span className="font-semibold text-neutral-800">€{exp.priceFromAmount.toFixed(0)}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Actions: Move Up / Move Down / Remove */}
+                    <div className="flex items-center gap-1 shrink-0">
+                      <button
+                        type="button"
+                        disabled={index === 0}
+                        onClick={() => handleMoveExperience(index, "up")}
+                        title="Move Up"
+                        className="p-1.5 rounded-lg text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100 disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
+                      >
+                        <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 fill-none stroke-current stroke-2">
+                          <polyline points="18 15 12 9 6 15" />
+                        </svg>
+                      </button>
+                      <button
+                        type="button"
+                        disabled={index === selectedExperiences.length - 1}
+                        onClick={() => handleMoveExperience(index, "down")}
+                        title="Move Down"
+                        className="p-1.5 rounded-lg text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100 disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
+                      >
+                        <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 fill-none stroke-current stroke-2">
+                          <polyline points="6 9 12 15 18 9" />
+                        </svg>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveExperience(exp.id)}
+                        title="Remove from Homepage"
+                        className="p-1.5 rounded-lg text-rose-500 hover:text-rose-700 hover:bg-rose-50 cursor-pointer transition"
+                      >
+                        <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 fill-none stroke-current stroke-2">
+                          <line x1="18" y1="6" x2="6" y2="18" />
+                          <line x1="6" y1="6" x2="18" y2="18" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="p-5 rounded-2xl bg-[#FAF8F5] border border-dashed border-[#EAE6DF] text-center">
+                <p className="text-xs font-semibold text-neutral-700">No explicit experiences selected</p>
+                <p className="text-[11px] text-neutral-500 mt-0.5">
+                  The homepage is currently displaying the top 8 published experiences automatically.
+                  Use the picker below or click &quot;Auto-fill Top 8&quot; to customize.
+                </p>
+              </div>
+            )}
+
+            {/* Add Experience Picker (if fewer than 8 selected) */}
+            {selectedExpIds.length < 8 && (
+              <div className="pt-3 border-t border-[#F0ECE6] space-y-3">
+                <div className="flex items-center justify-between gap-3">
+                  <label htmlFor="exp-search-input" className="block text-xs font-semibold text-neutral-800">
+                    Add Experience ({8 - selectedExpIds.length} slot{8 - selectedExpIds.length === 1 ? "" : "s"} remaining)
+                  </label>
+                  <div className="w-64 max-w-full">
+                    <input
+                      id="exp-search-input"
+                      type="text"
+                      placeholder="Search experiences..."
+                      value={expSearch}
+                      onChange={(e) => setExpSearch(e.target.value)}
+                      className="w-full px-3 py-1.5 text-xs rounded-xl border border-[#EAE6DF] bg-white focus:outline-none focus:border-[#183D2B]"
+                    />
+                  </div>
+                </div>
+
+                <div className="max-h-60 overflow-y-auto rounded-2xl border border-[#EAE6DF] bg-white divide-y divide-neutral-100">
+                  {filteredAvailable.length > 0 ? (
+                    filteredAvailable.map((exp) => (
+                      <div
+                        key={exp.id}
+                        className="flex items-center justify-between gap-3 p-2.5 hover:bg-[#FAF8F5] transition"
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          {exp.image ? (
+                            <div className="relative h-9 w-11 rounded-lg overflow-hidden bg-neutral-100 shrink-0 border border-neutral-200">
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img src={exp.image.src} alt="" className="h-full w-full object-cover" />
+                            </div>
+                          ) : (
+                            <div className="h-9 w-11 rounded-lg bg-neutral-100 shrink-0 border border-neutral-200" />
+                          )}
+                          <div className="min-w-0">
+                            <p className="text-xs font-semibold text-neutral-900 truncate">{exp.title}</p>
+                            <p className="text-[10.5px] text-neutral-500 truncate">{exp.categoryName} &bull; €{exp.priceFromAmount.toFixed(0)}</p>
+                          </div>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => handleAddExperience(exp.id)}
+                          className="shrink-0 px-3 py-1 rounded-lg bg-[#183D2B] hover:bg-[#23503A] text-white text-[11px] font-semibold transition cursor-pointer"
+                        >
+                          + Add
+                        </button>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="p-4 text-center text-xs text-neutral-400">
+                      {availableExperiences.length === 0
+                        ? "All live experiences are already added to the homepage."
+                        : "No matching experiences found."}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}

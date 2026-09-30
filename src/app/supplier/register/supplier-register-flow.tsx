@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { VacayLogo } from "@/components/ui/vacay-logo";
 import { registerSupplierDirectAction } from "./actions";
+import { RecaptchaCheckbox, type RecaptchaCheckboxHandle } from "@/components/auth/recaptcha-checkbox";
 
 interface LocationResult {
   id: string;
@@ -122,6 +123,8 @@ export function SupplierRegisterFlow({
   const [isUploadingDocument, setIsUploadingDocument] = useState(false);
   const [error, setError] = useState<string | null>(initialError || null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
+  const recaptchaRef = useRef<RecaptchaCheckboxHandle>(null);
   const [autoFillBadge, setAutoFillBadge] = useState<string | null>(null);
 
   // City Search & Autocomplete State
@@ -269,6 +272,10 @@ export function SupplierRegisterFlow({
       setError("You must agree to the Terms & Conditions and Privacy Policy.");
       return;
     }
+    if (!recaptchaToken) {
+      setError("Please complete the reCAPTCHA verification.");
+      return;
+    }
 
     setIsSubmitting(true);
 
@@ -300,15 +307,19 @@ export function SupplierRegisterFlow({
       about: formData.about,
       documentName: formData.documentName,
       documentUrl: formData.documentUrl,
+      recaptchaToken,
     });
 
     if (!res.success) {
       setIsSubmitting(false);
+      recaptchaRef.current?.reset();
+      setRecaptchaToken(null);
       setError(res.error || "Could not complete registration. Please try again.");
       return;
     }
 
-    router.push(`/supplier/pending?email=${encodeURIComponent(formData.email)}`);
+    const linkParam = res.verificationLink ? `&link=${encodeURIComponent(res.verificationLink)}` : "";
+    router.push(`/supplier/pending?email=${encodeURIComponent(formData.email)}${linkParam}`);
   };
 
   // Uploads the selected file to blob storage and records the real URL —
@@ -1304,6 +1315,10 @@ export function SupplierRegisterFlow({
                         </span>
                       </label>
                     </div>
+
+                    <div className="pt-2">
+                      <RecaptchaCheckbox ref={recaptchaRef} onChange={setRecaptchaToken} />
+                    </div>
                   </div>
 
                   <div className="mt-10 pt-6 border-t border-neutral-100 flex items-center justify-between">
@@ -1318,7 +1333,7 @@ export function SupplierRegisterFlow({
                     </button>
                     <button
                       type="submit"
-                      disabled={isSubmitting}
+                      disabled={isSubmitting || !recaptchaToken}
                       className="inline-flex items-center gap-2 rounded-xl bg-[#1b3b36] hover:bg-[#132c28] text-white px-8 py-3.5 text-sm font-semibold shadow-md transition-all cursor-pointer disabled:opacity-60"
                     >
                       {isSubmitting ? (

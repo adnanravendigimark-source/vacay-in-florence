@@ -11,9 +11,11 @@ export const metadata: Metadata = {
 export default async function ForgotPasswordPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; token?: string }>;
+  searchParams: Promise<{ error?: string; sent?: string; link?: string; role?: string }>;
 }) {
-  const { error, token } = await searchParams;
+  const { error, sent, link, role: roleRaw } = await searchParams;
+  const role = roleRaw === "supplier" ? "supplier" : roleRaw === "staff" ? "staff" : "customer";
+  const backHref = role === "supplier" ? "/supplier/login" : "/login";
 
   return (
     <AuthCard
@@ -22,25 +24,31 @@ export default async function ForgotPasswordPage({
       footer={
         <p>
           Remembered it?{" "}
-          <Link href="/login" className="font-semibold text-cypress hover:underline">
+          <Link href={backHref} className="font-semibold text-cypress hover:underline">
             Back to sign in
           </Link>
         </p>
       }
     >
-      {token ? (
+      {sent ? (
         <div className="space-y-4">
-          <FormNotice message="No email service is connected in this environment yet, so here's your reset link directly — in production this would arrive by email instead." />
-          <Link
-            href={`/reset-password?token=${token}`}
-            className="block w-full rounded-full bg-cypress px-6 py-3 text-center text-sm font-semibold text-white transition hover:bg-cypress/90"
-          >
-            Continue to reset your password
-          </Link>
+          <FormNotice message="If that email has an account, we've sent a password reset link to it." />
+          {link && (
+            <div className="space-y-2">
+              <FormNotice message="Email delivery isn't fully configured yet, so here's your reset link directly." />
+              <Link
+                href={link}
+                className="block w-full rounded-full bg-cypress px-6 py-3 text-center text-sm font-semibold text-white transition hover:bg-cypress/90"
+              >
+                Continue to reset your password
+              </Link>
+            </div>
+          )}
         </div>
       ) : (
         <form action={forgotPasswordAction} className="space-y-4">
           <FormError message={error} />
+          <input type="hidden" name="role" value={role} />
           <FormField label="Email" name="email" type="email" autoComplete="email" />
           <SubmitButton label="Send reset instructions" />
         </form>

@@ -103,16 +103,16 @@ export async function getDashboardData(): Promise<DashboardData> {
       .where(
         and(eq(orders.status, "confirmed"), gte(orders.createdAt, priorPeriodStart), lt(orders.createdAt, periodStart)),
       ),
-    db.select({ n: sql<number>`count(*)::int` }).from(users).where(sql`${users.roleId} is null`),
+    db.select({ n: sql<number>`count(*)::int` }).from(users).where(eq(users.accountType, "customer")),
     db
       .select({ n: sql<number>`count(*)::int` })
       .from(users)
-      .where(and(sql`${users.roleId} is null`, gte(users.createdAt, periodStart))),
+      .where(and(eq(users.accountType, "customer"), gte(users.createdAt, periodStart))),
     db
       .select({ n: sql<number>`count(*)::int` })
       .from(users)
       .where(
-        and(sql`${users.roleId} is null`, gte(users.createdAt, priorPeriodStart), lt(users.createdAt, periodStart)),
+        and(eq(users.accountType, "customer"), gte(users.createdAt, priorPeriodStart), lt(users.createdAt, periodStart)),
       ),
     db.select({ n: sql<number>`count(*)::int` }).from(products),
     db.select({ status: orders.status, n: sql<number>`count(*)::int` }).from(orders).groupBy(orders.status),

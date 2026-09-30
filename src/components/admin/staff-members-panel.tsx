@@ -18,16 +18,18 @@ export function StaffMembersPanel({
   const [isPending, startTransition] = useTransition();
   const { showToast } = useToast();
   const router = useRouter();
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [roleId, setRoleId] = useState(roles[0]?.id ?? "");
 
   const promote = () => {
-    if (!email.trim() || !roleId) return;
+    if (!name.trim() || !email.trim() || !roleId) return;
     startTransition(async () => {
-      const result = await assignUserRoleAction(email.trim().toLowerCase(), roleId);
+      const result = await assignUserRoleAction(email.trim().toLowerCase(), name.trim(), roleId);
       if (!result.success) showToast(result.error ?? "Could not assign role.", "error");
       else {
-        showToast("Role assigned.", "success");
+        showToast("Staff account created — they'll get an email to set their password.", "success");
+        setName("");
         setEmail("");
         router.refresh();
       }
@@ -37,7 +39,7 @@ export function StaffMembersPanel({
   const changeRole = (userId: string, newRoleId: string) => {
     const member = members.find((m) => m.id === userId);
     startTransition(async () => {
-      const result = await assignUserRoleAction(member?.email ?? "", newRoleId);
+      const result = await assignUserRoleAction(member?.email ?? "", member?.name ?? "", newRoleId);
       if (!result.success) showToast(result.error ?? "Could not change role.", "error");
       else {
         showToast("Role changed.", "success");
@@ -62,9 +64,15 @@ export function StaffMembersPanel({
       <div className="rounded-2xl border border-[#EAE6DF] bg-white p-5">
         <h3 className="mb-3 text-xs font-semibold text-neutral-700">Give someone admin access</h3>
         <p className="mb-3 text-xs text-neutral-500">
-          They need an existing account (via Register) first — this just assigns it a staff role.
+          This creates a separate staff login for them — independent of any customer account on the same
+          email — and emails them a link to set their password.
         </p>
         <div className="flex flex-wrap items-end gap-3">
+          <div className="min-w-[180px] flex-1">
+            <Field label="Name">
+              <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Full name" />
+            </Field>
+          </div>
           <div className="min-w-[220px] flex-1">
             <Field label="Email">
               <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="person@example.com" />
@@ -81,7 +89,7 @@ export function StaffMembersPanel({
               </Select>
             </Field>
           </div>
-          <Button onClick={promote} disabled={isPending || !email.trim()}>
+          <Button onClick={promote} disabled={isPending || !name.trim() || !email.trim()}>
             Assign
           </Button>
         </div>

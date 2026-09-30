@@ -33,7 +33,7 @@ export default function GlobalError({
             justifyContent: "center",
             textAlign: "center",
             padding: "2rem",
-            backgroundColor: "#fbfaf7",
+            backgroundColor: "#ffffff",
             color: "#1c1a17",
           }}
         >
@@ -48,7 +48,7 @@ export default function GlobalError({
             onClick={() => reset()}
             style={{
               borderRadius: 999,
-              backgroundColor: "#2b0934",
+              backgroundColor: "#9e0ca0",
               color: "#fff",
               padding: "0.75rem 1.5rem",
               fontSize: "0.875rem",

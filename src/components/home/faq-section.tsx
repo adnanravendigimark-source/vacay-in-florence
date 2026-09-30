@@ -56,7 +56,7 @@ export function FaqSection({ content }: FaqSectionProps) {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-start">
           {/* Left Column: Heading & Support Card */}
           <div className="lg:col-span-5">
-            <div className="inline-flex items-center gap-2 rounded-full bg-[#2b0934]/10 px-3 py-1 text-xs font-semibold text-[#2b0934] mb-3">
+            <div className="inline-flex items-center gap-2 rounded-full bg-[#fdf2fe] px-3 py-1 text-xs font-semibold text-[#9e0ca0] mb-3">
               <span>{badge}</span>
             </div>
             <h2 className="font-display text-3xl sm:text-4xl font-medium tracking-tight text-neutral-900 leading-tight">
@@ -75,7 +75,7 @@ export function FaqSection({ content }: FaqSectionProps) {
               <div className="mt-4 flex flex-wrap gap-3">
                 <Link
                   href="/contact"
-                  className="inline-flex items-center gap-1.5 rounded-xl bg-[#2b0934] px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-[#3d0d4a] transition-all"
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-[#9e0ca0] px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-[#850b9e] transition-all"
                 >
                   <span>Contact Support</span>
                   <span>&rarr;</span>
@@ -98,7 +98,7 @@ export function FaqSection({ content }: FaqSectionProps) {
                 <div
                   key={idx}
                   className={`rounded-2xl border transition-all duration-200 overflow-hidden ${
-                    isOpen ? "border-[#2b0934] bg-purple-50/20 shadow-sm" : "border-neutral-200 bg-white hover:border-neutral-300"
+                    isOpen ? "border-[#9e0ca0] bg-[#fdf2fe]/30 shadow-sm" : "border-neutral-200 bg-white hover:border-neutral-300"
                   }`}
                 >
                   <button
@@ -109,7 +109,7 @@ export function FaqSection({ content }: FaqSectionProps) {
                     <span>{faq.question}</span>
                     <span
                       className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-neutral-700 text-sm font-bold transition-transform duration-200 ${
-                        isOpen ? "rotate-45 bg-[#2b0934] text-white" : ""
+                        isOpen ? "rotate-45 bg-[#9e0ca0] text-white" : ""
                       }`}
                     >
                       +

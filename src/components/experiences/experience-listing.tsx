@@ -154,11 +154,11 @@ export function ExperienceListing({
               </span>
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              <h2 className="font-display text-2xl sm:text-3xl lg:text-[34px] font-normal text-[#2b0934] leading-tight">
+              <h2 className="font-display text-2xl sm:text-3xl lg:text-[34px] font-normal text-neutral-900 leading-tight">
                 {sectionTitle}
               </h2>
               {activeCategory?.badgeText ? (
-                <span className="rounded-full bg-[#a813c9] px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-white">
+                <span className="rounded-full bg-[#9e0ca0] px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-white">
                   {activeCategory.badgeText}
                 </span>
               ) : null}
@@ -181,7 +181,7 @@ export function ExperienceListing({
             {activeCategory?.ctaLabel && activeCategory?.ctaHref ? (
               <a
                 href={activeCategory.ctaHref}
-                className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-[#2b0934] px-5 py-2.5 text-xs font-bold text-white shadow-sm transition hover:bg-[#3d0d4a]"
+                className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-[#9e0ca0] px-5 py-2.5 text-xs font-bold text-white shadow-sm transition hover:bg-[#850b9e]"
               >
                 {activeCategory.ctaLabel}
                 <span>&rarr;</span>
@@ -196,7 +196,7 @@ export function ExperienceListing({
               <select
                 value={currentParams.sort ?? "recommended"}
                 onChange={(e) => handleSortChange(e.target.value)}
-                className="appearance-none rounded-full border border-[#ded8cb] bg-white px-4 py-2 pr-8 text-xs font-semibold text-neutral-800 shadow-xs hover:border-[#2b0934] focus:border-[#a813c9] focus:outline-none transition-colors cursor-pointer"
+                className="appearance-none rounded-full border border-[#ded8cb] bg-white px-4 py-2 pr-8 text-xs font-semibold text-neutral-800 shadow-xs hover:border-[#9e0ca0] focus:border-[#9e0ca0] focus:outline-none transition-colors cursor-pointer"
               >
                 {SORT_OPTIONS.map((opt) => (
                   <option key={opt.value} value={opt.value}>
@@ -262,7 +262,7 @@ export function ExperienceListing({
                   <button
                     type="button"
                     onClick={loadMore}
-                    className="text-xs font-semibold text-[#2b0934] underline underline-offset-2 hover:text-[#3d0d4a]"
+                    className="text-xs font-semibold text-[#9e0ca0] underline underline-offset-2 hover:text-[#850b9e]"
                   >
                     Couldn&apos;t load more — tap to retry
                   </button>

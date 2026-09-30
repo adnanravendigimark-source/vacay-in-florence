@@ -1,5 +1,6 @@
 import { eq, and, inArray, sql, desc, asc, gte, SQL } from "drizzle-orm";
 import { db } from "@/lib/db";
+import { getPgErrorCode } from "@/lib/db/errors";
 import { products, categories, suppliers, productImages, productOptions, availability } from "@/lib/db/schema";
 import type { ProductBadge, ProductCardSummary } from "@/lib/types";
 import { ensureSearchIndexes } from "@/lib/db/search-indexes";
@@ -42,7 +43,7 @@ async function alterProductsColumn(statement: SQL) {
   try {
     await db.execute(statement);
   } catch (err) {
-    const code = (err as { code?: string } | null)?.code;
+    const code = getPgErrorCode(err);
     if (code !== "42701") throw err;
   }
 }
@@ -447,17 +448,18 @@ export interface ProductDetail {
   // array is empty / every text is null when unset; the page only
   // renders a section once it has real content.
   whyVisit: string | null;
-  itinerary: { time: string; title: string; description: string }[];
-  secretHistoryPoints: string[];
+  itinerary: { time?: string; title: string; description?: string; image?: string; tag?: string; icon?: string }[];
+  secretHistoryPoints: (string | { title: string; description?: string; image?: string })[];
   entrances: { name: string; description: string }[];
   ultimateExperienceTitle: string | null;
   ultimateExperienceDescription: string | null;
-  ultimateExperiencePoints: string[];
+  ultimateExperienceImage: string | null;
+  ultimateExperiencePoints: (string | { title: string; description?: string; icon?: string })[];
   openingHours: { day: string; hours: string }[];
   operationalInfo: string | null;
-  gettingThereOptions: { mode: string; description: string }[];
+  gettingThereOptions: { mode: string; description: string; image?: string; tag?: string; icon?: string }[];
   bestTimeToVisit: string | null;
-  bestTimeToVisitTips: string[];
+  bestTimeToVisitTips: (string | { season?: string; months?: string; title?: string; description: string; image?: string; icon?: string })[];
   faqs: { question: string; answer: string }[];
   relatedBlogSlugs: string[];
   ctaHeadline: string | null;
@@ -549,6 +551,7 @@ export async function getProductBySlug(
       entrances: products.entrances,
       ultimateExperienceTitle: products.ultimateExperienceTitle,
       ultimateExperienceDescription: products.ultimateExperienceDescription,
+      ultimateExperienceImage: products.ultimateExperienceImage,
       ultimateExperiencePoints: products.ultimateExperiencePoints,
       openingHours: products.openingHours,
       operationalInfo: products.operationalInfo,
@@ -627,6 +630,7 @@ export async function getProductBySlug(
     entrances: row.entrances as ProductDetail["entrances"],
     ultimateExperienceTitle: row.ultimateExperienceTitle,
     ultimateExperienceDescription: row.ultimateExperienceDescription,
+    ultimateExperienceImage: row.ultimateExperienceImage,
     ultimateExperiencePoints: row.ultimateExperiencePoints as string[],
     openingHours: row.openingHours as ProductDetail["openingHours"],
     operationalInfo: row.operationalInfo,
@@ -681,4 +685,40 @@ export async function getProductAvailability(productId: string, fromDate: string
       ),
     )
     .orderBy(asc(availability.date));
+}
+
+/**
+ * Loads exactly up to 8 experiences for the public homepage.
+ * If specific experience IDs are curated by the admin in Homepage Editor,
+ * those exact 8 experiences are loaded in that configured order.
+ * Otherwise, falls back to the top 8 featured live experiences.
+ */
+export async function getHomepageFeaturedExperiences(
+  curatedIds?: string[] | null
+): Promise<ProductCardSummary[]> {
+  await ensureProductsSchemaUpToDate();
+
+  if (curatedIds && curatedIds.length > 0) {
+    const targetIds = curatedIds.slice(0, 8);
+    const rows = await baseSelect().where(
+      and(eq(products.status, "live"), inArray(products.id, targetIds))
+    );
+    const items = await attachPrimaryImages(rows);
+    const itemMap = new Map(items.map((it) => [it.id, it]));
+    const ordered = targetIds
+      .map((id) => itemMap.get(id))
+      .filter((it): it is ProductCardSummary => Boolean(it));
+
+    if (ordered.length > 0) {
+      return ordered.slice(0, 8);
+    }
+  }
+
+  // Fallback: top 8 published experiences
+  const rows = await baseSelect()
+    .where(eq(products.status, "live"))
+    .orderBy(desc(products.featured), asc(products.featuredRank), desc(products.ratingAverage))
+    .limit(8);
+
+  return attachPrimaryImages(rows);
 }

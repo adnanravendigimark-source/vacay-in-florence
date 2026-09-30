@@ -17,7 +17,7 @@ export default async function CartPage() {
   const cart = await getCartSummary();
 
   return (
-    <div className="w-full bg-[#FCFBF9] min-h-[85vh] py-10 sm:py-14">
+    <div className="w-full bg-white min-h-[85vh] py-10 sm:py-14">
       <Container>
         <CartBadgeSync count={cart.totalParticipants} />
 
@@ -29,7 +29,7 @@ export default async function CartPage() {
 
           <Link
             href="/experiences"
-            className="text-xs sm:text-sm font-semibold text-[#581c6a] hover:text-[#2b0934] transition-colors flex items-center gap-1.5"
+            className="text-xs sm:text-sm font-semibold text-[#9e0ca0] hover:text-[#850b9e] transition-colors flex items-center gap-1.5"
           >
             <span>&larr;</span>
             <span>Continue Shopping</span>
@@ -44,7 +44,7 @@ export default async function CartPage() {
               actionLabel="Browse experiences"
               actionHref="/experiences"
               icon={
-                <svg viewBox="0 0 24 24" className="h-6 w-6 fill-none stroke-current stroke-2 text-[#a813c9]">
+                <svg viewBox="0 0 24 24" className="h-6 w-6 fill-none stroke-current stroke-2 text-[#9e0ca0]">
                   <path d="M5 6L7 20H19L21 6H5Z" strokeLinejoin="round" />
                   <path d="M9 6V5C9 3.34315 10.3431 2 12 2C13.6569 2 15 3.34315 15 5V6" />
                 </svg>
@@ -61,7 +61,7 @@ export default async function CartPage() {
             </div>
 
             {/* Right Column: Order Summary Card */}
-            <div className="rounded-2xl border border-stone-200/90 bg-[#FAF8F5] p-6 shadow-xs lg:sticky lg:top-28">
+            <div className="rounded-2xl border border-stone-200/90 bg-white p-6 shadow-xs lg:sticky lg:top-28">
               <h2 className="font-display text-xl font-bold text-neutral-900">Order Summary</h2>
 
               {/* Participant breakdown */}
@@ -86,7 +86,7 @@ export default async function CartPage() {
               {/* Checkout Button */}
               <Link
                 href="/checkout"
-                className="mt-6 flex items-center justify-center gap-2 w-full rounded-full bg-[#2B0934] hover:bg-[#3D0D4A] px-6 py-3.5 text-center text-sm font-bold text-white shadow-md transition-all hover:scale-[1.01] active:scale-[0.99]"
+                className="mt-6 flex items-center justify-center gap-2 w-full rounded-full bg-[#9e0ca0] hover:bg-[#850b9e] px-6 py-3.5 text-center text-sm font-bold text-white shadow-md transition-all hover:scale-[1.01] active:scale-[0.99]"
               >
                 <span>Proceed to Checkout</span>
                 <span>&rarr;</span>
@@ -94,7 +94,7 @@ export default async function CartPage() {
 
               {/* Reassurance Footer */}
               <div className="mt-4 flex items-center justify-center gap-1.5 text-xs text-neutral-500">
-                <svg viewBox="0 0 24 24" className="h-4 w-4 text-[#a813c9] shrink-0 fill-none stroke-current stroke-2">
+                <svg viewBox="0 0 24 24" className="h-4 w-4 text-[#9e0ca0] shrink-0 fill-none stroke-current stroke-2">
                   <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
                 </svg>
                 <span>Free cancellation up to 24 hours before your experience</span>

@@ -31,6 +31,7 @@ const EMPTY_VALUES: ProductFormData = {
   entrances: [],
   ultimateExperienceTitle: null,
   ultimateExperienceDescription: null,
+  ultimateExperienceImage: null,
   ultimateExperiencePoints: [],
   openingHours: [],
   operationalInfo: null,

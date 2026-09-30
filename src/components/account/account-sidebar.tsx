@@ -75,11 +75,17 @@ export function AccountSidebar({ user }: AccountSidebarProps) {
         {/* Top User Info Section */}
         <div>
           <div className="flex items-center gap-3.5 pb-6 border-b border-stone">
-            <img
-              src={user.image || "/images/user-avatar.jpg"}
-              alt={displayName}
-              className="shrink-0 w-12 h-12 rounded-full object-cover ring-2 ring-brand-light shadow-xs bg-brand-light"
-            />
+            {user.image ? (
+              <img
+                src={user.image}
+                alt={displayName}
+                className="shrink-0 w-12 h-12 rounded-full object-cover ring-2 ring-brand-light shadow-xs bg-brand-light"
+              />
+            ) : (
+              <div className="shrink-0 w-12 h-12 rounded-full ring-2 ring-brand-light shadow-xs bg-[#9e0ca0] text-white flex items-center justify-center font-display text-sm font-semibold tracking-wider">
+                {getInitials(displayName)}
+              </div>
+            )}
             <div className="min-w-0 flex-1">
               <h2 className="font-display font-medium text-[15px] text-ink truncate leading-snug">
                 {displayName}
@@ -109,7 +115,7 @@ export function AccountSidebar({ user }: AccountSidebarProps) {
                   href={item.href}
                   className={`flex items-center gap-3.5 px-4 py-3 rounded-2xl text-[13.5px] transition-all duration-200 ${
                     isActive
-                      ? "bg-[#2b0934] text-white font-semibold shadow-[0_4px_16px_rgba(43,9,52,0.18)]"
+                      ? "bg-[#9e0ca0] text-white font-semibold shadow-[0_4px_16px_rgba(158,12,160,0.25)]"
                       : "text-ink-soft hover:text-ink hover:bg-stone/30 font-medium"
                   }`}
                 >

@@ -1,35 +1,14 @@
 "use server";
 
-import { redirect } from "next/navigation";
-import { AuthError } from "next-auth";
-import { signIn } from "@/lib/auth";
-import { loginSchema } from "@/lib/validation/auth";
+import { getCustomerLoginStatus, type AccountLoginStatus } from "@/lib/data/auth/login-status";
 
-export async function loginAction(formData: FormData): Promise<void> {
-  const redirectTo = String(formData.get("redirectTo") || "/account");
-
-  const parsed = loginSchema.safeParse({
-    email: formData.get("email"),
-    password: formData.get("password"),
-  });
-  if (!parsed.success) {
-    redirect(`/login?error=validation&redirectTo=${encodeURIComponent(redirectTo)}`);
-  }
-
-  try {
-    // On success this throws a NEXT_REDIRECT internally and never
-    // returns — the guest-cart merge for a successful login happens in
-    // the `signIn` callback in src/lib/auth.ts, not here, since this
-    // code path doesn't run again after that redirect fires.
-    await signIn("credentials", {
-      email: parsed.data.email,
-      password: parsed.data.password,
-      redirectTo,
-    });
-  } catch (error) {
-    if (error instanceof AuthError) {
-      redirect(`/login?error=invalid&redirectTo=${encodeURIComponent(redirectTo)}`);
-    }
-    throw error;
-  }
+/**
+ * Non-auth pre-check used only to distinguish "no customer account with
+ * this email" (e.g. an admin or supplier's email tried here) and "not
+ * confirmed yet" from a plain wrong-password error — see login-form.tsx.
+ * Never used to authorize anything; the "credentials" NextAuth provider
+ * (src/lib/auth.ts) independently re-verifies everything itself.
+ */
+export async function checkCustomerLoginStatusAction(email: string): Promise<AccountLoginStatus> {
+  return getCustomerLoginStatus(email);
 }

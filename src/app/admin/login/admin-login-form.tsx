@@ -1,10 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { Field, Input, Button } from "@/components/admin/ui";
+import { RecaptchaCheckbox, type RecaptchaCheckboxHandle } from "@/components/auth/recaptcha-checkbox";
 import { loginSchema } from "@/lib/validation/auth";
+import { checkAdminLoginStatusAction } from "./actions";
 
 /**
  * Client-side admin sign-in form. Uses the "admin-credentials" NextAuth
@@ -23,6 +25,8 @@ export function AdminLoginForm({ redirectTo }: { redirectTo: string }) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
+  const recaptchaRef = useRef<RecaptchaCheckboxHandle>(null);
 
   async function handleSubmit(formData: FormData) {
     setError(null);
@@ -36,16 +40,41 @@ export function AdminLoginForm({ redirectTo }: { redirectTo: string }) {
       return;
     }
 
+    if (!recaptchaToken) {
+      setError("Please complete the reCAPTCHA verification.");
+      return;
+    }
+
     setPending(true);
+
+    // Non-auth pre-check so a customer or supplier account on this same
+    // email (or a revoked staff row) gets a clear "no admin account"
+    // message here rather than a bare wrong-password error — never used
+    // to authorize anything: the "admin-credentials" NextAuth provider
+    // below independently re-verifies roleId/emailVerified itself.
+    const status = await checkAdminLoginStatusAction(parsed.data.email);
+    if (!status.found) {
+      setPending(false);
+      setError("We couldn't find an admin account with that email.");
+      return;
+    }
+    if (status.emailVerified === false) {
+      setPending(false);
+      setError("Your account setup isn't complete yet — check your email for the link to set your password.");
+      return;
+    }
 
     const result = await signIn("admin-credentials", {
       email: parsed.data.email,
       password: parsed.data.password,
+      recaptchaToken,
       redirect: false,
     });
 
     if (result?.error) {
       setPending(false);
+      recaptchaRef.current?.reset();
+      setRecaptchaToken(null);
       setError("That email or password doesn't match an admin account.");
       return;
     }
@@ -76,7 +105,9 @@ export function AdminLoginForm({ redirectTo }: { redirectTo: string }) {
         />
       </Field>
 
-      <Button type="submit" variant="primary" className="w-full justify-center" disabled={pending}>
+      <RecaptchaCheckbox ref={recaptchaRef} onChange={setRecaptchaToken} />
+
+      <Button type="submit" variant="primary" className="w-full justify-center" disabled={pending || !recaptchaToken}>
         {pending ? "Signing in…" : "Sign in"}
       </Button>
     </form>

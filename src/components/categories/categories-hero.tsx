@@ -43,9 +43,9 @@ export function CategoriesHero({ categories }: CategoriesHeroProps) {
             </div>
 
             {/* Main Title */}
-            <h1 className="font-display text-3xl sm:text-4xl md:text-5xl lg:text-[54px] font-normal leading-[1.1] tracking-tight text-[#2b0934]">
+            <h1 className="font-display text-3xl sm:text-4xl md:text-5xl lg:text-[54px] font-normal leading-[1.1] tracking-tight text-neutral-900">
               Explore Florence by{" "}
-              <span className="italic font-normal font-display text-[#2b0934]">Category</span>
+              <span className="italic font-normal font-display text-[#9e0ca0]">Category</span>
             </h1>
 
             {/* Subtitle */}

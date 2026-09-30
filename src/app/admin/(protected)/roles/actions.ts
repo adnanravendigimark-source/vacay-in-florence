@@ -44,9 +44,9 @@ export async function deleteRoleAction(id: string): Promise<MutationResult> {
   return result;
 }
 
-export async function assignUserRoleAction(email: string, roleId: string): Promise<MutationResult> {
+export async function assignUserRoleAction(email: string, name: string, roleId: string): Promise<MutationResult> {
   const staff = await requirePermission("roles.manage", "/admin/roles");
-  const result = await assignUserRoleByEmail(email, roleId);
+  const result = await assignUserRoleByEmail(email, name, roleId);
   if (result.success) {
     revalidatePath("/admin/roles");
     await logAudit({

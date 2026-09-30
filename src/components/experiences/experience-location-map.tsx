@@ -92,7 +92,7 @@ export function ExperienceLocationMap({
     markerEl.className = "vf-map-marker";
     markerEl.innerHTML = `
       <div style="display:flex;align-items:center;gap:6px;">
-        <div style="display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:9999px;background:#2b0934;color:#fff;box-shadow:0 4px 10px rgba(0,0,0,0.25);flex-shrink:0;">
+        <div style="display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:9999px;background:#9e0ca0;color:#fff;box-shadow:0 4px 10px rgba(0,0,0,0.25);flex-shrink:0;">
           <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
             <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z" />
           </svg>

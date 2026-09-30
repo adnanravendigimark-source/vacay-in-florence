@@ -80,7 +80,7 @@ export function LandmarkSpotlight({ content }: LandmarkSpotlightProps) {
     content?.landmarkItems && content.landmarkItems.length > 0 ? content.landmarkItems : DEFAULT_LANDMARKS;
 
   return (
-    <section className="bg-[#fbfaf8] py-18 sm:py-24 border-b border-neutral-200/80">
+    <section className="bg-white py-18 sm:py-24 border-b border-neutral-200/80">
       <Container>
         {/* Section Header */}
         <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-12">
@@ -98,7 +98,7 @@ export function LandmarkSpotlight({ content }: LandmarkSpotlightProps) {
 
           <Link
             href="/experiences/category/skip-the-line-attractions"
-            className="inline-flex items-center gap-2 text-xs sm:text-sm font-semibold text-[#2b0934] hover:text-[#3d0d4a] transition-colors group self-start lg:self-end"
+            className="inline-flex items-center gap-2 text-xs sm:text-sm font-semibold text-[#9e0ca0] hover:text-[#850b9e] transition-colors group self-start lg:self-end"
           >
             <span>View All Skip-The-Line Attractions</span>
             <span className="transition-transform duration-150 group-hover:translate-x-1">&rarr;</span>
@@ -137,7 +137,7 @@ export function LandmarkSpotlight({ content }: LandmarkSpotlightProps) {
                   </div>
 
                   {/* Title */}
-                  <h3 className="mt-2 text-lg sm:text-xl font-bold text-neutral-900 leading-snug group-hover:text-[#2b0934] transition-colors">
+                  <h3 className="mt-2 text-lg sm:text-xl font-bold text-neutral-900 leading-snug group-hover:text-[#9e0ca0] transition-colors">
                     {landmark.name}
                   </h3>
 
@@ -150,7 +150,7 @@ export function LandmarkSpotlight({ content }: LandmarkSpotlightProps) {
                   <div className="mt-4 rounded-xl bg-emerald-50/80 border border-emerald-200/70 p-3">
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-neutral-500 line-through">{landmark.queueWithout}</span>
-                      <span className="font-bold text-[#2b0934] flex items-center gap-1">
+                      <span className="font-bold text-[#9e0ca0] flex items-center gap-1">
                         {landmark.queueWithUs}
                       </span>
                     </div>
@@ -168,7 +168,7 @@ export function LandmarkSpotlight({ content }: LandmarkSpotlightProps) {
 
                   <Link
                     href={landmark.href}
-                    className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-[#2b0934] px-4 py-2 text-xs font-semibold text-white shadow-sm transition-all duration-200 hover:bg-[#3d0d4a] hover:scale-105 active:scale-95"
+                    className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-[#9e0ca0] px-4 py-2 text-xs font-semibold text-white shadow-sm transition-all duration-200 hover:bg-[#850b9e] hover:scale-105 active:scale-95"
                   >
                     <span>Reserve Slot</span>
                     <span className="text-xs">&rarr;</span>

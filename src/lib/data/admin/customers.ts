@@ -1,5 +1,5 @@
 import "server-only";
-import { and, desc, eq, isNull, like, or, sql } from "drizzle-orm";
+import { and, desc, eq, like, or, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { users, orders, leadSubmissions } from "@/lib/db/schema";
 import { getOrdersForUser, type OrderView } from "@/lib/data/orders";
@@ -33,13 +33,16 @@ export interface AdminCustomerFilters {
 }
 
 /**
- * Real customers only (users.roleId is null — see src/lib/db/schema.ts).
+ * Real customers only. Scoped to accountType "customer" (not the older
+ * `roleId is null` check, which staff-vs-customer used before the
+ * account-isolation overhaul — a supplier account also has roleId null,
+ * so that check alone would now wrongly include suppliers here too).
  * Order count/spend come from one grouped aggregate query, not N+1 lookups
  * per customer. "Spent" only counts confirmed orders, matching how the
  * dashboard's own revenue figure is scoped.
  */
 export async function listAdminCustomers(filters: AdminCustomerFilters = {}): Promise<AdminCustomerListItem[]> {
-  const conditions = [isNull(users.roleId)];
+  const conditions = [eq(users.accountType, "customer")];
   if (filters.search?.trim()) {
     const term = `%${filters.search.trim()}%`;
     conditions.push(or(like(users.name, term), like(users.email, term))!);
@@ -66,7 +69,7 @@ export async function listAdminCustomers(filters: AdminCustomerFilters = {}): Pr
 }
 
 export async function getAdminCustomerById(id: string): Promise<AdminCustomerDetail | null> {
-  const [user] = await db.select().from(users).where(and(eq(users.id, id), isNull(users.roleId)));
+  const [user] = await db.select().from(users).where(and(eq(users.id, id), eq(users.accountType, "customer")));
   if (!user) return null;
 
   const [customerOrders, contactRows] = await Promise.all([

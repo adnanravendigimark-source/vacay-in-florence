@@ -11,7 +11,7 @@ import { TravelGuide } from "@/components/home/travel-guide";
 import { FaqSection } from "@/components/home/faq-section";
 import { ConversionVipBanner } from "@/components/home/conversion-vip-banner";
 import { getAllCategories } from "@/lib/data/categories";
-import { searchProducts } from "@/lib/data/products";
+import { getHomepageFeaturedExperiences } from "@/lib/data/products";
 import { getHomepageContent } from "@/lib/data/homepage";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -44,10 +44,10 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function HomePage() {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.vacayinflorence.com";
 
-  const [content, categories, productsResult] = await Promise.all([
-    getHomepageContent(),
+  const content = await getHomepageContent();
+  const [categories, homepageExperiences] = await Promise.all([
     getAllCategories(),
-    searchProducts({ pageSize: 50 }),
+    getHomepageFeaturedExperiences(content?.featuredExperienceIds),
   ]);
 
   const jsonLd = [
@@ -88,7 +88,7 @@ export default async function HomePage() {
       {content.heroEnabled !== false && <Hero content={content} />}
       {content.categoriesEnabled !== false && <QuickCategoryRibbon content={content} />}
       {content.experiencesEnabled !== false && (
-        <InteractiveExperienceExplorer experiences={productsResult.items} content={content} />
+        <InteractiveExperienceExplorer experiences={homepageExperiences} content={content} />
       )}
       {content.landmarkEnabled !== false && <LandmarkSpotlight content={content} />}
       {content.itineraryEnabled !== false && <FlorenceItineraryBuilder content={content} />}

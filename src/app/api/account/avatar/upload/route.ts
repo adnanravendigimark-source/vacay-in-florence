@@ -1,14 +1,15 @@
 import { NextResponse } from "next/server";
 import { put } from "@vercel/blob";
+import { writeFile, mkdir } from "fs/promises";
+import path from "path";
+import { eq } from "drizzle-orm";
 import { auth } from "@/lib/auth";
+import { db } from "@/lib/db";
+import { users } from "@/lib/db/schema";
 
 /**
- * Real profile-photo upload, backed by Vercel Blob. Requires a signed-in
- * session (never trusts a client-supplied user id), validates the file
- * server-side (type + size — the client's <input accept> is a UX hint
- * only), and stores it under a path scoped to the uploader's own user id.
- * Returns the public blob URL, which the Profile form then saves into the
- * user's real `avatarUrl` column via the existing profile update action.
+ * Real profile-photo upload. Uses Vercel Blob when configured, with a seamless
+ * local disk fallback to /public/uploads/avatars/ for reliable development and hosting.
  */
 
 const MAX_BYTES = 5 * 1024 * 1024; // 5MB
@@ -23,13 +24,6 @@ export async function POST(req: Request) {
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "You must be signed in to upload a photo." }, { status: 401 });
-  }
-
-  if (!process.env.BLOB_READ_WRITE_TOKEN) {
-    return NextResponse.json(
-      { error: "Photo uploads aren't configured yet. Please contact support." },
-      { status: 503 },
-    );
   }
 
   let formData: FormData;
@@ -52,16 +46,47 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Image must be smaller than 5MB." }, { status: 400 });
   }
 
-  const pathname = `avatars/${session.user.id}-${Date.now()}.${ext}`;
+  const filename = `${session.user.id}-${Date.now()}.${ext}`;
+  let finalUrl = "";
 
-  try {
-    const blob = await put(pathname, file, {
-      access: "public",
-      contentType: file.type,
-    });
-    return NextResponse.json({ url: blob.url });
-  } catch (err) {
-    console.error("Avatar upload failed", err);
-    return NextResponse.json({ error: "Upload failed. Please try again." }, { status: 500 });
+  // 1. Try Vercel Blob if token is present
+  if (process.env.BLOB_READ_WRITE_TOKEN) {
+    try {
+      const pathname = `avatars/${filename}`;
+      const blob = await put(pathname, file, {
+        access: "public",
+        contentType: file.type,
+      });
+      finalUrl = blob.url;
+    } catch (err) {
+      console.warn("Vercel blob upload failed, attempting local fallback:", err);
+    }
   }
+
+  // 2. Local disk fallback
+  if (!finalUrl) {
+    try {
+      const uploadsDir = path.join(process.cwd(), "public", "uploads", "avatars");
+      await mkdir(uploadsDir, { recursive: true });
+      const filePath = path.join(uploadsDir, filename);
+      const arrayBuffer = await file.arrayBuffer();
+      await writeFile(filePath, Buffer.from(arrayBuffer));
+      finalUrl = `/uploads/avatars/${filename}`;
+    } catch (fsErr) {
+      console.error("Local avatar upload failed:", fsErr);
+      return NextResponse.json({ error: "Upload failed. Please try again." }, { status: 500 });
+    }
+  }
+
+  // 3. Update the user database row directly
+  try {
+    await db
+      .update(users)
+      .set({ avatarUrl: finalUrl, updatedAt: new Date() })
+      .where(eq(users.id, session.user.id));
+  } catch (dbErr) {
+    console.warn("Could not immediately update user avatar in DB:", dbErr);
+  }
+
+  return NextResponse.json({ url: finalUrl });
 }

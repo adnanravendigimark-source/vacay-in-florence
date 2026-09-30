@@ -1,11 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { FormField, FormError, FormNotice, SubmitButton } from "@/components/auth/auth-card";
+import { RecaptchaCheckbox, type RecaptchaCheckboxHandle } from "@/components/auth/recaptcha-checkbox";
 import { loginSchema } from "@/lib/validation/auth";
+import { checkCustomerLoginStatusAction } from "./actions";
 
 /**
  * Client-side login form.
@@ -29,6 +31,8 @@ export function LoginForm({
 }) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
+  const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
+  const recaptchaRef = useRef<RecaptchaCheckboxHandle>(null);
 
   async function handleSubmit(formData: FormData) {
     setError(null);
@@ -42,21 +46,38 @@ export function LoginForm({
       return;
     }
 
+    if (!recaptchaToken) {
+      setError("Please complete the reCAPTCHA verification.");
+      return;
+    }
+
+    // Non-auth pre-check so a staff or supplier account on this same
+    // email (or no account at all) gets a clear "Account not found"
+    // here, distinct from a customer account with the wrong password —
+    // per the isolation model, this surface only ever recognizes a
+    // "customer" accountType row. Never used to authorize anything: the
+    // "credentials" NextAuth provider below independently re-verifies
+    // accountType/emailVerified itself regardless of what this reports.
+    const status = await checkCustomerLoginStatusAction(parsed.data.email);
+    if (!status.found) {
+      setError("We couldn't find a customer account with that email. You can create one below.");
+      return;
+    }
+    if (status.emailVerified === false) {
+      setError("Please confirm your email address before signing in — check your inbox for the link we sent.");
+      return;
+    }
+
     const result = await signIn("credentials", {
       email: parsed.data.email,
       password: parsed.data.password,
+      recaptchaToken,
       redirect: false,
     });
 
     if (result?.error) {
-      // Covers both a wrong password and a staff account's credentials
-      // (this is the customer-facing login — staff sign in separately
-      // at /admin/login, see admin-login-form.tsx). The "credentials"
-      // NextAuth provider (src/lib/auth.ts) rejects a staff account's
-      // login server-side in this same request, so there's no second
-      // round trip here to tell the two cases apart — which also means
-      // a wrong guess can't be used to probe whether an email belongs
-      // to a staff account.
+      recaptchaRef.current?.reset();
+      setRecaptchaToken(null);
       setError("That email or password doesn't match an account.");
       return;
     }
@@ -102,15 +123,19 @@ export function LoginForm({
         </label>
 
         <Link
-          href="/forgot-password"
+          href="/forgot-password?role=customer"
           className="font-medium text-neutral-600 hover:text-neutral-900 hover:underline"
         >
           Forgot password?
         </Link>
       </div>
 
+      <div className="pt-1">
+        <RecaptchaCheckbox ref={recaptchaRef} onChange={setRecaptchaToken} />
+      </div>
+
       <div className="pt-2">
-        <SubmitButton label="Sign in" />
+        <SubmitButton label="Sign in" disabled={!recaptchaToken} />
       </div>
     </form>
   );

@@ -69,8 +69,8 @@ export function CategoryFilterPills({
           href="/experiences"
           className={`inline-flex items-center gap-2.5 shrink-0 rounded-full px-5 py-2.5 text-xs font-semibold transition-all duration-200 cursor-pointer ${
             !activeCategorySlug
-              ? "bg-[#2b0934] text-white shadow-md ring-1 ring-black/10 scale-[1.02]"
-              : "bg-white text-neutral-700 hover:bg-[#f6f4ee] hover:text-neutral-900 border border-[#e4ded5] shadow-xs"
+              ? "bg-[#9e0ca0] text-white shadow-md ring-1 ring-black/10 scale-[1.02]"
+              : "bg-white text-neutral-700 hover:bg-[#fdf2fe] hover:text-neutral-900 border border-[#e4ded5] shadow-xs"
           }`}
         >
           <svg viewBox="0 0 24 24" className="h-4 w-4 fill-current opacity-85">
@@ -91,18 +91,18 @@ export function CategoryFilterPills({
               href={`/experiences/category/${cat.slug}`}
               className={`inline-flex items-center gap-2.5 shrink-0 rounded-full px-5 py-2.5 text-xs font-semibold transition-all duration-200 cursor-pointer ${
                 isActive
-                  ? "bg-[#2b0934] text-white shadow-md ring-1 ring-black/10 scale-[1.02]"
-                  : "bg-white text-neutral-700 hover:bg-[#f6f4ee] hover:text-neutral-900 border border-[#e4ded5] shadow-xs"
+                  ? "bg-[#9e0ca0] text-white shadow-md ring-1 ring-black/10 scale-[1.02]"
+                  : "bg-white text-neutral-700 hover:bg-[#fdf2fe] hover:text-neutral-900 border border-[#e4ded5] shadow-xs"
               }`}
             >
-              <span className={isActive ? "text-amber-300" : "text-[#2b0934]"}>
+              <span className={isActive ? "text-amber-300" : "text-[#9e0ca0]"}>
                 {getCategoryIcon(cat.slug)}
               </span>
               <span>{cat.name}</span>
               {typeof cat.productCount === "number" && cat.productCount > 0 && (
                 <span
                   className={`ml-0.5 inline-flex items-center justify-center rounded-full px-1.5 py-0.5 text-[10px] font-bold ${
-                    isActive ? "bg-white/20 text-white" : "bg-[#f2efe8] text-neutral-600"
+                    isActive ? "bg-white/20 text-white" : "bg-[#fdf2fe] text-[#9e0ca0]"
                   }`}
                 >
                   {cat.productCount}

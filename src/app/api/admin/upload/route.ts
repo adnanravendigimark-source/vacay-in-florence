@@ -1,19 +1,11 @@
 import { NextResponse } from "next/server";
 import { put } from "@vercel/blob";
+import { writeFile, mkdir } from "fs/promises";
+import path from "path";
 import { getStaffContext, getSupplierContext } from "@/lib/require-user";
 
 /**
- * General-purpose media upload, backed by Vercel Blob. Used by every admin
- * form's image/video picker (ImageField, and the Homepage Editor's media
- * fields) AND, since the Supplier Panel reuses ImageField as-is for the
- * supplier profile's logo field, by approved suppliers too — the client
- * posts the raw file here and gets back a public URL to save into whichever
- * DB column that field edits. Requires a signed-in *staff* session OR an
- * *approved* supplier session (never trusts a client-supplied user id or
- * role), validates the file server-side (type + size — the client's
- * <input accept> is a UX hint only), and stores it under a path scoped to
- * an admin-chosen folder plus the uploader's id so files are traceable and
- * never collide.
+ * General-purpose media upload. Backed by Vercel Blob with local disk fallback.
  */
 
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024; // 8MB
@@ -44,13 +36,6 @@ export async function POST(req: Request) {
   const uploaderId = staff?.userId ?? (supplier?.status === "approved" ? supplier.userId : null);
   if (!uploaderId) {
     return NextResponse.json({ error: "You must be signed in to upload files." }, { status: 401 });
-  }
-
-  if (!process.env.BLOB_READ_WRITE_TOKEN) {
-    return NextResponse.json(
-      { error: "File uploads aren't configured yet. Please contact support." },
-      { status: 503 },
-    );
   }
 
   let formData: FormData;
@@ -86,16 +71,35 @@ export async function POST(req: Request) {
   }
 
   const ext = isImage ? ALLOWED_IMAGE_TYPES[file.type] : ALLOWED_VIDEO_TYPES[file.type];
-  const pathname = `admin/${folder}/${Date.now()}-${uploaderId}.${ext}`;
+  const filename = `${Date.now()}-${uploaderId}.${ext}`;
+  let finalUrl = "";
 
-  try {
-    const blob = await put(pathname, file, {
-      access: "public",
-      contentType: file.type,
-    });
-    return NextResponse.json({ url: blob.url });
-  } catch (err) {
-    console.error("Admin upload failed", err);
-    return NextResponse.json({ error: "Upload failed. Please try again." }, { status: 500 });
+  if (process.env.BLOB_READ_WRITE_TOKEN) {
+    try {
+      const pathname = `admin/${folder}/${filename}`;
+      const blob = await put(pathname, file, {
+        access: "public",
+        contentType: file.type,
+      });
+      finalUrl = blob.url;
+    } catch (err) {
+      console.warn("Vercel Blob admin upload failed, attempting local fallback:", err);
+    }
   }
+
+  if (!finalUrl) {
+    try {
+      const uploadsDir = path.join(process.cwd(), "public", "uploads", folder);
+      await mkdir(uploadsDir, { recursive: true });
+      const filePath = path.join(uploadsDir, filename);
+      const arrayBuffer = await file.arrayBuffer();
+      await writeFile(filePath, Buffer.from(arrayBuffer));
+      finalUrl = `/uploads/${folder}/${filename}`;
+    } catch (fsErr) {
+      console.error("Local admin upload failed:", fsErr);
+      return NextResponse.json({ error: "Upload failed. Please try again." }, { status: 500 });
+    }
+  }
+
+  return NextResponse.json({ url: finalUrl });
 }

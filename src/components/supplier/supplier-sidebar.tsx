@@ -79,12 +79,12 @@ function IconNotifications({ className }: { className?: string }) {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { href: "/supplier/dashboard", label: "Dashboard", icon: (a) => <IconDashboard className={`w-4 h-4 shrink-0 ${a ? "text-[#F5D59A]" : "text-neutral-500 group-hover:text-[#2b0934]"}`} /> },
-  { href: "/supplier/experiences", label: "My Experiences", icon: (a) => <IconExperiences className={`w-4 h-4 shrink-0 ${a ? "text-[#F5D59A]" : "text-neutral-500 group-hover:text-[#2b0934]"}`} /> },
-  { href: "/supplier/bookings", label: "Bookings", icon: (a) => <IconBookings className={`w-4 h-4 shrink-0 ${a ? "text-[#F5D59A]" : "text-neutral-500 group-hover:text-[#2b0934]"}`} /> },
-  { href: "/supplier/financials", label: "Financials", icon: (a) => <IconFinancials className={`w-4 h-4 shrink-0 ${a ? "text-[#F5D59A]" : "text-neutral-500 group-hover:text-[#2b0934]"}`} /> },
-  { href: "/supplier/notifications", label: "Notifications", icon: (a) => <IconNotifications className={`w-4 h-4 shrink-0 ${a ? "text-[#F5D59A]" : "text-neutral-500 group-hover:text-[#2b0934]"}`} /> },
-  { href: "/supplier/profile", label: "Profile", icon: (a) => <IconProfile className={`w-4 h-4 shrink-0 ${a ? "text-[#F5D59A]" : "text-neutral-500 group-hover:text-[#2b0934]"}`} /> },
+  { href: "/supplier/dashboard", label: "Dashboard", icon: (a) => <IconDashboard className={`w-4 h-4 shrink-0 ${a ? "text-[#F5D59A]" : "text-neutral-500 group-hover:text-[#9e0ca0]"}`} /> },
+  { href: "/supplier/experiences", label: "My Experiences", icon: (a) => <IconExperiences className={`w-4 h-4 shrink-0 ${a ? "text-[#F5D59A]" : "text-neutral-500 group-hover:text-[#9e0ca0]"}`} /> },
+  { href: "/supplier/bookings", label: "Bookings", icon: (a) => <IconBookings className={`w-4 h-4 shrink-0 ${a ? "text-[#F5D59A]" : "text-neutral-500 group-hover:text-[#9e0ca0]"}`} /> },
+  { href: "/supplier/financials", label: "Financials", icon: (a) => <IconFinancials className={`w-4 h-4 shrink-0 ${a ? "text-[#F5D59A]" : "text-neutral-500 group-hover:text-[#9e0ca0]"}`} /> },
+  { href: "/supplier/notifications", label: "Notifications", icon: (a) => <IconNotifications className={`w-4 h-4 shrink-0 ${a ? "text-[#F5D59A]" : "text-neutral-500 group-hover:text-[#9e0ca0]"}`} /> },
+  { href: "/supplier/profile", label: "Profile", icon: (a) => <IconProfile className={`w-4 h-4 shrink-0 ${a ? "text-[#F5D59A]" : "text-neutral-500 group-hover:text-[#9e0ca0]"}`} /> },
 ];
 
 function isPathActive(pathname: string, href: string): boolean {
@@ -108,8 +108,8 @@ function SidebarContent({
         <div className="p-4 sm:p-5 pb-3 border-b border-[#F0ECE6]">
           <div className="flex items-center justify-between gap-2 mb-2.5">
             <Link href="/supplier/dashboard" onClick={onClose} className="flex items-center gap-3 px-1 py-1 group min-w-0">
-              <div className="w-9 h-9 rounded-xl bg-[#FAF5FC] flex items-center justify-center shrink-0 border border-[#2b0934]/20 text-[#2b0934] shadow-2xs group-hover:border-[#2b0934]/50 transition">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 text-[#2b0934]">
+              <div className="w-9 h-9 rounded-xl bg-[#fdf2fe] flex items-center justify-center shrink-0 border border-[#9e0ca0]/20 text-[#9e0ca0] shadow-2xs group-hover:border-[#9e0ca0]/50 transition">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 text-[#9e0ca0]">
                   <path d="M12 2v4M12 2L8 6v14h8V6L12 2z" />
                   <path d="M4 14h4v6H4zM16 14h4v6h-4z" />
                 </svg>
@@ -164,7 +164,7 @@ function SidebarContent({
                 onClick={onClose}
                 className={`group flex items-center gap-3 px-3.5 py-2 rounded-xl text-[13px] font-medium transition-all ${
                   active
-                    ? "bg-[#2b0934] text-white font-semibold shadow-[0_2px_8px_rgba(43,9,52,0.18)]"
+                    ? "bg-[#9e0ca0] text-white font-semibold shadow-[0_2px_8px_rgba(158,12,160,0.18)]"
                     : "text-neutral-600 hover:text-neutral-900 hover:bg-[#FAF8F5]"
                 }`}
               >
@@ -173,7 +173,7 @@ function SidebarContent({
                 {badgeCount > 0 ? (
                   <span
                     className={`ml-auto flex h-4.5 min-w-[18px] items-center justify-center rounded-full px-1 text-[10px] font-bold ${
-                      active ? "bg-white text-[#2b0934]" : "bg-[#D94F3D] text-white"
+                      active ? "bg-white text-[#9e0ca0]" : "bg-[#D94F3D] text-white"
                     }`}
                   >
                     {badgeCount > 9 ? "9+" : badgeCount}

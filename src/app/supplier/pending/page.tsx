@@ -14,11 +14,16 @@ export const metadata: Metadata = {
 export default async function SupplierPendingPage({
   searchParams,
 }: {
-  searchParams: Promise<{ email?: string }>;
+  searchParams: Promise<{ email?: string; link?: string }>;
 }) {
   const session = await auth();
   let status: SupplierAccountStatus | null = null;
   let supplierName: string | null = null;
+  // Only ever set from the anonymous (just-registered, no session) branch
+  // below — a session can only exist once /supplier/login's
+  // "supplier-credentials" provider has already required emailVerified to
+  // be true, so a logged-in supplier here is always already verified.
+  let emailVerified: boolean | null = null;
 
   if (session?.user?.id) {
     const supplier = await getSupplierContext();
@@ -33,13 +38,16 @@ export default async function SupplierPendingPage({
       if (lookup.found) {
         status = lookup.status ?? null;
         supplierName = lookup.supplierName ?? null;
+        emailVerified = lookup.emailVerified ?? null;
       }
     }
   }
 
-  if (status === "approved") {
+  if (status === "approved" && emailVerified !== false) {
     redirect("/supplier/login");
   }
+
+  const { link: verificationLink } = await searchParams;
 
   return (
     <div className="min-h-screen bg-[#faf8f5] text-neutral-900 flex flex-col justify-between font-sans">
@@ -98,6 +106,33 @@ export default async function SupplierPendingPage({
           <p className="mt-3 text-sm sm:text-base text-neutral-600 max-w-md mx-auto leading-relaxed">
             Your supplier registration has been successfully submitted. It is now pending approval from our admin team.
           </p>
+
+          {/* Email verification notice — shown until the applicant confirms
+              their email address; login is blocked until they do, and
+              admin approval alone won't let them sign in. */}
+          {emailVerified === false && (
+            <div className="mt-8 rounded-2xl bg-emerald-50 border border-emerald-200 p-5 text-left flex items-start gap-4">
+              <div className="h-9 w-9 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0 text-base font-bold">
+                ✉️
+              </div>
+              <div>
+                <h4 className="text-sm font-bold text-emerald-900">Confirm your email address</h4>
+                <p className="mt-1 text-xs sm:text-sm text-emerald-800 leading-relaxed">
+                  We&apos;ve sent a confirmation link to your email. You won&apos;t be able to sign in — even
+                  once approved — until you&apos;ve confirmed it.
+                </p>
+                {verificationLink && (
+                  <p className="mt-2 text-xs text-emerald-800 break-all">
+                    Email delivery isn&apos;t fully configured yet, so here&apos;s your confirmation link
+                    directly:{" "}
+                    <Link href={verificationLink} className="font-semibold underline">
+                      {verificationLink}
+                    </Link>
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Amber Status Notice Box */}
           <div className="mt-8 rounded-2xl bg-[#fef7e6] border border-[#fde8be] p-5 text-left flex items-start gap-4">

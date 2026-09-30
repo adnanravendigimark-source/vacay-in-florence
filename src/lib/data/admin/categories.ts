@@ -1,6 +1,7 @@
 import "server-only";
 import { eq, and, sql, asc } from "drizzle-orm";
 import { db } from "@/lib/db";
+import { getPgErrorCode } from "@/lib/db/errors";
 import { categories, products } from "@/lib/db/schema";
 import { ensureCategoriesSchemaUpToDate } from "@/lib/data/categories";
 import type { CategoryFormData } from "@/lib/validation/categories";
@@ -208,7 +209,7 @@ export async function deleteCategory(id: string): Promise<MutationResult> {
   } catch (err) {
     // Postgres foreign_key_violation — this category has real products
     // pointing at it (products.categoryId has no cascade, on purpose).
-    const code = (err as { code?: string } | null)?.code;
+    const code = getPgErrorCode(err);
     if (code === "23503") {
       return {
         success: false,

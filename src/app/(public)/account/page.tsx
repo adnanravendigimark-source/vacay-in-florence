@@ -45,7 +45,7 @@ export default async function AccountOverviewPage() {
           {orders.length > 0 ? (
             <Link
               href="/account/bookings"
-              className="group inline-flex items-center gap-1.5 text-xs sm:text-[13px] font-semibold text-[#2b0934] hover:text-[#850b9e] transition-colors"
+              className="group inline-flex items-center gap-1.5 text-xs sm:text-[13px] font-semibold text-[#9e0ca0] hover:text-[#850b9e] transition-colors"
             >
               <span>View all bookings</span>
               <span className="transition-transform group-hover:translate-x-1">&rarr;</span>
@@ -55,7 +55,7 @@ export default async function AccountOverviewPage() {
 
         {recentOrders.length === 0 ? (
           <div className="py-16 text-center">
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-light text-brand mb-3.5">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#fdf2fe] text-[#9e0ca0] mb-3.5">
               <svg viewBox="0 0 24 24" className="w-6 h-6 fill-none stroke-current stroke-2">
                 <rect x="3" y="4" width="18" height="18" rx="2" />
                 <line x1="16" y1="2" x2="16" y2="6" />
@@ -70,7 +70,7 @@ export default async function AccountOverviewPage() {
             <div className="mt-5">
               <Link
                 href="/experiences"
-                className="inline-flex items-center gap-2 bg-[#2b0934] hover:bg-[#3d0d4a] text-white text-xs sm:text-[13px] font-semibold px-5 py-2.5 rounded-full transition-all duration-150 shadow-sm hover:shadow"
+                className="inline-flex items-center gap-2 bg-[#9e0ca0] hover:bg-[#850b9e] text-white text-xs sm:text-[13px] font-semibold px-5 py-2.5 rounded-full transition-all duration-150 shadow-sm hover:shadow"
               >
                 <span>Browse Experiences</span>
                 <span>&rarr;</span>
@@ -165,7 +165,7 @@ export default async function AccountOverviewPage() {
                     </div>
                     <Link
                       href={`/account/bookings/${order.id}`}
-                      className="inline-flex items-center gap-1.5 bg-[#2b0934] hover:bg-[#3d0d4a] text-white text-xs sm:text-[13px] font-semibold px-5 py-2.5 rounded-full transition-all duration-150 shadow-sm hover:shadow hover:scale-[1.02] active:scale-[0.98]"
+                      className="inline-flex items-center gap-1.5 bg-[#9e0ca0] hover:bg-[#850b9e] text-white text-xs sm:text-[13px] font-semibold px-5 py-2.5 rounded-full transition-all duration-150 shadow-sm hover:shadow hover:scale-[1.02] active:scale-[0.98]"
                     >
                       <span>View Details</span>
                       <span className="text-sm">&rarr;</span>

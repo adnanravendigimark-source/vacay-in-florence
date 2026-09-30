@@ -68,7 +68,7 @@ export function BookingsManager({ bookings }: BookingsManagerProps) {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search bookings..."
-              className="w-full pl-10 pr-4 py-2.5 rounded-full bg-white border border-stone text-xs sm:text-[13px] text-ink placeholder:text-ink-faint focus:outline-none focus:border-[#2b0934] focus:ring-1 focus:ring-[#2b0934] shadow-2xs transition"
+              className="w-full pl-10 pr-4 py-2.5 rounded-full bg-white border border-stone text-xs sm:text-[13px] text-ink placeholder:text-ink-faint focus:outline-none focus:border-[#9e0ca0] focus:ring-1 focus:ring-[#9e0ca0] shadow-2xs transition"
             />
           </div>
         ) : null}
@@ -77,7 +77,7 @@ export function BookingsManager({ bookings }: BookingsManagerProps) {
       {/* Bookings List (Individual Spacious Floating Cards) */}
       {filteredBookings.length === 0 ? (
         <div className="rounded-3xl bg-white border border-stone shadow-[0_4px_25px_rgba(43,9,52,0.03)] p-12 text-center">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-light text-brand mb-3.5">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#fdf2fe] text-[#9e0ca0] mb-3.5">
             <svg viewBox="0 0 24 24" className="w-6 h-6 fill-none stroke-current stroke-2">
               <rect x="3" y="4" width="18" height="18" rx="2" />
               <line x1="16" y1="2" x2="16" y2="6" />
@@ -96,7 +96,7 @@ export function BookingsManager({ bookings }: BookingsManagerProps) {
           <div className="mt-5">
             <Link
               href="/experiences"
-              className="inline-flex items-center gap-2 bg-[#2b0934] hover:bg-[#3d0d4a] text-white text-xs sm:text-[13px] font-semibold px-5 py-2.5 rounded-full transition shadow-sm hover:shadow"
+              className="inline-flex items-center gap-2 bg-[#9e0ca0] hover:bg-[#850b9e] text-white text-xs sm:text-[13px] font-semibold px-5 py-2.5 rounded-full transition shadow-sm hover:shadow"
             >
               <span>Explore Experiences</span>
               <span>&rarr;</span>
@@ -194,7 +194,7 @@ export function BookingsManager({ bookings }: BookingsManagerProps) {
 
                 <Link
                   href={item.href}
-                  className="inline-flex items-center gap-1.5 bg-[#2b0934] hover:bg-[#3d0d4a] text-white text-xs sm:text-[13px] font-semibold px-5 py-2.5 rounded-full transition-all duration-150 shadow-sm hover:shadow hover:scale-[1.02] active:scale-[0.98]"
+                  className="inline-flex items-center gap-1.5 bg-[#9e0ca0] hover:bg-[#850b9e] text-white text-xs sm:text-[13px] font-semibold px-5 py-2.5 rounded-full transition-all duration-150 shadow-sm hover:shadow hover:scale-[1.02] active:scale-[0.98]"
                 >
                   <span>View Details</span>
                   <span className="text-sm">&rarr;</span>

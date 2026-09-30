@@ -182,8 +182,8 @@ export const products = pgTable(
     title: text("title").notNull(),
     shortDescription: text("short_description").notNull(),
     description: text("description").notNull(),
-    // JSON string[] — bullet lists rendered on the product detail page.
-    highlights: jsonb("highlights").$type<string[]>().notNull().default([]),
+    // JSON string[] or structured object[] — bullet lists rendered on the product detail page.
+    highlights: jsonb("highlights").$type<(string | { category?: string; title: string; description?: string; badge?: string; icon?: string })[]>().notNull().default([]),
     inclusions: jsonb("inclusions").$type<string[]>().notNull().default([]),
     exclusions: jsonb("exclusions").$type<string[]>().notNull().default([]),
     // Freeform "Good to know" tips shown on the public product page
@@ -269,28 +269,29 @@ export const products = pgTable(
     // copy, not a duplicate of it).
     whyVisit: text("why_visit"),
     // Recommended Visit Schedule / Itinerary Timeline — ordered steps,
-    // each with an optional time label.
-    itinerary: jsonb("itinerary").$type<{ time: string; title: string; description: string }[]>().notNull().default([]),
+    // each with an optional time/tag, image, icon, and description.
+    itinerary: jsonb("itinerary").$type<{ time?: string; title: string; description?: string; image?: string; tag?: string; icon?: string }[]>().notNull().default([]),
     // "Secrets, history & artistic significance" bullet list — distinct
     // from `highlights` above, which is booking-assurance-style copy
     // (skip the line, small group, etc.).
-    secretHistoryPoints: jsonb("secret_history_points").$type<string[]>().notNull().default([]),
+    secretHistoryPoints: jsonb("secret_history_points").$type<(string | { title: string; description?: string; image?: string })[]>().notNull().default([]),
     // Key Entrances & Access Points.
     entrances: jsonb("entrances").$type<{ name: string; description: string }[]>().notNull().default([]),
     // "The Ultimate Experience" premium-pitch block.
     ultimateExperienceTitle: text("ultimate_experience_title"),
     ultimateExperienceDescription: text("ultimate_experience_description"),
-    ultimateExperiencePoints: jsonb("ultimate_experience_points").$type<string[]>().notNull().default([]),
+    ultimateExperienceImage: text("ultimate_experience_image"),
+    ultimateExperiencePoints: jsonb("ultimate_experience_points").$type<(string | { title: string; description?: string; icon?: string })[]>().notNull().default([]),
     // Opening Hours & Operational Info table + freeform notes below it
     // (e.g. "Last entry 30 minutes before closing").
     openingHours: jsonb("opening_hours").$type<{ day: string; hours: string }[]>().notNull().default([]),
     operationalInfo: text("operational_info"),
     // "How to get there" transport options, alongside the existing
     // meetingPoint/City/Country + map above.
-    gettingThereOptions: jsonb("getting_there_options").$type<{ mode: string; description: string }[]>().notNull().default([]),
-    // Best Time to Visit — a short paragraph plus optional quick tips.
+    gettingThereOptions: jsonb("getting_there_options").$type<{ mode: string; description: string; image?: string; tag?: string; icon?: string }[]>().notNull().default([]),
+    // Best Time to Visit — a short paragraph plus optional quick tips or seasonal cards.
     bestTimeToVisit: text("best_time_to_visit"),
-    bestTimeToVisitTips: jsonb("best_time_to_visit_tips").$type<string[]>().notNull().default([]),
+    bestTimeToVisitTips: jsonb("best_time_to_visit_tips").$type<(string | { season?: string; months?: string; title?: string; description: string; image?: string; icon?: string })[]>().notNull().default([]),
     // Frequently Asked Questions accordion.
     faqs: jsonb("faqs").$type<{ question: string; answer: string }[]>().notNull().default([]),
     // Related Travel Guides & Blog Articles — admin-curated override list
@@ -516,10 +517,23 @@ export const users = pgTable(
     passwordHash: text("password_hash").notNull(),
     name: text("name").notNull(),
     emailVerified: timestamp("email_verified", { mode: "date" }),
+    // Explicit discriminator for which of the three, fully isolated
+    // authentication contexts this row belongs to: "customer" | "staff" |
+    // "supplier". Set once at creation and never changed afterward (a
+    // promotion/demotion changes roleId, not accountType — see
+    // src/lib/data/admin/roles.ts). This is what lets the SAME email
+    // address hold up to three completely independent accounts (one per
+    // context) — the unique index below is scoped to (email, accountType)
+    // instead of email alone, on purpose.
+    accountType: text("account_type").notNull().default("customer"),
     // Null = ordinary customer (every account before this column existed,
     // and every new signup by default). Non-null = a staff account whose
     // permissions come from the referenced role. See roles/permissions
-    // above and src/lib/require-user.ts.
+    // above and src/lib/require-user.ts. A staff row whose access has
+    // been revoked keeps accountType "staff" but has roleId set back to
+    // null — see removeStaffAccess — so it can never sign in again
+    // without ever being deleted (preserving audit_logs history, which
+    // references users.id).
     roleId: text("role_id").references(() => roles.id),
     // Real account-profile fields (src/app/(public)/account/profile) —
     // all nullable/optional, since every existing account predates them.
@@ -533,10 +547,19 @@ export const users = pgTable(
     avatarUrl: text("avatar_url"),
     ...timestamps,
   },
-  (t) => [uniqueIndex("users_email_idx").on(t.email), index("users_role_idx").on(t.roleId)],
+  (t) => [
+    uniqueIndex("users_email_account_type_idx").on(t.email, t.accountType),
+    index("users_role_idx").on(t.roleId),
+  ],
 );
 
 // email_verification | password_reset
+// type: "password_reset" (forgot-password flow) | "email_verification"
+// (confirms a password-signup's email before login is allowed) |
+// "password_setup" (lets a Google-created or admin-invited-staff account,
+// which starts with a random unusable password, set a real one for the
+// first time — reuses the same reset-password UI/action, see its
+// comment). Every type is single-use: consuming a token deletes the row.
 export const verificationTokens = pgTable(
   "verification_tokens",
   {
@@ -700,6 +723,7 @@ export const homepageContent = pgTable(
     experiencesTitle: text("experiences_title").notNull().default("Handcrafted Tours & Skip-The-Line Admissions"),
     experiencesSubtitle: text("experiences_subtitle").notNull().default("Handcrafted tours and skip-the-line admissions chosen by local Florentines."),
     experiencesItems: jsonb("experiences_items").$type<{ id: string; title: string; slug: string; imageUrl: string; badgeText: string; duration: string; priceFrom: string; enabled: boolean }[]>(),
+    featuredExperienceIds: jsonb("featured_experience_ids").$type<string[]>(),
 
     // 4. Landmark Spotlight Section
     landmarkEnabled: boolean("landmark_enabled").notNull().default(true),

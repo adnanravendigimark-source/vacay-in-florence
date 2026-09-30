@@ -4,30 +4,30 @@
 @import "@fontsource-variable/fraunces/wght.css";
 
 @theme {
-  --color-cream: #fbfbfa;
-  --color-cream-deep: #f8f3fa;
-  --color-stone: #e8e2eb;
-  --color-stone-dark: #d2c8d6;
-  --color-ink: #1a101f;
-  --color-ink-soft: #4f3d56;
-  --color-ink-faint: #7e6e85;
-  --color-terracotta: #a813c9;
+  --color-cream: #ffffff;
+  --color-cream-deep: #faf8fb;
+  --color-stone: #ede7ef;
+  --color-stone-dark: #d8cde0;
+  --color-ink: #190f1d;
+  --color-ink-soft: #4e3c54;
+  --color-ink-faint: #7d6c84;
+  --color-terracotta: #9e0ca0;
   --color-terracotta-dark: #850b9e;
-  --color-terracotta-light: #f7ecfb;
-  --color-brand: #a813c9;
-  --color-brand-deep: #2b0934;
-  --color-brand-light: #f7ecfb;
+  --color-terracotta-light: #fdf2fe;
+  --color-brand: #9e0ca0;
+  --color-brand-deep: #850b9e;
+  --color-brand-light: #fdf2fe;
   --color-gold: #d99b26;
   --color-gold-light: #fdf5e6;
-  --color-cypress: #2b0934;
-  --color-cypress-light: #f5e6f8;
+  --color-cypress: #9e0ca0;
+  --color-cypress-light: #fdf2fe;
 
   --font-display: "Playfair Display", "Fraunces Variable", ui-serif, Georgia, serif;
   --font-sans: "Plus Jakarta Sans", "Inter Variable", ui-sans-serif, system-ui, sans-serif;
   --font-script: "Caveat", "Playfair Display", cursive, serif;
 
-  --shadow-card: 0 1px 3px rgba(43, 9, 52, 0.04), 0 8px 24px -10px rgba(43, 9, 52, 0.08);
-  --shadow-card-hover: 0 4px 12px rgba(43, 9, 52, 0.06), 0 16px 36px -12px rgba(43, 9, 52, 0.14);
+  --shadow-card: 0 1px 3px rgba(158, 12, 160, 0.04), 0 8px 24px -10px rgba(158, 12, 160, 0.08);
+  --shadow-card-hover: 0 4px 12px rgba(158, 12, 160, 0.06), 0 16px 36px -12px rgba(158, 12, 160, 0.14);
 }
 
 .font-script {
@@ -45,7 +45,7 @@ body {
 }
 
 ::selection {
-  background-color: #a813c9;
+  background-color: #9e0ca0;
   color: #ffffff;
 }
 
@@ -65,7 +65,7 @@ body {
 }
 
 :focus-visible:not(input):not(textarea):not(select) {
-  outline: 2px solid #a813c9;
+  outline: 2px solid #9e0ca0;
   outline-offset: 2px;
   border-radius: 4px;
 }

@@ -1,5 +1,6 @@
 import { eq, and, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
+import { getPgErrorCode } from "@/lib/db/errors";
 import { categories, products } from "@/lib/db/schema";
 import type { CategoryIcon, CategoryStatus, CategorySummary } from "@/lib/types";
 import { ensureSearchIndexes } from "@/lib/db/search-indexes";
@@ -18,7 +19,7 @@ async function alterCategoriesColumn(statement: ReturnType<typeof sql>) {
   try {
     await db.execute(statement);
   } catch (err) {
-    const code = (err as { code?: string } | null)?.code;
+    const code = getPgErrorCode(err);
     if (code !== "42701") throw err;
   }
 }
