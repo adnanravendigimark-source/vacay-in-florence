@@ -448,7 +448,17 @@ function parseGettingThereOption(
 }
 
 function getMeetingDestinationName(meetingPoint: string | null, productTitle: string) {
-  if (!meetingPoint || !meetingPoint.trim()) return productTitle;
+  if (
+    !meetingPoint ||
+    !meetingPoint.trim() ||
+    meetingPoint.length > 35 ||
+    meetingPoint.toLowerCase().includes("email") ||
+    meetingPoint.toLowerCase().includes("pickup") ||
+    meetingPoint.toLowerCase().includes("confirmed") ||
+    meetingPoint.toLowerCase().includes("hotel")
+  ) {
+    return productTitle.replace(/^(the|a)\s+/i, "");
+  }
   const firstChunk = meetingPoint.split(",")[0].trim();
   if (firstChunk.toLowerCase().includes("entrance")) {
     const cleaned = firstChunk.replace(/(main\s*entrance|entrance|at the)/gi, "").trim();
@@ -980,11 +990,12 @@ function getPostcardSticker(categorySlug?: string, title?: string, slug?: string
 }
 
 function parseWhyVisit(whyVisit: string | null, titleFallback: string) {
+  const defaultHeadline = "Why you can't miss this experience";
   if (!whyVisit || !whyVisit.trim()) {
     return {
-      title: `Discover why ${titleFallback} is an unmissable Florentine experience.`,
+      headline: defaultHeadline,
+      description: `Discover why ${titleFallback} is an unmissable Florentine experience.`,
       subtitle: "",
-      description: "",
       collageImages: [] as string[],
     };
   }
@@ -993,19 +1004,30 @@ function parseWhyVisit(whyVisit: string | null, titleFallback: string) {
     try {
       const parsed = JSON.parse(str);
       return {
-        title: parsed.title || parsed.description || str,
+        headline: parsed.title || defaultHeadline,
+        description: parsed.description || (parsed.title ? "" : str),
         subtitle: parsed.subtitle || "",
-        description: parsed.description || "",
         collageImages: Array.isArray(parsed.collageImages) ? parsed.collageImages : [],
       };
     } catch {
       // ignore
     }
   }
+
+  // If the admin entered a short single-line headline (e.g. <= 60 chars with no full sentences)
+  if (str.length <= 60 && !str.includes(".")) {
+    return {
+      headline: str,
+      description: "",
+      subtitle: "",
+      collageImages: [] as string[],
+    };
+  }
+
   return {
-    title: str,
+    headline: defaultHeadline,
+    description: str,
     subtitle: "",
-    description: "",
     collageImages: [] as string[],
   };
 }
@@ -1288,7 +1310,7 @@ export default async function ProductDetailPage({
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-start">
             {/* Left Column: Description & Highlight Quote Block (6 cols) */}
             <div className="lg:col-span-6 space-y-6">
-              <h2 className="font-display text-2xl sm:text-3xl font-bold text-neutral-900 tracking-tight">
+              <h2 className="font-display text-2xl sm:text-3xl font-medium text-neutral-900 tracking-tight">
                 About this experience
               </h2>
 
@@ -1417,20 +1439,13 @@ export default async function ProductDetailPage({
                   </div>
                 </div>
 
-                {(() => {
-                  const whyVisitData = parseWhyVisit(product.whyVisit, product.title);
-                  return (
-                    <>
-                      <h2 className="font-serif text-3xl sm:text-4xl lg:text-[40px] font-bold text-neutral-900 leading-[1.18] tracking-tight mb-4">
-                        {whyVisitData.title}
-                      </h2>
+                <h2 className="font-serif text-2xl sm:text-3xl lg:text-[32px] font-medium text-neutral-900 leading-[1.25] tracking-tight mb-3">
+                  {product.whyVisit || `Discover why ${product.title} is an unmissable Florentine experience.`}
+                </h2>
 
-                      <p className="font-serif italic text-xl sm:text-2xl text-[#9e0ca0] tracking-wide select-none font-normal">
-                        {whyVisitData.subtitle || getWhyVisitSubtitle(product.categorySlug, product.title, product.slug)}
-                      </p>
-                    </>
-                  );
-                })()}
+                <p className="font-serif italic text-lg sm:text-xl text-[#9e0ca0] tracking-wide select-none font-normal">
+                  {getWhyVisitSubtitle(product.categorySlug, product.title, product.slug)}
+                </p>
               </div>
 
               {/* Right Column: Organic Curved Collage Frame + Polaroid Note */}
@@ -1493,7 +1508,7 @@ export default async function ProductDetailPage({
                       {/* Content on the Right */}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-start justify-between gap-2">
-                          <h3 className="font-display text-xs sm:text-[13.5px] font-bold text-neutral-900 leading-snug group-hover:text-[#9e0ca0] transition-colors">
+                          <h3 className="font-display text-xs sm:text-[13.5px] font-semibold text-neutral-900 leading-snug group-hover:text-[#9e0ca0] transition-colors">
                             {highlight.title}
                           </h3>
                           <span
@@ -1534,7 +1549,7 @@ export default async function ProductDetailPage({
                   </span>
                   <span className="h-px w-10 bg-[#9e0ca0]/30" aria-hidden="true" />
                 </div>
-                <h2 className="font-display text-2xl sm:text-3xl lg:text-4xl font-bold text-neutral-900 tracking-tight leading-tight mb-3">
+                <h2 className="font-display text-2xl sm:text-3xl lg:text-4xl font-medium text-neutral-900 tracking-tight leading-tight mb-3">
                   Secrets, history &amp; artistic significance
                 </h2>
                 <p className="text-sm sm:text-base text-neutral-500 font-medium leading-relaxed">
@@ -1562,7 +1577,7 @@ export default async function ProductDetailPage({
                             <span className="h-px w-6 bg-[#9e0ca0]/25" aria-hidden="true" />
                           </div>
                           {/* Title */}
-                          <h3 className="font-display text-base font-bold text-neutral-900 leading-snug mb-1.5 group-hover:text-[#9e0ca0] transition-colors">
+                          <h3 className="font-display text-base font-semibold text-neutral-900 leading-snug mb-1.5 group-hover:text-[#9e0ca0] transition-colors">
                             {parsed.title}
                           </h3>
                           {/* Description */}
@@ -1606,7 +1621,7 @@ export default async function ProductDetailPage({
                           <span className="h-px w-6 bg-[#9e0ca0]/25" aria-hidden="true" />
                         </div>
                         {/* Title */}
-                        <h3 className="font-display text-base sm:text-lg font-bold text-neutral-900 leading-snug group-hover:text-[#9e0ca0] transition-colors">
+                        <h3 className="font-display text-base sm:text-lg font-semibold text-neutral-900 leading-snug group-hover:text-[#9e0ca0] transition-colors">
                           {parsed.title}
                         </h3>
                         {/* Description */}
@@ -1652,7 +1667,7 @@ export default async function ProductDetailPage({
 
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10 sm:mb-12">
               <div>
-                <h2 className="font-display text-2xl sm:text-3xl lg:text-4xl font-bold text-neutral-900 tracking-tight">
+                <h2 className="font-display text-2xl sm:text-3xl lg:text-4xl font-medium text-neutral-900 tracking-tight">
                   Recommended visit schedule
                 </h2>
                 <p className="mt-1 text-sm sm:text-base text-neutral-500 font-medium">
@@ -1706,7 +1721,7 @@ export default async function ProductDetailPage({
                       </div>
 
                       {/* Title */}
-                      <h3 className="font-display text-base font-bold text-neutral-900 leading-snug group-hover:text-[#9e0ca0] transition-colors">
+                      <h3 className="font-display text-base font-semibold text-neutral-900 leading-snug group-hover:text-[#9e0ca0] transition-colors">
                         {step.title}
                       </h3>
 
@@ -1755,7 +1770,7 @@ export default async function ProductDetailPage({
       {product.entrances.length > 0 && (
         <section className="py-10 sm:py-14 border-t border-neutral-200/60 bg-white">
           <Container>
-            <h2 className="font-display text-2xl sm:text-3xl font-bold text-neutral-900 tracking-tight mb-8">
+            <h2 className="font-display text-2xl sm:text-3xl font-medium text-neutral-900 tracking-tight mb-8">
               Key entrances &amp; access points
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -1768,7 +1783,7 @@ export default async function ProductDetailPage({
                         <path d="M3 21h18M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16" />
                       </svg>
                     </div>
-                    <h3 className="font-display text-sm font-bold text-neutral-900">{entrance.name}</h3>
+                    <h3 className="font-display text-sm font-semibold text-neutral-900">{entrance.name}</h3>
                   </div>
                   {entrance.description && (
                     <p className="text-xs sm:text-[13px] text-neutral-600 leading-relaxed">{entrance.description}</p>
@@ -1815,7 +1830,7 @@ export default async function ProductDetailPage({
                     <span className="h-px w-8 bg-[#9e0ca0]/30" aria-hidden="true" />
                   </div>
 
-                  <h2 className="font-display text-2xl sm:text-3xl lg:text-[34px] font-bold tracking-tight leading-[1.18] text-neutral-900 mb-2.5">
+                  <h2 className="font-display text-2xl sm:text-3xl lg:text-[34px] font-medium tracking-tight leading-[1.18] text-neutral-900 mb-2.5">
                     {product.ultimateExperienceTitle || `Experience ${product.title} at Its Finest`}
                   </h2>
 
@@ -1845,7 +1860,7 @@ export default async function ProductDetailPage({
                             </div>
                             <div className="flex-1 min-w-0">
                               <div className="flex items-start justify-between gap-2">
-                                <h3 className="font-display text-sm sm:text-[15px] font-bold text-neutral-900 group-hover:text-[#9e0ca0] transition-colors leading-snug">
+                                <h3 className="font-display text-sm sm:text-[15px] font-semibold text-neutral-900 group-hover:text-[#9e0ca0] transition-colors leading-snug">
                                   {point.title}
                                 </h3>
                                 <svg
@@ -1884,7 +1899,7 @@ export default async function ProductDetailPage({
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-start justify-between gap-2">
-                              <h3 className="font-display text-sm sm:text-[15px] font-bold text-neutral-900 group-hover:text-[#9e0ca0] transition-colors leading-snug">
+                              <h3 className="font-display text-sm sm:text-[15px] font-semibold text-neutral-900 group-hover:text-[#9e0ca0] transition-colors leading-snug">
                                 {point.title}
                               </h3>
                               <svg
@@ -1938,7 +1953,7 @@ export default async function ProductDetailPage({
                     </svg>
                   </div>
                   <div>
-                    <h2 className="font-display text-lg font-bold text-neutral-900 tracking-tight leading-tight">
+                    <h2 className="font-display text-lg font-medium text-neutral-900 tracking-tight leading-tight">
                       What&apos;s included
                     </h2>
                     <p className="text-[11px] text-neutral-500 font-medium mt-0.5">Included with your booking</p>
@@ -1973,7 +1988,7 @@ export default async function ProductDetailPage({
                     </svg>
                   </div>
                   <div>
-                    <h2 className="font-display text-lg font-bold text-neutral-900 tracking-tight leading-tight">
+                    <h2 className="font-display text-lg font-medium text-neutral-900 tracking-tight leading-tight">
                       Not included
                     </h2>
                     <p className="text-[11px] text-neutral-500 font-medium mt-0.5">Extra options or expenses</p>
@@ -2010,7 +2025,7 @@ export default async function ProductDetailPage({
                       </svg>
                     </div>
                     <div>
-                      <h2 className="font-display text-lg font-bold text-neutral-900 tracking-tight leading-tight">
+                      <h2 className="font-display text-lg font-medium text-neutral-900 tracking-tight leading-tight">
                         Meeting point
                       </h2>
                       <p className="text-[11px] text-neutral-500 font-medium mt-0.5">Arrival location</p>
@@ -2056,7 +2071,7 @@ export default async function ProductDetailPage({
           <Container>
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
               <div className="lg:col-span-4">
-                <h2 className="font-display text-2xl sm:text-3xl font-bold text-neutral-900 tracking-tight mb-2">
+                <h2 className="font-display text-2xl sm:text-3xl font-medium text-neutral-900 tracking-tight mb-2">
                   Opening hours
                 </h2>
                 <p className="text-xs sm:text-sm text-neutral-500 font-medium">
@@ -2107,7 +2122,7 @@ export default async function ProductDetailPage({
                   </span>
                   <span className="h-px w-10 bg-[#9e0ca0]/30" aria-hidden="true" />
                 </div>
-                <h2 className="font-display text-2xl sm:text-3xl lg:text-4xl font-bold text-neutral-900 tracking-tight leading-tight mb-3">
+                <h2 className="font-display text-2xl sm:text-3xl lg:text-4xl font-medium text-neutral-900 tracking-tight leading-tight mb-3">
                   Getting to {getMeetingDestinationName(product.meetingPoint, product.title)}
                 </h2>
                 <p className="text-sm sm:text-base text-neutral-500 font-medium leading-relaxed">
@@ -2147,7 +2162,7 @@ export default async function ProductDetailPage({
                           </div>
 
                           {/* Mode Title */}
-                          <h3 className="font-display text-base sm:text-lg font-bold text-neutral-900 leading-snug group-hover:text-[#9e0ca0] transition-colors">
+                          <h3 className="font-display text-base sm:text-lg font-semibold text-neutral-900 leading-snug group-hover:text-[#9e0ca0] transition-colors">
                             {option.mode}
                           </h3>
 
@@ -2196,7 +2211,7 @@ export default async function ProductDetailPage({
                   </span>
                   <span className="h-px w-10 bg-[#9e0ca0]/30" aria-hidden="true" />
                 </div>
-                <h2 className="font-display text-2xl sm:text-3xl lg:text-4xl font-bold text-neutral-900 tracking-tight leading-tight mb-3">
+                <h2 className="font-display text-2xl sm:text-3xl lg:text-4xl font-medium text-neutral-900 tracking-tight leading-tight mb-3">
                   When to Visit {getMeetingDestinationName(product.meetingPoint, product.title)}
                 </h2>
                 <p className="text-sm sm:text-base text-neutral-500 font-medium leading-relaxed">
@@ -2242,7 +2257,7 @@ export default async function ProductDetailPage({
                               </div>
 
                               {/* Months / Title */}
-                              <h3 className="font-display text-base font-bold text-neutral-900 leading-snug group-hover:text-[#9e0ca0] transition-colors mb-1.5">
+                              <h3 className="font-display text-base font-semibold text-neutral-900 leading-snug group-hover:text-[#9e0ca0] transition-colors mb-1.5">
                                 {seasonCard.months}
                               </h3>
 
@@ -2287,7 +2302,7 @@ export default async function ProductDetailPage({
 
               {/* Center Column: Good to know bullet points */}
               <div className="lg:col-span-4 px-2 sm:px-3 py-2 space-y-4">
-                <h3 className="font-serif text-xl sm:text-2xl font-bold text-neutral-900 tracking-tight">
+                <h3 className="font-serif text-xl sm:text-2xl font-semibold text-neutral-900 tracking-tight">
                   Good to know
                 </h3>
                 <ul className="space-y-3">
@@ -2333,7 +2348,7 @@ export default async function ProductDetailPage({
       {showTicketComparison && (
         <section className="py-12 sm:py-16 border-t border-neutral-200/60 bg-[#FAF8F5]/80">
           <Container>
-            <h2 className="font-display text-2xl sm:text-3xl font-bold text-neutral-900 tracking-tight mb-2">
+            <h2 className="font-display text-2xl sm:text-3xl font-medium text-neutral-900 tracking-tight mb-2">
               Compare your options
             </h2>
             <p className="text-xs sm:text-sm text-neutral-500 font-medium mb-8">
@@ -2349,7 +2364,7 @@ export default async function ProductDetailPage({
                     </th>
                     {product.options.map((option) => (
                       <th key={option.id} className="p-4 sm:p-5 text-center border-l border-neutral-100">
-                        <div className="font-display text-sm sm:text-base font-bold text-neutral-900">{option.name}</div>
+                        <div className="font-display text-sm sm:text-base font-semibold text-neutral-900">{option.name}</div>
                         <div className="mt-1 text-xs sm:text-sm font-semibold text-neutral-600">
                           &euro;{option.priceAmount.toFixed(0)}
                         </div>
@@ -2400,7 +2415,7 @@ export default async function ProductDetailPage({
         <section className="py-12 sm:py-16 border-t border-neutral-200/60">
           <Container>
             <div className="flex items-center justify-between mb-8">
-              <h2 className="font-display text-2xl sm:text-3xl font-bold text-neutral-900 tracking-tight">
+              <h2 className="font-display text-2xl sm:text-3xl font-medium text-neutral-900 tracking-tight">
                 You might also like
               </h2>
               <Link
@@ -2429,7 +2444,7 @@ export default async function ProductDetailPage({
           <Container>
             <div className="flex items-center justify-between mb-8">
               <div>
-                <h2 className="font-display text-2xl sm:text-3xl font-bold text-neutral-900 tracking-tight">
+                <h2 className="font-display text-2xl sm:text-3xl font-medium text-neutral-900 tracking-tight">
                   Related travel guides
                 </h2>
                 <p className="mt-1.5 text-xs sm:text-sm text-neutral-500 font-medium">
@@ -2460,7 +2475,7 @@ export default async function ProductDetailPage({
         <section className="py-12 sm:py-16 border-t border-neutral-200/60">
           <Container>
             <div className="max-w-3xl mx-auto">
-              <h2 className="font-display text-2xl sm:text-3xl font-bold text-neutral-900 tracking-tight mb-8 text-center">
+              <h2 className="font-display text-2xl sm:text-3xl font-medium text-neutral-900 tracking-tight mb-8 text-center">
                 Frequently asked questions
               </h2>
               <ExperienceFaqAccordion faqs={product.faqs} />
@@ -2477,7 +2492,7 @@ export default async function ProductDetailPage({
           <div className="relative overflow-hidden rounded-3xl bg-white p-8 sm:p-12 text-neutral-900 border border-[#e5dfd4] shadow-[0_12px_40px_rgba(0,0,0,0.04)]">
             <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left">
               <div>
-                <h2 className="font-display text-2xl sm:text-3xl font-bold tracking-tight text-neutral-900">
+                <h2 className="font-display text-2xl sm:text-3xl font-medium tracking-tight text-neutral-900">
                   {product.ctaHeadline || "Ready to explore Florence?"}
                 </h2>
                 <p className="mt-1.5 text-xs sm:text-sm text-neutral-600 font-normal max-w-xl">
