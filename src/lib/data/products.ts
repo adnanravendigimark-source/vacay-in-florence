@@ -1,9 +1,10 @@
 import { eq, and, inArray, sql, desc, asc, gte, SQL } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { getPgErrorCode } from "@/lib/db/errors";
-import { products, categories, suppliers, productImages, productOptions, availability } from "@/lib/db/schema";
+import { products, categories, suppliers, attractions, productImages, productOptions, availability } from "@/lib/db/schema";
 import type { ProductBadge, ProductCardSummary } from "@/lib/types";
 import { ensureSearchIndexes } from "@/lib/db/search-indexes";
+import { ensureAttractionsSchemaUpToDate } from "@/lib/data/attractions";
 import { geocodeAddress } from "@/lib/geocoding";
 
 /**
@@ -51,12 +52,20 @@ async function alterProductsColumn(statement: SQL) {
 export async function ensureProductsSchemaUpToDate() {
   if (productsSchemaEnsured) return;
   try {
+    // attractions table must exist before the FK column below references it.
+    await ensureAttractionsSchemaUpToDate();
+    await alterProductsColumn(
+      sql`ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "attraction_id" text REFERENCES "attractions"("id");`,
+    );
     await alterProductsColumn(sql`ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "video_url" text;`);
     await alterProductsColumn(
       sql`ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "time_slots" jsonb NOT NULL DEFAULT '[]'::jsonb;`,
     );
     await alterProductsColumn(
       sql`ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "good_to_know" jsonb NOT NULL DEFAULT '[]'::jsonb;`,
+    );
+    await alterProductsColumn(
+      sql`ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "attraction_sort_order" integer NOT NULL DEFAULT 0;`,
     );
     productsSchemaEnsured = true;
   } catch (err) {
@@ -236,7 +245,22 @@ const baseSelect = () =>
     })
     .from(products)
     .innerJoin(categories, eq(products.categoryId, categories.id))
-    .innerJoin(suppliers, eq(products.supplierId, suppliers.id));
+    .innerJoin(suppliers, eq(products.supplierId, suppliers.id))
+    .leftJoin(attractions, eq(products.attractionId, attractions.id));
+
+/**
+ * Every live ticket/tour assigned to one attraction, unpaginated — backs
+ * the redesigned /experiences/attraction/[slug] listing page, which does
+ * its own client-side filtering/sorting over the full set rather than
+ * the infinite-scroll pattern searchProducts() uses (an attraction's
+ * catalog is small by nature: a handful of tickets, not hundreds).
+ */
+export async function getProductsByAttractionSlug(attractionSlug: string): Promise<ProductCardSummary[]> {
+  const rows = await baseSelect()
+    .where(and(eq(products.status, "live"), eq(attractions.slug, attractionSlug)))
+    .orderBy(asc(products.attractionSortOrder));
+  return attachPrimaryImages(rows);
+}
 
 export async function getFeaturedExperiences(limit = 6): Promise<ProductCardSummary[]> {
   const rows = await baseSelect()
@@ -251,6 +275,9 @@ export type ProductSortOption = "recommended" | "price-asc" | "price-desc" | "ra
 export interface SearchProductsParams {
   q?: string;
   categorySlug?: string;
+  /** Filters to tickets/tours assigned to one attraction/landmark group
+   * (e.g. "uffizi-gallery") — backs /experiences/attraction/[slug]. */
+  attractionSlug?: string;
   /** ISO date (YYYY-MM-DD). Narrows to products with open availability that day. */
   date?: string;
   sort?: ProductSortOption;
@@ -296,6 +323,9 @@ export async function searchProducts(params: SearchProductsParams = {}): Promise
   if (params.categorySlug) {
     conditions.push(eq(categories.slug, params.categorySlug));
   }
+  if (params.attractionSlug) {
+    conditions.push(eq(attractions.slug, params.attractionSlug));
+  }
   if (hasQuery) {
     conditions.push(buildSearchCondition(params.q!));
   }
@@ -315,6 +345,7 @@ export async function searchProducts(params: SearchProductsParams = {}): Promise
     .from(products)
     .innerJoin(categories, eq(products.categoryId, categories.id))
     .innerJoin(suppliers, eq(products.supplierId, suppliers.id))
+    .leftJoin(attractions, eq(products.attractionId, attractions.id))
     .where(where);
 
   // A free-text query defaults to best-match-first ("recommended" without

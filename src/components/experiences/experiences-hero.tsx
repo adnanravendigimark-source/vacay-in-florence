@@ -2,7 +2,6 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import Link from "next/link";
 import { Container } from "@/components/ui/container";
 import { CalendarPicker } from "@/components/home/calendar-picker";
 import { useSearchAutocomplete } from "@/hooks/use-search-autocomplete";
@@ -42,7 +41,6 @@ export function ExperiencesHero() {
   const {
     searchState,
     productResults,
-    categoryResults,
     isPopular,
     activeIndex,
     setActiveIndex,
@@ -162,78 +160,6 @@ export function ExperiencesHero() {
 
       </div>
 
-      {/*
-        Floating polaroid category cards, in their own stacking context at
-        z-40 — deliberately NOT nested inside the z-0 backdrop div above.
-        The Main Content Container below (which wraps the floating search
-        bar) is a sibling with its own z-10 stacking context; descendant
-        z-index values never escape a stacking context, so cards placed
-        inside the z-0 backdrop would render (and receive clicks) BEHIND
-        the search bar wherever the two visually overlap — which is
-        exactly why these were unclickable. Keeping the same outer
-        w-[58%]/xl:w-[61%] box means every card's left/top percentage
-        still resolves to the same on-screen position as before; only the
-        stacking order (and therefore click-ability) changes.
-      */}
-      <div className="hidden lg:block absolute right-0 top-0 bottom-0 w-[58%] xl:w-[61%] h-full z-40 pointer-events-none select-none">
-        {/* Floating Polaroid Card 1: Michelangelo's David (Museums & Galleries) */}
-        <Link
-          href="/experiences/category/museums-galleries"
-          className="group absolute left-[15%] xl:left-[18%] top-[22%] xl:top-[24%] pointer-events-auto transition-transform duration-300 -rotate-6 hover:-rotate-1 hover:scale-105 cursor-pointer"
-          aria-label="Explore Museums & Galleries in Florence"
-        >
-          <div className="relative w-[130px] xl:w-[155px] aspect-[3/4] rounded-2xl bg-white p-1.5 shadow-[0_18px_35px_rgba(0,0,0,0.18)] border border-neutral-100/90 transition-shadow group-hover:shadow-[0_24px_50px_rgba(0,0,0,0.25)]">
-            <img
-              src="/images/hero-david.jpg"
-              alt="Michelangelo's David at Accademia Gallery"
-              className="h-full w-full object-cover rounded-xl"
-            />
-            {/* Centered Pill Badge */}
-            <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-white/98 backdrop-blur-md px-3 py-1 shadow-md border border-neutral-200/80 text-[11px] font-semibold text-neutral-800 tracking-tight whitespace-nowrap">
-              Museums &amp; Galleries
-            </div>
-          </div>
-        </Link>
-
-        {/* Floating Polaroid Card 2: Food & Wine Dining Table */}
-        <Link
-          href="/experiences/category/food-wine-experiences"
-          className="group absolute left-[38%] xl:left-[41%] top-[43%] xl:top-[45%] pointer-events-auto transition-transform duration-300 rotate-3 hover:rotate-0 hover:scale-105 cursor-pointer"
-          aria-label="Explore Food & Wine experiences in Florence"
-        >
-          <div className="relative w-[150px] xl:w-[175px] aspect-[4/3] rounded-2xl bg-white p-1.5 shadow-[0_20px_40px_rgba(0,0,0,0.22)] border border-neutral-100/90 transition-shadow group-hover:shadow-[0_26px_55px_rgba(0,0,0,0.28)]">
-            <img
-              src="/images/hero-food-wine.jpg"
-              alt="Authentic Florentine trattoria dining with Chianti wine"
-              className="h-full w-full object-cover rounded-xl"
-            />
-            {/* Centered Pill Badge */}
-            <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-white/98 backdrop-blur-md px-3.5 py-1 shadow-md border border-neutral-200/80 text-[11px] font-semibold text-neutral-800 tracking-tight whitespace-nowrap">
-              Food &amp; Wine
-            </div>
-          </div>
-        </Link>
-
-        {/* Floating Polaroid Card 3: Tuscan Countryside & Cypress Trees (Day Trips) */}
-        <Link
-          href="/experiences/category/day-trips-from-florence"
-          className="group absolute left-[60%] xl:left-[63%] top-[53%] xl:top-[55%] pointer-events-auto transition-transform duration-300 -rotate-3 hover:rotate-0 hover:scale-105 cursor-pointer"
-          aria-label="Explore Tuscan Day Trips from Florence"
-        >
-          <div className="relative w-[135px] xl:w-[155px] aspect-[4/3] rounded-2xl bg-white p-1.5 shadow-[0_18px_35px_rgba(0,0,0,0.18)] border border-neutral-100/90 transition-shadow group-hover:shadow-[0_24px_50px_rgba(0,0,0,0.25)]">
-            <img
-              src="/images/hero-day-trips.jpg"
-              alt="Rolling hills of Tuscany with cypress trees and stone villa"
-              className="h-full w-full object-cover rounded-xl"
-            />
-            {/* Centered Pill Badge */}
-            <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-white/98 backdrop-blur-md px-3.5 py-1 shadow-md border border-neutral-200/80 text-[11px] font-semibold text-neutral-800 tracking-tight whitespace-nowrap">
-              Day Trips
-            </div>
-          </div>
-        </Link>
-      </div>
-
       {/* Main Content Container */}
       <Container className="relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
@@ -263,10 +189,10 @@ export function ExperiencesHero() {
           <div className="hidden lg:block lg:col-span-6 xl:col-span-7 h-[340px] pointer-events-none" />
         </div>
 
-        {/* Mobile / Tablet Showcase of the 3 Categories */}
+        {/* Mobile / Tablet Hero Visual */}
         <div className="lg:hidden mt-8 mb-4">
           <div className="relative rounded-3xl overflow-hidden shadow-md border border-[#e5e0d8] bg-white p-3">
-            <div className="relative h-44 w-full rounded-2xl overflow-hidden mb-3">
+            <div className="relative h-44 w-full rounded-2xl overflow-hidden">
               <img
                 src="/images/hero-florence-duomo.jpg"
                 alt="Florence Cathedral Duomo"
@@ -277,53 +203,6 @@ export function ExperiencesHero() {
                   Real Experiences Last Forever
                 </span>
               </div>
-            </div>
-            <div className="grid grid-cols-3 gap-2">
-              <Link
-                href="/experiences/category/museums-galleries"
-                className="group flex flex-col items-center text-center p-1"
-              >
-                <div className="w-full aspect-[4/3] rounded-xl overflow-hidden border border-neutral-200 shadow-sm mb-1.5">
-                  <img
-                    src="/images/hero-david.jpg"
-                    alt="David"
-                    className="h-full w-full object-cover group-hover:scale-105 transition-transform"
-                  />
-                </div>
-                <span className="text-[11px] font-bold text-neutral-800 leading-tight">
-                  Museums &amp; Galleries
-                </span>
-              </Link>
-              <Link
-                href="/experiences/category/food-wine-experiences"
-                className="group flex flex-col items-center text-center p-1"
-              >
-                <div className="w-full aspect-[4/3] rounded-xl overflow-hidden border border-neutral-200 shadow-sm mb-1.5">
-                  <img
-                    src="/images/hero-food-wine.jpg"
-                    alt="Food & Wine"
-                    className="h-full w-full object-cover group-hover:scale-105 transition-transform"
-                  />
-                </div>
-                <span className="text-[11px] font-bold text-neutral-800 leading-tight">
-                  Food &amp; Wine
-                </span>
-              </Link>
-              <Link
-                href="/experiences/category/day-trips-from-florence"
-                className="group flex flex-col items-center text-center p-1"
-              >
-                <div className="w-full aspect-[4/3] rounded-xl overflow-hidden border border-neutral-200 shadow-sm mb-1.5">
-                  <img
-                    src="/images/hero-day-trips.jpg"
-                    alt="Day Trips"
-                    className="h-full w-full object-cover group-hover:scale-105 transition-transform"
-                  />
-                </div>
-                <span className="text-[11px] font-bold text-neutral-800 leading-tight">
-                  Day Trips
-                </span>
-              </Link>
             </div>
           </div>
         </div>
@@ -565,34 +444,6 @@ export function ExperiencesHero() {
                                 <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 text-[#9e0ca0] shrink-0 fill-none stroke-current stroke-2">
                                   <circle cx="11" cy="11" r="7.5" />
                                   <line x1="16.5" y1="16.5" x2="21.5" y2="21.5" strokeLinecap="round" />
-                                </svg>
-                                <span className="min-w-0 flex-1 truncate">
-                                  <span className="font-semibold text-neutral-900">{row.title}</span>
-                                  <span className="block text-[10.5px] font-normal text-neutral-500">{row.meta}</span>
-                                </span>
-                              </button>
-                            );
-                          })}
-                        </div>
-                      )}
-                      {categoryResults.length > 0 && (
-                        <div className="mt-1.5 space-y-0.5 border-t border-neutral-100 pt-1.5">
-                          {categoryResults.map((row) => {
-                            const index = flatResults.indexOf(row);
-                            return (
-                              <button
-                                key={row.id}
-                                type="button"
-                                role="option"
-                                aria-selected={activeIndex === index}
-                                onClick={() => goToSuggestion(row)}
-                                onMouseEnter={() => setActiveIndex(index)}
-                                className={`flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-left text-xs transition-colors cursor-pointer ${
-                                  activeIndex === index ? "bg-neutral-100" : "hover:bg-neutral-100"
-                                }`}
-                              >
-                                <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 text-[#9e0ca0] shrink-0 fill-none stroke-current stroke-2">
-                                  <path d="M4 6h16M4 12h16M4 18h10" strokeLinecap="round" />
                                 </svg>
                                 <span className="min-w-0 flex-1 truncate">
                                   <span className="font-semibold text-neutral-900">{row.title}</span>

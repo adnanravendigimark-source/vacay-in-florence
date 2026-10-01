@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { listAdminProducts, getExperienceStats, getCategoryOptions } from "@/lib/data/admin/products";
+import { listAdminProducts, getExperienceStats, getCategoryOptions, getAttractionOptions } from "@/lib/data/admin/products";
 import type { ProductStatus, FeaturedFilter } from "@/lib/data/admin/products";
 import { ExperienceFilters } from "@/components/admin/experience-filters";
 import { ExperienceTable } from "@/components/admin/experience-table";
@@ -94,6 +94,7 @@ type SearchParams = {
   q?: string;
   status?: string;
   category?: string;
+  attraction?: string;
   featured?: string;
   page?: string;
   view?: string;
@@ -108,14 +109,16 @@ export default async function AdminExperiencesPage({
   const page = Math.max(1, Number(params.page) || 1);
   const status = (params.status ?? "all") as ProductStatus | "all";
   const categoryId = params.category ?? "all";
+  const attractionId = params.attraction ?? "all";
   const featured = (params.featured ?? "all") as FeaturedFilter;
   const q = params.q ?? "";
   const view = params.view === "grid" ? "grid" : "list";
 
-  const [{ items, total, totalPages }, stats, categories] = await Promise.all([
-    listAdminProducts({ q, status, categoryId, featured, page, pageSize: 20 }),
+  const [{ items, total, totalPages }, stats, categories, attractionOptions] = await Promise.all([
+    listAdminProducts({ q, status, categoryId, attractionId, featured, page, pageSize: 20 }),
     getExperienceStats(),
     getCategoryOptions(),
+    getAttractionOptions(),
   ]);
 
   function pageHref(targetPage: number) {
@@ -123,6 +126,7 @@ export default async function AdminExperiencesPage({
     if (q) sp.set("q", q);
     if (status !== "all") sp.set("status", status);
     if (categoryId !== "all") sp.set("category", categoryId);
+    if (attractionId !== "all") sp.set("attraction", attractionId);
     if (featured !== "all") sp.set("featured", featured);
     if (view !== "list") sp.set("view", view);
     if (targetPage > 1) sp.set("page", String(targetPage));
@@ -196,8 +200,10 @@ export default async function AdminExperiencesPage({
       {/* ================================================================= */}
       <ExperienceFilters
         categories={categories}
+        attractions={attractionOptions}
         initialQuery={q}
         initialCategoryId={categoryId}
+        initialAttractionId={attractionId}
         initialStatus={status}
         initialFeatured={featured}
         view={view}

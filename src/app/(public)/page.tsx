@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Hero } from "@/components/home/hero";
-import { QuickCategoryRibbon } from "@/components/home/quick-category-ribbon";
 import { InteractiveExperienceExplorer } from "@/components/home/interactive-experience-explorer";
 import { LandmarkSpotlight } from "@/components/home/landmark-spotlight";
 import { FlorenceItineraryBuilder } from "@/components/home/florence-itinerary-builder";
@@ -10,7 +9,6 @@ import { TravelerReviews } from "@/components/home/traveler-reviews";
 import { TravelGuide } from "@/components/home/travel-guide";
 import { FaqSection } from "@/components/home/faq-section";
 import { ConversionVipBanner } from "@/components/home/conversion-vip-banner";
-import { getAllCategories } from "@/lib/data/categories";
 import { getHomepageFeaturedExperiences } from "@/lib/data/products";
 import { getHomepageContent } from "@/lib/data/homepage";
 
@@ -45,10 +43,7 @@ export default async function HomePage() {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.vacayinflorence.com";
 
   const content = await getHomepageContent();
-  const [categories, homepageExperiences] = await Promise.all([
-    getAllCategories(),
-    getHomepageFeaturedExperiences(content?.featuredExperienceIds),
-  ]);
+  const homepageExperiences = await getHomepageFeaturedExperiences(content?.featuredExperienceIds);
 
   const jsonLd = [
     {
@@ -69,24 +64,12 @@ export default async function HomePage() {
         "query-input": "required name=search_term_string",
       },
     },
-    {
-      "@context": "https://schema.org",
-      "@type": "ItemList",
-      name: "Florence experience categories",
-      itemListElement: categories.map((category, index) => ({
-        "@type": "ListItem",
-        position: index + 1,
-        name: category.name,
-        url: `${siteUrl}/experiences/category/${category.slug}`,
-      })),
-    },
   ];
 
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       {content.heroEnabled !== false && <Hero content={content} />}
-      {content.categoriesEnabled !== false && <QuickCategoryRibbon content={content} />}
       {content.experiencesEnabled !== false && (
         <InteractiveExperienceExplorer experiences={homepageExperiences} content={content} />
       )}

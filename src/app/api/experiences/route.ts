@@ -8,12 +8,15 @@ export const dynamic = "force-dynamic";
 const VALID_SORTS: ProductSortOption[] = ["recommended", "price-asc", "price-desc", "rating"];
 
 /**
- * Backs the /experiences and /experiences/category/[slug] listing pages'
- * infinite-scroll "load more" requests. GET-only, read-only, same
- * visibility as the public catalog it searches (no auth required) —
- * mirrors the filters the initial server-rendered page already applied
- * (q, dest, date, sort, categorySlug) so a scroll-triggered page N+1
- * request returns results consistent with what's already on screen.
+ * Backs the /experiences listing page's infinite-scroll "load more"
+ * requests. GET-only, read-only, same visibility as the public catalog
+ * it searches (no auth required) — mirrors the filters the initial
+ * server-rendered page already applied (q, dest, date, sort) so a
+ * scroll-triggered page N+1 request returns results consistent with
+ * what's already on screen. categorySlug/attractionSlug remain
+ * supported, generic catalog-filter params that searchProducts() has
+ * always accepted, kept for any future caller even though no current
+ * UI sends categorySlug.
  */
 export async function GET(request: NextRequest) {
   const params = request.nextUrl.searchParams;
@@ -23,6 +26,7 @@ export async function GET(request: NextRequest) {
   const combinedQuery = [q, dest].filter(Boolean).join(" ").trim() || undefined;
   const date = params.get("date") ?? undefined;
   const categorySlug = params.get("categorySlug") ?? undefined;
+  const attractionSlug = params.get("attractionSlug") ?? undefined;
   const sortParam = params.get("sort");
   const sort = VALID_SORTS.includes(sortParam as ProductSortOption)
     ? (sortParam as ProductSortOption)
@@ -35,6 +39,7 @@ export async function GET(request: NextRequest) {
       q: combinedQuery,
       date,
       categorySlug,
+      attractionSlug,
       sort,
       page,
       pageSize,

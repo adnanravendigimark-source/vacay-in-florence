@@ -6,7 +6,6 @@ import type { SeoAuditRow, SeoEntityType } from "@/lib/data/admin/seo";
 
 const ENTITY_LABEL: Record<SeoEntityType, string> = {
   experience: "Experience",
-  category: "Category",
   blog_post: "Blog post",
 };
 
@@ -27,7 +26,7 @@ export function SeoAuditTable({ rows }: { rows: SeoAuditRow[] }) {
     return (
       <div className="rounded-2xl border border-[#EAE6DF] bg-white p-12 text-center">
         <p className="text-sm font-medium text-neutral-700">Nothing to audit yet</p>
-        <p className="mt-1 text-xs text-neutral-500">Add an experience, category, or blog post to see its SEO status here.</p>
+        <p className="mt-1 text-xs text-neutral-500">Add an experience or blog post to see its SEO status here.</p>
       </div>
     );
   }

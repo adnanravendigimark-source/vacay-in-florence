@@ -1,8 +1,8 @@
 import "server-only";
 import { db } from "@/lib/db";
-import { products, categories, blogPosts } from "@/lib/db/schema";
+import { products, blogPosts } from "@/lib/db/schema";
 
-export type SeoEntityType = "experience" | "category" | "blog_post";
+export type SeoEntityType = "experience" | "blog_post";
 
 export interface SeoAuditRow {
   entityType: SeoEntityType;
@@ -24,9 +24,8 @@ export interface SeoAuditRow {
  * entity's own SEO tab, not a duplicate editor.
  */
 export async function listSeoAudit(): Promise<SeoAuditRow[]> {
-  const [productRows, categoryRows, blogRows] = await Promise.all([
+  const [productRows, blogRows] = await Promise.all([
     db.select({ id: products.id, title: products.title, slug: products.slug, metaTitle: products.metaTitle, metaDescription: products.metaDescription, noIndex: products.noIndex }).from(products),
-    db.select({ id: categories.id, title: categories.name, slug: categories.slug, metaTitle: categories.metaTitle, metaDescription: categories.metaDescription, noIndex: categories.noIndex }).from(categories),
     db.select({ id: blogPosts.id, title: blogPosts.title, slug: blogPosts.slug, metaTitle: blogPosts.metaTitle, metaDescription: blogPosts.metaDescription, noIndex: blogPosts.noIndex }).from(blogPosts),
   ]);
 
@@ -38,17 +37,6 @@ export async function listSeoAudit(): Promise<SeoAuditRow[]> {
       slug: r.slug,
       publicPath: `/experiences/${r.slug}`,
       editHref: `/admin/experiences/${r.id}`,
-      hasMetaTitle: !!r.metaTitle?.trim(),
-      hasMetaDescription: !!r.metaDescription?.trim(),
-      noIndex: r.noIndex,
-    })),
-    ...categoryRows.map((r) => ({
-      entityType: "category" as const,
-      id: r.id,
-      title: r.title,
-      slug: r.slug,
-      publicPath: `/experiences/category/${r.slug}`,
-      editHref: `/admin/categories/${r.id}`,
       hasMetaTitle: !!r.metaTitle?.trim(),
       hasMetaDescription: !!r.metaDescription?.trim(),
       noIndex: r.noIndex,

@@ -12,6 +12,9 @@ const BADGE_LABEL: Record<ProductBadge, string> = {
   "best-seller": "🔥 Bestseller",
   "small-group": "👥 Small Group",
   "instant-confirmation": "✓ Instant Voucher",
+  "guided-tour": "🧭 Guided Tour",
+  "private-tour": "★ Private Tour",
+  combo: "🎟 Combo",
 };
 
 const BADGE_COLOR: Record<ProductBadge, string> = {
@@ -20,6 +23,9 @@ const BADGE_COLOR: Record<ProductBadge, string> = {
   "best-seller": "bg-[#b94726] text-white font-semibold shadow-md",
   "small-group": "bg-neutral-800/90 text-white backdrop-blur-md",
   "instant-confirmation": "bg-[#2b0934] text-white font-semibold",
+  "guided-tour": "bg-neutral-800/90 text-white backdrop-blur-md",
+  "private-tour": "bg-[#9e0ca0] text-white font-semibold shadow-md",
+  combo: "bg-[#2b0934] text-white font-semibold",
 };
 
 const priceFormatter = new Intl.NumberFormat("en-IE", {

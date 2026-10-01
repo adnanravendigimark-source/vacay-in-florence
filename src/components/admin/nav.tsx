@@ -13,7 +13,6 @@ type NavItem = {
 const NAV_ITEMS: NavItem[] = [
   { href: "/admin", label: "Dashboard", anyOf: ["dashboard.view"] },
   { href: "/admin/experiences", label: "Experiences", anyOf: ["catalog.view", "catalog.manage"] },
-  { href: "/admin/categories", label: "Categories", anyOf: ["catalog.view", "catalog.manage"] },
   { href: "/admin/bookings", label: "Bookings", anyOf: ["bookings.view", "bookings.manage"] },
   { href: "/admin/customers", label: "Customers", anyOf: ["customers.view", "customers.manage"] },
   { href: "/admin/suppliers", label: "Suppliers", anyOf: ["suppliers.view", "suppliers.manage"] },

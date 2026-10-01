@@ -4,6 +4,8 @@ import {
   getAdminProductById,
   getCategoryOptions,
   getSupplierOptions,
+  getBlogPostOptions,
+  getAttractionOptions,
   getAdminProductAvailability,
 } from "@/lib/data/admin/products";
 import { ExperienceEditor } from "@/components/admin/experience-editor";
@@ -19,10 +21,12 @@ type Params = { id: string };
 
 export default async function EditExperiencePage({ params }: { params: Promise<Params> }) {
   const { id } = await params;
-  const [product, categories, suppliers] = await Promise.all([
+  const [product, categories, suppliers, blogPosts, attractions] = await Promise.all([
     getAdminProductById(id),
     getCategoryOptions(),
     getSupplierOptions(),
+    getBlogPostOptions(),
+    getAttractionOptions(),
   ]);
   if (!product) notFound();
 
@@ -37,6 +41,7 @@ export default async function EditExperiencePage({ params }: { params: Promise<P
     shortDescription: product.shortDescription,
     description: product.description,
     categoryId: product.categoryId,
+    attractionId: product.attractionId,
     supplierId: product.supplierId,
     durationLabel: product.durationLabel,
     badges: product.badges,
@@ -147,7 +152,9 @@ export default async function EditExperiencePage({ params }: { params: Promise<P
       initialValues={initialValues}
       initialAvailability={availability}
       categories={categories}
+      attractions={attractions}
       suppliers={suppliers}
+      blogPosts={blogPosts}
     />
   );
 }

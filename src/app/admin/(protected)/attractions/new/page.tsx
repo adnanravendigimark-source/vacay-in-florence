@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
-import { CategoryEditor } from "@/components/admin/category-editor";
-import type { CategoryFormData } from "@/lib/validation/categories";
+import { AttractionEditor } from "@/components/admin/attraction-editor";
+import type { AttractionFormData } from "@/lib/validation/attractions";
 
 export const metadata: Metadata = {
-  title: "New Category | Admin | VACAY Florence",
+  title: "New Attraction | Admin | VACAY Florence",
   robots: { index: false },
 };
 
-const EMPTY_VALUES: CategoryFormData = {
+const EMPTY_VALUES: AttractionFormData = {
   name: "",
   slug: "",
   shortDescription: "",
@@ -31,6 +31,6 @@ const EMPTY_VALUES: CategoryFormData = {
   noFollow: false,
 };
 
-export default function NewCategoryPage() {
-  return <CategoryEditor mode="create" initialValues={EMPTY_VALUES} />;
+export default function NewAttractionPage() {
+  return <AttractionEditor mode="create" initialValues={EMPTY_VALUES} />;
 }

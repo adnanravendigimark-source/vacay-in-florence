@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { requireSupplier } from "@/lib/require-user";
-import { getAdminProductById, getCategoryOptions, getAdminProductAvailability } from "@/lib/data/admin/products";
+import { getAdminProductById, getCategoryOptions, getBlogPostOptions, getAttractionOptions, getAdminProductAvailability } from "@/lib/data/admin/products";
 import { ExperienceEditor } from "@/components/admin/experience-editor";
 import type { ProductFormData } from "@/lib/validation/products";
 import { DEFAULT_GOOD_TO_KNOW_TIPS } from "@/lib/constants";
@@ -25,7 +25,12 @@ export default async function EditSupplierExperiencePage({ params }: { params: P
   const { id } = await params;
   const supplier = await requireSupplier(`/supplier/experiences/${id}`);
 
-  const [product, categories] = await Promise.all([getAdminProductById(id), getCategoryOptions()]);
+  const [product, categories, blogPosts, attractions] = await Promise.all([
+    getAdminProductById(id),
+    getCategoryOptions(),
+    getBlogPostOptions(),
+    getAttractionOptions(),
+  ]);
   if (!product) notFound();
   // Ownership boundary for reads: a supplier can never open another
   // supplier's experience by guessing its id, not even to view it.
@@ -42,6 +47,7 @@ export default async function EditSupplierExperiencePage({ params }: { params: P
     shortDescription: product.shortDescription,
     description: product.description,
     categoryId: product.categoryId,
+    attractionId: product.attractionId,
     supplierId: product.supplierId,
     durationLabel: product.durationLabel,
     badges: product.badges,
@@ -158,7 +164,9 @@ export default async function EditSupplierExperiencePage({ params }: { params: P
         initialValues={initialValues}
         initialAvailability={availability}
         categories={categories}
+        attractions={attractions}
         suppliers={[{ id: supplier.supplierId, name: supplier.supplierName }]}
+        blogPosts={blogPosts}
         basePath="/supplier/experiences"
         publishLabel="Submit for Review"
         publishStatus="pending_review"

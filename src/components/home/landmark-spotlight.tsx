@@ -97,7 +97,7 @@ export function LandmarkSpotlight({ content }: LandmarkSpotlightProps) {
           </div>
 
           <Link
-            href="/experiences/category/skip-the-line-attractions"
+            href="/experiences"
             className="inline-flex items-center gap-2 text-xs sm:text-sm font-semibold text-[#9e0ca0] hover:text-[#850b9e] transition-colors group self-start lg:self-end"
           >
             <span>View All Skip-The-Line Attractions</span>

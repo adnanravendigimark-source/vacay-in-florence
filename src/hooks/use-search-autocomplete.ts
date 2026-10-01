@@ -14,7 +14,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
  */
 
 export interface SuggestionRow {
-  kind: "product" | "category";
+  kind: "product";
   id: string;
   href: string;
   title: string;
@@ -29,18 +29,10 @@ interface ApiProductSuggestion {
   priceFrom: { amount: number; currency: string };
 }
 
-interface ApiCategorySuggestion {
-  id: string;
-  slug: string;
-  name: string;
-  productCount: number;
-}
-
 interface ApiSearchResponse {
   query: string;
   products: ApiProductSuggestion[];
-  categories: ApiCategorySuggestion[];
-  popular: { products: ApiProductSuggestion[]; categories: ApiCategorySuggestion[] };
+  popular: { products: ApiProductSuggestion[] };
   error?: string;
 }
 
@@ -51,16 +43,6 @@ function toProductRow(p: ApiProductSuggestion): SuggestionRow {
     href: `/experiences/${p.slug}`,
     title: p.title,
     meta: `${p.categoryName} · from €${Math.round(p.priceFrom.amount)}`,
-  };
-}
-
-function toCategoryRow(c: ApiCategorySuggestion): SuggestionRow {
-  return {
-    kind: "category",
-    id: c.id,
-    href: `/experiences/category/${c.slug}`,
-    title: c.name,
-    meta: `${c.productCount} experience${c.productCount === 1 ? "" : "s"}`,
   };
 }
 
@@ -87,7 +69,6 @@ export function useSearchAutocomplete({
 }) {
   const [searchState, setSearchState] = useState<SearchState>("idle");
   const [productResults, setProductResults] = useState<SuggestionRow[]>([]);
-  const [categoryResults, setCategoryResults] = useState<SuggestionRow[]>([]);
   const [isPopular, setIsPopular] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
   const abortRef = useRef<AbortController | null>(null);
@@ -106,13 +87,11 @@ export function useSearchAutocomplete({
 
       const usingPopular = q.trim().length < 2;
       const products = usingPopular ? data.popular.products : data.products;
-      const categories = usingPopular ? data.popular.categories : data.categories;
 
       setProductResults(products.map(toProductRow));
-      setCategoryResults(categories.map(toCategoryRow));
       setIsPopular(usingPopular);
       setActiveIndex(-1);
-      setSearchState(products.length === 0 && categories.length === 0 ? "empty" : "success");
+      setSearchState(products.length === 0 ? "empty" : "success");
     } catch (error) {
       if ((error as Error).name === "AbortError") return; // superseded by a newer keystroke
       setSearchState("error");
@@ -140,10 +119,7 @@ export function useSearchAutocomplete({
     return () => abortRef.current?.abort();
   }, []);
 
-  const flatResults: SuggestionRow[] = useMemo(
-    () => [...productResults, ...categoryResults],
-    [productResults, categoryResults],
-  );
+  const flatResults: SuggestionRow[] = useMemo(() => [...productResults], [productResults]);
 
   const goToSuggestion = useCallback(
     (row: SuggestionRow) => {
@@ -174,7 +150,6 @@ export function useSearchAutocomplete({
   return {
     searchState,
     productResults,
-    categoryResults,
     isPopular,
     activeIndex,
     setActiveIndex,

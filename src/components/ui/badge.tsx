@@ -17,6 +17,12 @@ export function ProductBadgePill({ badge }: { badge: string }) {
         return "New";
       case "food-wine":
         return "Food & Wine";
+      case "guided-tour":
+        return "Guided Tour";
+      case "private-tour":
+        return "Private Tour";
+      case "combo":
+        return "Combo Experience";
       default:
         return b.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
     }

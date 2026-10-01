@@ -115,7 +115,7 @@ export const DEFAULT_HOMEPAGE_CONTENT: HomepageContentInsert = {
   ctaButtonText: "Check Live Availability",
   ctaButtonLink: "/experiences",
   ctaSecondaryButtonText: "Browse Day Trips",
-  ctaSecondaryButtonLink: "/experiences/category/day-trips",
+  ctaSecondaryButtonLink: "/experiences",
   ctaBackgroundImage: "/images/florence-hero.jpg",
 
   // 9. FAQ Section
@@ -290,7 +290,7 @@ async function ensureHomepageTableExistsUncached() {
         "cta_button_text" text NOT NULL DEFAULT 'Check Live Availability',
         "cta_button_link" text NOT NULL DEFAULT '/experiences',
         "cta_secondary_button_text" text NOT NULL DEFAULT 'Browse Day Trips',
-        "cta_secondary_button_link" text NOT NULL DEFAULT '/experiences/category/day-trips',
+        "cta_secondary_button_link" text NOT NULL DEFAULT '/experiences',
         "cta_background_image" text NOT NULL DEFAULT '/images/florence-hero.jpg',
         "faq_enabled" boolean NOT NULL DEFAULT true,
         "faq_badge" text NOT NULL DEFAULT 'HELPFUL INFORMATION',

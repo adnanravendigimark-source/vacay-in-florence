@@ -17,7 +17,7 @@ interface ContentPageCard {
 const PAGES: ContentPageCard[] = [
   {
     title: "Homepage",
-    description: "Hero, featured sections, categories, and testimonials shown on the homepage.",
+    description: "Hero, featured sections, and testimonials shown on the homepage.",
     editorHref: "/admin/content/homepage",
     publicHref: "/",
   },

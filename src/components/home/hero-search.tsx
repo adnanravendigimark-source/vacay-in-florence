@@ -31,7 +31,6 @@ export function HeroSearch() {
   const {
     searchState,
     productResults,
-    categoryResults,
     isPopular,
     activeIndex,
     setActiveIndex,
@@ -334,33 +333,6 @@ export function HeroSearch() {
                             <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 text-[#9e0ca0] shrink-0 fill-none stroke-current stroke-2">
                               <circle cx="11" cy="11" r="7.5" />
                               <line x1="16.5" y1="16.5" x2="21.5" y2="21.5" strokeLinecap="round" />
-                            </svg>
-                            <span className="min-w-0 flex-1 truncate">
-                              <span className="font-semibold text-neutral-900">{row.title}</span>
-                              <span className="block text-[10.5px] font-normal text-neutral-500">{row.meta}</span>
-                            </span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
-                  {categoryResults.length > 0 && (
-                    <div className="mt-1.5 space-y-0.5 border-t border-neutral-100 pt-1.5">
-                      {categoryResults.map((row) => {
-                        const index = flatResults.indexOf(row);
-                        return (
-                          <button
-                            key={row.id}
-                            type="button"
-                            role="option"
-                            aria-selected={activeIndex === index}
-                            onClick={() => goToSuggestion(row)}
-                            onMouseEnter={() => setActiveIndex(index)}
-                            className={`flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-left text-xs transition-colors cursor-pointer ${activeIndex === index ? "bg-neutral-100" : "hover:bg-neutral-100"
-                              }`}
-                          >
-                            <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 text-[#9e0ca0] shrink-0 fill-none stroke-current stroke-2">
-                              <path d="M4 6h16M4 12h16M4 18h10" strokeLinecap="round" />
                             </svg>
                             <span className="min-w-0 flex-1 truncate">
                               <span className="font-semibold text-neutral-900">{row.title}</span>

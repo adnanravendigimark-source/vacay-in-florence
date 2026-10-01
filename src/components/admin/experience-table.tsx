@@ -41,6 +41,29 @@ function StatusBadge({ status }: { status: ProductStatus }) {
   );
 }
 
+// A product with no attraction is invisible on the attraction-first public
+// flow (/experiences -> attraction -> its tickets) — it will never appear
+// anywhere a customer can reach it, even once published, so this is flagged
+// the same amber tone as "Pending review", not a neutral gray.
+function AttractionBadge({ name }: { name: string | null }) {
+  if (name) {
+    return (
+      <span className="inline-flex whitespace-nowrap rounded-full bg-[#F0ECE6] px-2.5 py-1 text-[10.5px] font-medium text-neutral-600">
+        {name}
+      </span>
+    );
+  }
+  return (
+    <span
+      className="inline-flex items-center whitespace-nowrap rounded-full px-2.5 py-1 text-[10.5px] font-semibold"
+      style={{ backgroundColor: "#FEF7E6", color: "#B47818" }}
+      title="Won't appear on /experiences until assigned to an attraction"
+    >
+      Unassigned
+    </span>
+  );
+}
+
 function EditIcon() {
   return (
     <svg viewBox="0 0 24 24" className="h-4 w-4 fill-none stroke-current stroke-2">
@@ -145,11 +168,14 @@ function GridCard({
       <div className="p-4">
         <p className="truncate text-sm font-semibold text-neutral-900">{item.title}</p>
         <p className="mt-0.5 line-clamp-2 text-[11px] leading-snug text-neutral-400">{item.shortDescription}</p>
-        <div className="mt-2.5 flex items-center gap-1.5">
+        <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
           <span className="inline-flex rounded-full bg-[#F0ECE6] px-2 py-0.5 text-[10px] font-medium text-neutral-600">
             {item.categoryName}
           </span>
           <span className="text-[11px] text-neutral-400">{item.durationLabel}</span>
+        </div>
+        <div className="mt-1.5">
+          <AttractionBadge name={item.attractionName} />
         </div>
         <div className="mt-3 border-t border-[#F0ECE6] pt-3">
           <span className="text-sm font-semibold text-neutral-900">
@@ -220,11 +246,12 @@ export function ExperienceTable({ items, view }: { items: AdminProductListItem[]
         </div>
       ) : (
         <div className="overflow-x-auto rounded-3xl border border-[#EAE6DF] bg-white shadow-[0_4px_25px_rgba(0,0,0,0.02)]">
-          <table className="w-full min-w-[920px] text-left text-xs">
+          <table className="w-full min-w-[1040px] text-left text-xs">
             <thead>
               <tr className="border-b border-[#F0ECE6] text-[11px] font-semibold uppercase tracking-wider text-neutral-400">
                 <th className="px-3 py-3.5 pl-5">Experience</th>
                 <th className="px-3 py-3.5">Category</th>
+                <th className="px-3 py-3.5">Attraction</th>
                 <th className="px-3 py-3.5">Price</th>
                 <th className="px-3 py-3.5">Duration</th>
                 <th className="px-3 py-3.5">Status</th>
@@ -257,6 +284,9 @@ export function ExperienceTable({ items, view }: { items: AdminProductListItem[]
                     <span className="inline-flex whitespace-nowrap rounded-full bg-[#F0ECE6] px-2.5 py-1 text-[10.5px] font-medium text-neutral-600">
                       {item.categoryName}
                     </span>
+                  </td>
+                  <td className="px-3 py-3.5">
+                    <AttractionBadge name={item.attractionName} />
                   </td>
                   <td className="whitespace-nowrap px-3 py-3.5 font-semibold text-neutral-900">
                     {formatPrice(item.priceFromAmount, item.priceFromCurrency)}

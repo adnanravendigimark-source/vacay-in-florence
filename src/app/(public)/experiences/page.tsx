@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { searchProducts, type ProductSortOption } from "@/lib/data/products";
-import { getAllCategories } from "@/lib/data/categories";
+import { getAllAttractions } from "@/lib/data/attractions";
 import { ExperiencesHero } from "@/components/experiences/experiences-hero";
 import { ExperienceListing } from "@/components/experiences/experience-listing";
+import { BrowseExperiencesView } from "@/components/experiences/browse-experiences-view";
 
 export const metadata: Metadata = {
   title: "Experiences in Florence — Skip-the-Line Tickets, Tours & Day Trips",
@@ -21,25 +22,9 @@ export default async function ExperiencesPage({
   searchParams: Promise<SearchParams>;
 }) {
   const params = await searchParams;
+  const isSearchMode = Boolean(params.q || params.dest || params.date);
 
-  const combinedQuery = [params.q, params.dest].filter(Boolean).join(" ").trim() || undefined;
-  const sort = VALID_SORTS.includes(params.sort as ProductSortOption)
-    ? (params.sort as ProductSortOption)
-    : "recommended";
-  const page = Number.parseInt(params.page ?? "1", 10) || 1;
-
-  const [result, categories] = await Promise.all([
-    searchProducts({ q: combinedQuery, date: params.date, sort, page, pageSize: 10 }),
-    getAllCategories(),
-  ]);
-
-  const titleOverride = params.q
-    ? `Results for "${params.q}"`
-    : params.dest
-      ? `Experiences near ${params.dest}`
-      : undefined;
-
-  const jsonLd = {
+  const jsonLdBase = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
@@ -48,17 +33,41 @@ export default async function ExperiencesPage({
     ],
   };
 
+  if (!isSearchMode) {
+    const attractions = await getAllAttractions();
+
+    return (
+      <main className="w-full bg-white">
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdBase) }} />
+        <ExperiencesHero />
+        <BrowseExperiencesView attractions={attractions} />
+      </main>
+    );
+  }
+
+  // --- Search results behavior below ---
+  const combinedQuery = [params.q, params.dest].filter(Boolean).join(" ").trim() || undefined;
+  const sort = VALID_SORTS.includes(params.sort as ProductSortOption)
+    ? (params.sort as ProductSortOption)
+    : "recommended";
+  const page = Number.parseInt(params.page ?? "1", 10) || 1;
+
+  const result = await searchProducts({ q: combinedQuery, date: params.date, sort, page, pageSize: 10 });
+
+  const titleOverride = params.q
+    ? `Results for "${params.q}"`
+    : params.dest
+      ? `Experiences near ${params.dest}`
+      : undefined;
+
   return (
-    <main className="w-full">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      {/* Golden Sunset Florence Hero Banner */}
+    <main className="w-full bg-white">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdBase) }} />
       <ExperiencesHero />
 
-      {/* Catalog Listing with Category Filter Ribbon */}
       <ExperienceListing
         basePath="/experiences"
         result={result}
-        categories={categories}
         titleOverride={titleOverride}
         currentParams={{ q: params.q, dest: params.dest, date: params.date, sort: params.sort }}
       />

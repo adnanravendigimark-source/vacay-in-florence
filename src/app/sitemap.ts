@@ -1,13 +1,13 @@
 import type { MetadataRoute } from "next";
-import { getAllCategories } from "@/lib/data/categories";
 import { getLatestBlogPosts } from "@/lib/data/blog";
 import { searchProducts } from "@/lib/data/products";
+import { getAllAttractions } from "@/lib/data/attractions";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.vacayinflorence.com";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [categories, posts, productPage] = await Promise.all([
-    getAllCategories(),
+  const [attractions, posts, productPage] = await Promise.all([
+    getAllAttractions(),
     getLatestBlogPosts(50),
     searchProducts({ pageSize: 100 }),
   ]);
@@ -15,7 +15,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticRoutes: MetadataRoute.Sitemap = [
     { url: `${siteUrl}/`, changeFrequency: "daily", priority: 1 },
     { url: `${siteUrl}/experiences`, changeFrequency: "daily", priority: 0.9 },
-    { url: `${siteUrl}/categories`, changeFrequency: "weekly", priority: 0.8 },
     { url: `${siteUrl}/blog`, changeFrequency: "weekly", priority: 0.6 },
     { url: `${siteUrl}/about`, changeFrequency: "monthly", priority: 0.3 },
     { url: `${siteUrl}/contact`, changeFrequency: "monthly", priority: 0.3 },
@@ -26,10 +25,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${siteUrl}/cancellation-policy`, changeFrequency: "yearly", priority: 0.1 },
   ];
 
-  const categoryRoutes: MetadataRoute.Sitemap = categories.map((category) => ({
-    url: `${siteUrl}/experiences/category/${category.slug}`,
+  const attractionRoutes: MetadataRoute.Sitemap = attractions.map((attraction) => ({
+    url: `${siteUrl}/experiences/attraction/${attraction.slug}`,
     changeFrequency: "weekly",
-    priority: 0.7,
+    priority: 0.8,
   }));
 
   // Individually indexable product pages — previously missing from the
@@ -48,5 +47,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.5,
   }));
 
-  return [...staticRoutes, ...categoryRoutes, ...productRoutes, ...postRoutes];
+  return [...staticRoutes, ...attractionRoutes, ...productRoutes, ...postRoutes];
 }

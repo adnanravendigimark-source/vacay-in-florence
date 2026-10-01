@@ -49,12 +49,44 @@ export interface CategorySummary {
   noFollow: boolean;
 }
 
+/** Same field shape as CategorySummary/CategoryStatus — see the comment
+ * on the `attractions` table (src/lib/db/schema.ts) for why this is a
+ * separate taxonomy rather than reusing categories. */
+export type AttractionStatus = CategoryStatus;
+
+export interface AttractionSummary {
+  id: string;
+  slug: string;
+  name: string;
+  shortDescription: string;
+  icon: CategoryIcon;
+  image: PlaceholderImage;
+  heroImage: PlaceholderImage | null;
+  productCount: number;
+  featured: boolean;
+  sortOrder: number;
+  status: AttractionStatus;
+  highlights: string[];
+  badgeText: string | null;
+  ctaLabel: string | null;
+  ctaHref: string | null;
+  metaTitle: string | null;
+  metaDescription: string | null;
+  canonicalUrl: string | null;
+  ogImage: string | null;
+  noIndex: boolean;
+  noFollow: boolean;
+}
+
 export type ProductBadge =
   | "free-cancellation"
   | "skip-the-line"
   | "best-seller"
   | "small-group"
-  | "instant-confirmation";
+  | "instant-confirmation"
+  | "guided-tour"
+  | "private-tour"
+  | "combo";
 
 export interface PlaceholderImage {
   src: string;

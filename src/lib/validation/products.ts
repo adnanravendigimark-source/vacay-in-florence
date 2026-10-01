@@ -68,6 +68,7 @@ export const productFormSchema = z.object({
   shortDescription: nonEmpty("Short description").max(300),
   description: nonEmpty("Description"),
   categoryId: nonEmpty("Category"),
+  attractionId: nonEmpty("Attraction"),
   supplierId: nonEmpty("Supplier"),
   durationLabel: nonEmpty("Duration"),
   badges: z.array(z.string().trim().min(1)).default([]),

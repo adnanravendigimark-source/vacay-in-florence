@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { requireSupplier } from "@/lib/require-user";
-import { getCategoryOptions } from "@/lib/data/admin/products";
+import { getCategoryOptions, getBlogPostOptions, getAttractionOptions } from "@/lib/data/admin/products";
 import { ExperienceEditor } from "@/components/admin/experience-editor";
 import type { ProductFormData } from "@/lib/validation/products";
 import { DEFAULT_GOOD_TO_KNOW_TIPS } from "@/lib/constants";
@@ -24,6 +24,7 @@ const EMPTY_VALUES: ProductFormData = {
   shortDescription: "",
   description: "",
   categoryId: "",
+  attractionId: null,
   supplierId: "",
   durationLabel: "",
   badges: [],
@@ -70,7 +71,11 @@ const EMPTY_VALUES: ProductFormData = {
 
 export default async function NewSupplierExperiencePage() {
   const supplier = await requireSupplier("/supplier/experiences/new");
-  const categories = await getCategoryOptions();
+  const [categories, blogPosts, attractions] = await Promise.all([
+    getCategoryOptions(),
+    getBlogPostOptions(),
+    getAttractionOptions(),
+  ]);
 
   return (
     <ExperienceEditor
@@ -81,7 +86,9 @@ export default async function NewSupplierExperiencePage() {
         supplierId: supplier.supplierId,
       }}
       categories={categories}
+      attractions={attractions}
       suppliers={[{ id: supplier.supplierId, name: supplier.supplierName }]}
+      blogPosts={blogPosts}
       basePath="/supplier/experiences"
       publishLabel="Submit for Review"
       publishStatus="pending_review"

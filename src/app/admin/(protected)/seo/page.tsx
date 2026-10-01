@@ -28,7 +28,7 @@ export default async function AdminSeoPage() {
             SEO Management
           </h1>
           <p className="mt-1 text-xs text-neutral-500 sm:text-[13px]">
-            Meta title/description coverage across every Experience, Category, and Blog post. Each has its own SEO
+            Meta title/description coverage across every Experience and Blog post. Each has its own SEO
             tab in its editor — this is where to find what still needs one.
           </p>
         </div>

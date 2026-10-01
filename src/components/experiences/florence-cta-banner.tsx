@@ -2,8 +2,8 @@ import Link from "next/link";
 import { Container } from "@/components/ui/container";
 
 export function FlorenceCtaBanner({
-  primaryLabel = "Browse All Categories",
-  primaryHref = "/categories",
+  primaryLabel = "Browse All Experiences",
+  primaryHref = "/experiences",
 }: {
   primaryLabel?: string;
   primaryHref?: string;

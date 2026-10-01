@@ -14,7 +14,7 @@ import {
 } from "@/app/admin/(protected)/experiences/actions";
 import type { MutationResult } from "@/lib/data/admin/products";
 import type { ProductFormData } from "@/lib/validation/products";
-import { Field, Input, Select, Textarea, Button, Tabs, ImageField, Modal, useToast } from "@/components/admin/ui";
+import { Field, Input, Select, Textarea, Button, Tabs, ImageField, Modal, useToast, BlogPostPicker } from "@/components/admin/ui";
 import { HomepageMediaField } from "@/components/admin/homepage-media-field";
 import { PRODUCT_BADGE_OPTIONS, CURRENCY_OPTIONS } from "@/lib/constants";
 
@@ -134,7 +134,15 @@ export interface ExperienceEditorProps {
   initialValues: ProductFormData;
   initialAvailability?: AvailabilityRow[];
   categories: { id: string; name: string }[];
+  /** Attraction/landmark groupings (e.g. "Uffizi Gallery") shown on the
+   * public /experiences page — optional/defaults to [] so existing call
+   * sites keep working; without it the picker just shows no options. */
+  attractions?: { id: string; name: string }[];
   suppliers: { id: string; name: string }[];
+  /** Published blog posts available for the "Related Travel Guides &
+   * Blog Articles" picker. Optional/defaults to [] so no existing call
+   * site breaks; without it the picker just shows no options to add. */
+  blogPosts?: { slug: string; title: string }[];
   /** Where the "Experiences" breadcrumb points and where create/delete
    * redirect back to. Defaults to the admin module's own list. */
   basePath?: string;
@@ -167,7 +175,9 @@ export function ExperienceEditor({
   initialValues,
   initialAvailability,
   categories,
+  attractions = [],
   suppliers,
+  blogPosts = [],
   basePath = "/admin/experiences",
   actions,
   publishLabel = "Publish",
@@ -547,6 +557,25 @@ export function ExperienceEditor({
                               </option>
                             ))}
                           </Select>
+                        </Field>
+                        <Field label="Attraction" hint="Which landmark/experience-group this ticket appears under on /experiences">
+                          <Select
+                            value={form.attractionId ?? ""}
+                            onChange={(e) => update("attractionId", e.target.value || null)}
+                          >
+                            <option value="">No attraction (not grouped)</option>
+                            {attractions.map((a) => (
+                              <option key={a.id} value={a.id}>
+                                {a.name}
+                              </option>
+                            ))}
+                          </Select>
+                          {!form.attractionId ? (
+                            <p className="mt-1.5 text-[11px] font-medium text-amber-700">
+                              Without an attraction, this experience won&apos;t be reachable from /experiences — the
+                              public site now routes customers through an attraction page first.
+                            </p>
+                          ) : null}
                         </Field>
                         <Field label="Duration" required hint='e.g. "3 hours"'>
                           <Input value={form.durationLabel} onChange={(e) => update("durationLabel", e.target.value)} />
@@ -1865,13 +1894,12 @@ export function ExperienceEditor({
                     <div className="rounded-2xl border border-stone bg-white p-5">
                       <Field
                         label="Related Travel Guides & Blog Articles"
-                        hint="Blog post slugs, one per line, in display order — leave empty to auto-match by category"
+                        hint="Pick which posts show here, in order — leave empty to auto-match by category"
                       >
-                        <Textarea
-                          rows={2}
-                          value={linesToText(form.relatedBlogSlugs)}
-                          onChange={(e) => update("relatedBlogSlugs", textToLines(e.target.value))}
-                          placeholder="florence-hidden-gems"
+                        <BlogPostPicker
+                          value={form.relatedBlogSlugs as string[]}
+                          onChange={(slugs) => update("relatedBlogSlugs", slugs)}
+                          options={blogPosts}
                         />
                       </Field>
                     </div>

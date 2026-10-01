@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { getCategoryOptions, getSupplierOptions } from "@/lib/data/admin/products";
+import { getCategoryOptions, getSupplierOptions, getBlogPostOptions, getAttractionOptions } from "@/lib/data/admin/products";
 import { ExperienceEditor } from "@/components/admin/experience-editor";
 import type { ProductFormData } from "@/lib/validation/products";
 import { DEFAULT_GOOD_TO_KNOW_TIPS } from "@/lib/constants";
@@ -15,6 +15,7 @@ const EMPTY_VALUES: ProductFormData = {
   shortDescription: "",
   description: "",
   categoryId: "",
+  attractionId: null,
   supplierId: "",
   durationLabel: "",
   badges: [],
@@ -61,7 +62,12 @@ const EMPTY_VALUES: ProductFormData = {
 };
 
 export default async function NewExperiencePage() {
-  const [categories, suppliers] = await Promise.all([getCategoryOptions(), getSupplierOptions()]);
+  const [categories, suppliers, blogPosts, attractions] = await Promise.all([
+    getCategoryOptions(),
+    getSupplierOptions(),
+    getBlogPostOptions(),
+    getAttractionOptions(),
+  ]);
 
   return (
     <ExperienceEditor
@@ -72,7 +78,9 @@ export default async function NewExperiencePage() {
         supplierId: suppliers[0]?.id ?? "",
       }}
       categories={categories}
+      attractions={attractions}
       suppliers={suppliers}
+      blogPosts={blogPosts}
     />
   );
 }

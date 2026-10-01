@@ -16,7 +16,6 @@ interface HomepageEditorProps {
 
 type TabKey =
   | "hero"
-  | "categories"
   | "experiences"
   | "whyUs"
   | "landmarks"
@@ -30,7 +29,6 @@ type TabKey =
 
 const TABS: { key: TabKey; label: string }[] = [
   { key: "hero", label: "Hero Section" },
-  { key: "categories", label: "Top Categories" },
   { key: "experiences", label: "Featured Experiences" },
   { key: "landmarks", label: "Popular Destinations" },
   { key: "itinerary", label: "Itinerary Planner" },
@@ -383,105 +381,7 @@ export function HomepageEditor({ initialData, allExperiences = [] }: HomepageEdi
       )}
 
       {/* =================================================================== */}
-      {/* 2. TOP CATEGORIES TAB */}
-      {/* =================================================================== */}
-      {activeTab === "categories" && (
-        <div className="rounded-3xl bg-white border border-[#EAE6DF] p-6 shadow-[0_4px_25px_rgba(0,0,0,0.02)] space-y-6">
-          <div className="flex items-center justify-between pb-4 border-b border-[#F0ECE6]">
-            <div className="flex items-center gap-3">
-              <div className="w-7 h-7 rounded-full bg-[#183D2B] text-white text-xs font-bold flex items-center justify-center">
-                2
-              </div>
-              <div>
-                <h2 className="font-display text-base font-semibold text-neutral-900">Top Categories Section</h2>
-                <p className="text-xs text-neutral-400">Manage the category ribbons and cards shown on the homepage.</p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-neutral-500">{data.categoriesEnabled ? "Enabled" : "Disabled"}</span>
-              <button
-                type="button"
-                onClick={() => updateField("categoriesEnabled", !data.categoriesEnabled)}
-                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                  data.categoriesEnabled ? "bg-[#183D2B]" : "bg-neutral-200"
-                }`}
-              >
-                <span
-                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                    data.categoriesEnabled ? "translate-x-5" : "translate-x-0"
-                  }`}
-                />
-              </button>
-            </div>
-          </div>
-
-          <p className="text-[11px] text-neutral-400 -mt-2">
-            This compact ribbon shows a badge + title above the category cards. Leave the badge blank to hide it.
-          </p>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-xs font-semibold text-neutral-700 mb-1">Badge (optional)</label>
-              <input
-                type="text"
-                value={data.categoriesBadge}
-                onChange={(e) => updateField("categoriesBadge", e.target.value)}
-                className="w-full px-3.5 py-2 text-xs rounded-xl border border-[#EAE6DF] focus:outline-none focus:border-[#183D2B] bg-[#FAF8F5]"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-neutral-700 mb-1">Section Title</label>
-              <input
-                type="text"
-                value={data.categoriesTitle}
-                onChange={(e) => updateField("categoriesTitle", e.target.value)}
-                className="w-full px-3.5 py-2 text-xs rounded-xl border border-[#EAE6DF] focus:outline-none focus:border-[#183D2B] bg-[#FAF8F5]"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-neutral-700 mb-1">Section Subtitle (optional)</label>
-              <input
-                type="text"
-                value={data.categoriesSubtitle}
-                onChange={(e) => updateField("categoriesSubtitle", e.target.value)}
-                className="w-full px-3.5 py-2 text-xs rounded-xl border border-[#EAE6DF] focus:outline-none focus:border-[#183D2B] bg-[#FAF8F5]"
-              />
-            </div>
-          </div>
-
-          <div className="max-w-xs">
-            <label className="block text-xs font-semibold text-neutral-700 mb-1"># of Categories to Show</label>
-            <input
-              type="number"
-              min={1}
-              max={12}
-              value={data.categoriesLimit ?? 6}
-              onChange={(e) => updateField("categoriesLimit", Math.max(1, Math.min(12, Number(e.target.value) || 1)))}
-              className="w-full px-3.5 py-2 text-xs rounded-xl border border-[#EAE6DF] focus:outline-none focus:border-[#183D2B] bg-[#FAF8F5]"
-            />
-          </div>
-
-          <div className="rounded-2xl bg-blue-50 border border-blue-200 p-4 flex items-start gap-3">
-            <svg viewBox="0 0 24 24" className="w-4 h-4 mt-0.5 shrink-0 fill-none stroke-blue-600 stroke-2">
-              <circle cx="12" cy="12" r="10" />
-              <line x1="12" y1="16" x2="12" y2="12" />
-              <line x1="12" y1="8" x2="12.01" y2="8" />
-            </svg>
-            <p className="text-[11.5px] text-blue-800 leading-relaxed">
-              The category cards themselves (name, image, icon, and which ones are featured) are pulled live from
-              your real Category catalog — the same categories used across the whole site — so they can&apos;t be
-              edited separately here. To add, rename, reorder, feature, or hide a category, go to{" "}
-              <Link href="/admin/categories" className="font-semibold underline hover:text-blue-900">
-                Admin → Categories
-              </Link>
-              . Any change you make there appears in this ribbon immediately.
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* =================================================================== */}
-      {/* 3. FEATURED EXPERIENCES TAB */}
+      {/* 2. FEATURED EXPERIENCES TAB */}
       {/* =================================================================== */}
       {activeTab === "experiences" && (
         <div className="rounded-3xl bg-white border border-[#EAE6DF] p-6 shadow-[0_4px_25px_rgba(0,0,0,0.02)] space-y-6">

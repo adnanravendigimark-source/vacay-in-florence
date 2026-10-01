@@ -74,9 +74,11 @@ export const categories = pgTable(
     // Small pill label on the category card, e.g. "Most Popular" — optional.
     badgeText: text("badge_text"),
     // Optional CTA override for the category card: when set, ctaHref
-    // replaces the card's default link target (normally
-    // /experiences/category/{slug}) and ctaLabel replaces the default
-    // "Explore" affordance text.
+    // replaces the card's default link target and ctaLabel replaces the
+    // default "Explore" affordance text. (The public Categories browsing
+    // UI that once rendered these cards has been removed; the table and
+    // these fields are kept since products.categoryId still depends on
+    // the `categories` table existing.)
     ctaLabel: text("cta_label"),
     ctaHref: text("cta_href"),
     // Per-category SEO overrides — same pattern as products/blogPosts.
@@ -97,6 +99,49 @@ export const categories = pgTable(
     // of a full table scan. Requires the `pg_trgm` extension, ensured at
     // runtime by src/lib/db/search-indexes.ts.
     index("categories_name_trgm_idx").using("gin", sql`${t.name} gin_trgm_ops`),
+  ],
+);
+
+// New landmark/experience-group taxonomy sitting between "browse by
+// category" (unchanged, above) and individual products: /experiences now
+// lists these attractions (e.g. "Uffizi Gallery", "Day Trips"), each with
+// its own listing page of every product assigned to it via
+// products.attractionId below. Deliberately structured almost identically
+// to `categories` (same field set, same admin CRUD shape) rather than
+// reusing that table directly — a product's category (experience type)
+// and its attraction (which landmark/group it belongs to) are different
+// dimensions and must be editable independently.
+export const attractions = pgTable(
+  "attractions",
+  {
+    id: id(),
+    slug: text("slug").notNull(),
+    name: text("name").notNull(),
+    shortDescription: text("short_description").notNull(),
+    icon: text("icon").notNull(),
+    imageUrl: text("image_url").notNull(),
+    imageAlt: text("image_alt").notNull(),
+    featured: boolean("featured").notNull().default(false),
+    sortOrder: integer("sort_order").notNull().default(0),
+    // draft | published — same convention as categories.status.
+    status: text("status").notNull().default("draft"),
+    heroImageUrl: text("hero_image_url"),
+    heroImageAlt: text("hero_image_alt"),
+    highlights: jsonb("highlights").$type<string[]>().notNull().default([]),
+    badgeText: text("badge_text"),
+    ctaLabel: text("cta_label"),
+    ctaHref: text("cta_href"),
+    metaTitle: text("meta_title"),
+    metaDescription: text("meta_description"),
+    canonicalUrl: text("canonical_url"),
+    ogImage: text("og_image"),
+    noIndex: boolean("no_index").notNull().default(false),
+    noFollow: boolean("no_follow").notNull().default(false),
+    ...timestamps,
+  },
+  (t) => [
+    uniqueIndex("attractions_slug_idx").on(t.slug),
+    index("attractions_featured_sort_idx").on(t.featured, t.sortOrder),
   ],
 );
 
@@ -211,6 +256,15 @@ export const products = pgTable(
     categoryId: text("category_id")
       .notNull()
       .references(() => categories.id),
+    // Which landmark/experience-group (see `attractions` above) this
+    // ticket belongs to on the public /experiences -> attraction ->
+    // ticket hierarchy. The Experience Editor now requires every product
+    // to have one (src/lib/validation/products.ts) -- this column stays
+    // nullable at the DB level only so the Admin Attractions "Tickets &
+    // Experiences" panel can explicitly unassign one (removeProductFromAttraction
+    // in src/lib/data/admin/attractions.ts) without a FK constraint fight;
+    // every normal create/edit path blocks saving without one.
+    attractionId: text("attraction_id").references(() => attractions.id),
     supplierId: text("supplier_id")
       .notNull()
       .references(() => suppliers.id),
@@ -228,6 +282,15 @@ export const products = pgTable(
     reviewNote: text("review_note"),
     featured: boolean("featured").notNull().default(false),
     featuredRank: integer("featured_rank"),
+    // Position of this ticket within its OWN attraction's page
+    // (/experiences/attraction/[slug] -> getProductsByAttractionSlug,
+    // reordered from the Admin Attraction Editor's "Tickets & Experiences"
+    // panel). Deliberately separate from featuredRank above, which drives
+    // the sitewide "Featured Experiences" carousel and the default
+    // cross-attraction "recommended" sort -- reusing featuredRank here
+    // would let reordering Duomo's own ticket list silently reshuffle
+    // Uffizi's tickets in that unrelated sitewide ordering.
+    attractionSortOrder: integer("attraction_sort_order").notNull().default(0),
     durationLabel: text("duration_label").notNull(),
     priceFromAmount: doublePrecision("price_from_amount").notNull(),
     priceFromCurrency: text("price_from_currency").notNull().default("EUR"),
@@ -311,6 +374,7 @@ export const products = pgTable(
     uniqueIndex("products_slug_idx").on(t.slug),
     index("products_supplier_idx").on(t.supplierId),
     index("products_category_idx").on(t.categoryId),
+    index("products_attraction_idx").on(t.attractionId),
     index("products_status_featured_idx").on(t.status, t.featured, t.featuredRank),
     // Trigram indexes power the smart search bar's partial-match and
     // spelling-tolerant search (similarity()/word_similarity() over
@@ -762,7 +826,7 @@ export const homepageContent = pgTable(
     ctaButtonText: text("cta_button_text").notNull().default("Check Live Availability"),
     ctaButtonLink: text("cta_button_link").notNull().default("/experiences"),
     ctaSecondaryButtonText: text("cta_secondary_button_text").notNull().default("Browse Day Trips"),
-    ctaSecondaryButtonLink: text("cta_secondary_button_link").notNull().default("/experiences/category/day-trips"),
+    ctaSecondaryButtonLink: text("cta_secondary_button_link").notNull().default("/experiences"),
     ctaBackgroundImage: text("cta_background_image").notNull().default("/images/florence-hero.jpg"),
 
     // 9. FAQ Section

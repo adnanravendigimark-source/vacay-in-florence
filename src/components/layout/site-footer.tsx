@@ -52,11 +52,6 @@ export function SiteFooter({ settings }: { settings: SiteSettingsContent }) {
                 </Link>
               </li>
               <li>
-                <Link href="/categories" className="hover:text-ink transition-colors">
-                  Categories
-                </Link>
-              </li>
-              <li>
                 <Link href="/blog" className="hover:text-ink transition-colors">
                   Blog
                 </Link>

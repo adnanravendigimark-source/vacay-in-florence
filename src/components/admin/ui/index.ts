@@ -10,3 +10,5 @@ export { Modal } from "./modal";
 export { ToastProvider, useToast } from "./toast";
 export { Tabs } from "./tabs";
 export { ImageField } from "./image-field";
+export { BlogPostPicker } from "./blog-post-picker";
+export type { BlogPostOption } from "./blog-post-picker";

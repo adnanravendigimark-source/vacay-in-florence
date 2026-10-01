@@ -42,8 +42,6 @@ export function SiteHeader() {
         });
     }
     refreshCartCount();
-    // A same-page "Add to Cart" server action doesn't change the pathname,
-    // so we also listen for an explicit signal from cart mutations.
     window.addEventListener(CART_UPDATED_EVENT, refreshCartCount);
     return () => {
       cancelled = true;
@@ -57,27 +55,12 @@ export function SiteHeader() {
 
   return (
     <StickyHeader
-      renderContent={(scrolled, isHome) => {
-        const isExperienceDetail =
-          pathname.startsWith("/experiences/") && !pathname.startsWith("/experiences/category");
-        const isLight = (isHome || isExperienceDetail) && !scrolled;
-
+      renderContent={() => {
         const navLinks = [
-          { name: "Home", href: "/", active: pathname === "/" },
           {
             name: "Experiences",
             href: "/experiences",
-            active:
-              pathname === "/experiences" ||
-              (pathname.startsWith("/experiences/") && !pathname.startsWith("/experiences/category")),
-          },
-          {
-            name: "Categories",
-            href: "/categories",
-            active:
-              pathname === "/categories" ||
-              pathname.startsWith("/categories/") ||
-              pathname.startsWith("/experiences/category"),
+            active: pathname === "/experiences" || pathname.startsWith("/experiences/"),
           },
           {
             name: "Blog",
@@ -96,11 +79,13 @@ export function SiteHeader() {
           },
         ];
 
+        const hasCartItems = typeof cartCount === "number" && cartCount > 0;
+
         return (
           <Container className="flex h-20 items-center justify-between gap-4 transition-all duration-300">
-            {/* Brand Logo (Switches light/dark based on state) */}
+            {/* Brand Logo (Consistent dark logo across all pages) */}
             <div className="flex items-center">
-              <VacayLogo variant={isLight ? "light" : "dark"} />
+              <VacayLogo variant="dark" />
             </div>
 
             {/* Navigation Links */}
@@ -109,21 +94,15 @@ export function SiteHeader() {
                 <Link
                   key={link.name}
                   href={link.href}
-                  className={`text-[14px] transition-colors py-1 ${link.active
-                      ? isLight
-                        ? "relative font-semibold text-white drop-shadow-sm"
-                        : "relative font-semibold text-neutral-900"
-                      : isLight
-                        ? "font-normal text-white/90 hover:text-white drop-shadow-sm"
-                        : "font-normal text-neutral-600 hover:text-neutral-950"
-                    }`}
+                  className={`text-[14px] transition-colors py-1 ${
+                    link.active
+                      ? "relative font-semibold text-neutral-900"
+                      : "font-normal text-neutral-600 hover:text-neutral-950"
+                  }`}
                 >
                   {link.name}
                   {link.active && (
-                    <span
-                      className={`absolute -bottom-1 left-0 right-0 h-[2px] rounded-full transition-colors ${isLight ? "bg-white shadow-sm" : "bg-[#9e0ca0]"
-                        }`}
-                    />
+                    <span className="absolute -bottom-1 left-0 right-0 h-[2px] rounded-full bg-[#9e0ca0] transition-colors" />
                   )}
                 </Link>
               ))}
@@ -131,18 +110,14 @@ export function SiteHeader() {
 
             {/* Right Header Action Icons */}
             <div className="flex items-center gap-3">
-              {/* User Profile Account Icon: Shows user name and icon when logged in, or opens Auth Modal if guest */}
+              {/* User Profile Account Icon */}
               {isAuthenticated ? (
                 <div className="flex items-center gap-1 sm:gap-2">
                   {/* Bookings Shortcut */}
                   <Link
                     href="/account/bookings"
                     aria-label="My bookings"
-                    className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
-                      isLight
-                        ? "text-white/90 hover:text-white hover:bg-white/10 drop-shadow-sm"
-                        : "text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100"
-                    }`}
+                    className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 transition-colors"
                   >
                     <svg viewBox="0 0 24 24" className="h-4 w-4 fill-none stroke-current stroke-[1.85]">
                       <path d="M4 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6z" />
@@ -155,11 +130,7 @@ export function SiteHeader() {
                   <Link
                     href="/account"
                     aria-label={`Account (${userFirstName})`}
-                    className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
-                      isLight
-                        ? "text-white hover:bg-white/15 drop-shadow-sm border border-white/20"
-                        : "text-neutral-800 hover:text-neutral-950 hover:bg-neutral-100 border border-neutral-200"
-                    }`}
+                    className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 rounded-full text-xs font-semibold text-neutral-800 hover:text-neutral-950 hover:bg-neutral-100 border border-neutral-200 transition-all"
                   >
                     <svg viewBox="0 0 24 24" className="h-4 w-4 fill-none stroke-current stroke-[2] shrink-0">
                       <circle cx="12" cy="8" r="4" />
@@ -173,10 +144,7 @@ export function SiteHeader() {
                   type="button"
                   onClick={() => openAuthModal({ view: "email" })}
                   aria-label="Sign in or register"
-                  className={`p-1.5 rounded-full transition-colors cursor-pointer ${isLight
-                      ? "text-white hover:text-cream-deep drop-shadow-sm"
-                      : "text-neutral-700 hover:text-neutral-950 hover:bg-neutral-100"
-                    }`}
+                  className="p-1.5 rounded-full text-neutral-700 hover:text-neutral-950 hover:bg-neutral-100 transition-colors cursor-pointer"
                 >
                   <svg viewBox="0 0 24 24" className="h-5 w-5 fill-none stroke-current stroke-[1.85]">
                     <circle cx="12" cy="8" r="4" />
@@ -185,32 +153,26 @@ export function SiteHeader() {
                 </button>
               )}
 
-              {/* Shopping Cart Icon with Badge */}
+              {/* Shopping Cart Icon with Dot Indicator (No numbers) */}
               <Link
                 href="/cart"
-                aria-label={`Shopping cart (${cartCount ?? 0} item${cartCount === 1 ? "" : "s"})`}
-                className={`relative p-1.5 rounded-full transition-colors ${isLight
-                    ? "text-white hover:text-cream-deep drop-shadow-sm"
-                    : "text-neutral-700 hover:text-neutral-950 hover:bg-neutral-100"
-                  }`}
+                aria-label={`Shopping cart ${hasCartItems ? "(has items)" : "(empty)"}`}
+                className="relative p-1.5 rounded-full text-neutral-700 hover:text-neutral-950 hover:bg-neutral-100 transition-colors"
               >
                 <svg viewBox="0 0 24 24" className="h-5 w-5 fill-none stroke-current stroke-[1.85]">
                   <path d="M5 6L7 20H19L21 6H5Z" strokeLinejoin="round" />
                   <path d="M9 6V5C9 3.34315 10.3431 2 12 2C13.6569 2 15 3.34315 15 5V6" />
                 </svg>
-                {cartCount ? (
-                  <span className="absolute top-0.5 right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-[#9e0ca0] text-[9px] font-bold text-white shadow-sm ring-1 ring-white/50">
-                    {cartCount > 9 ? "9+" : cartCount}
-                  </span>
-                ) : null}
+                {hasCartItems && (
+                  <span className="absolute top-1.5 right-1.5 flex h-2 w-2 rounded-full bg-[#9e0ca0] ring-2 ring-white shadow-xs" />
+                )}
               </Link>
 
               {/* Mobile Menu Toggle */}
               <input type="checkbox" id="mobile-nav-toggle" className="peer sr-only" />
               <label
                 htmlFor="mobile-nav-toggle"
-                className={`flex h-9 w-9 cursor-pointer items-center justify-center rounded-full lg:hidden transition-colors ${isLight ? "text-white hover:bg-white/10" : "text-neutral-800 hover:bg-neutral-100"
-                  }`}
+                className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full lg:hidden text-neutral-800 hover:bg-neutral-100 transition-colors"
               >
                 <span className="sr-only">Open menu</span>
                 <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5 fill-none stroke-current stroke-2">
@@ -225,10 +187,11 @@ export function SiteHeader() {
                     <Link
                       key={link.name}
                       href={link.href}
-                      className={`rounded-xl px-4 py-2.5 text-sm transition-colors ${link.active
+                      className={`rounded-xl px-4 py-2.5 text-sm transition-colors ${
+                        link.active
                           ? "font-semibold text-neutral-900 bg-neutral-100"
                           : "font-medium text-neutral-700 hover:bg-neutral-50"
-                        }`}
+                      }`}
                     >
                       {link.name}
                     </Link>

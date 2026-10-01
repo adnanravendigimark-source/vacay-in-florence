@@ -19,15 +19,19 @@ const FEATURED_OPTIONS: Array<{ value: string; label: string }> = [
 
 export function ExperienceFilters({
   categories,
+  attractions,
   initialQuery,
   initialCategoryId,
+  initialAttractionId,
   initialStatus,
   initialFeatured,
   view,
 }: {
   categories: { id: string; name: string }[];
+  attractions: { id: string; name: string }[];
   initialQuery: string;
   initialCategoryId: string;
+  initialAttractionId: string;
   initialStatus: string;
   initialFeatured: string;
   view: "list" | "grid";
@@ -95,6 +99,20 @@ export function ExperienceFilters({
         {categories.map((c) => (
           <option key={c.id} value={c.id}>
             {c.name}
+          </option>
+        ))}
+      </select>
+
+      <select
+        value={initialAttractionId}
+        onChange={(e) => updateParams({ attraction: e.target.value })}
+        className={selectClasses}
+      >
+        <option value="all">All Attractions</option>
+        <option value="unassigned">Unassigned (won&apos;t show on /experiences)</option>
+        {attractions.map((a) => (
+          <option key={a.id} value={a.id}>
+            {a.name}
           </option>
         ))}
       </select>

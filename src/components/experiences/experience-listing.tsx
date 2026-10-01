@@ -4,11 +4,9 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ExperienceCard } from "@/components/ui/experience-card";
 import { EmptyState } from "@/components/ui/empty-state";
-import { CategoryFilterPills } from "@/components/experiences/category-filter-pills";
 import { FlorenceCtaBanner } from "@/components/experiences/florence-cta-banner";
 import { Container } from "@/components/ui/container";
 import type { SearchProductsResult, ProductSortOption } from "@/lib/data/products";
-import type { CategorySummary } from "@/lib/types";
 
 const SORT_OPTIONS: { value: ProductSortOption; label: string }[] = [
   { value: "recommended", label: "Recommended" },
@@ -22,19 +20,13 @@ const PAGE_SIZE = 10;
 export function ExperienceListing({
   basePath,
   result,
-  categories,
-  activeCategorySlug,
   currentParams,
-  showCategoryFilters = true,
   titleOverride,
   subtitleOverride,
 }: {
   basePath: string;
   result: SearchProductsResult;
-  categories: CategorySummary[];
-  activeCategorySlug?: string;
   currentParams: Record<string, string | undefined>;
-  showCategoryFilters?: boolean;
   titleOverride?: string;
   subtitleOverride?: string;
 }) {
@@ -78,7 +70,6 @@ export function ExperienceListing({
     if (currentParams.dest) qs.set("dest", currentParams.dest);
     if (currentParams.date) qs.set("date", currentParams.date);
     if (currentParams.sort) qs.set("sort", currentParams.sort);
-    if (activeCategorySlug) qs.set("categorySlug", activeCategorySlug);
     qs.set("page", String(nextPage));
     qs.set("pageSize", String(PAGE_SIZE));
 
@@ -96,7 +87,7 @@ export function ExperienceListing({
       setLoadingMore(false);
       loadingRef.current = false;
     }
-  }, [page, hasMore, currentParams, activeCategorySlug]);
+  }, [page, hasMore, currentParams]);
 
   // Fires `loadMore` once the sentinel below the grid scrolls near the
   // viewport, so the next batch is ready before the user hits the bottom.
@@ -124,26 +115,14 @@ export function ExperienceListing({
     router.push(`${basePath}?${params.toString()}`);
   };
 
-  const activeCategory = categories.find((c) => c.slug === activeCategorySlug);
-  const sectionTitle =
-    titleOverride ||
-    (activeCategory ? `${activeCategory.name} in Florence` : "Curated Florence Experiences");
+  const sectionTitle = titleOverride || "Curated Florence Experiences";
   const sectionSubtitle =
     subtitleOverride ||
-    (activeCategory
-      ? activeCategory.shortDescription
-      : "Skip-the-line museum tickets, expert-guided landmark tours, and authentic Tuscan excursions with guaranteed entrance.");
+    "Skip-the-line museum tickets, expert-guided landmark tours, and authentic Tuscan excursions with guaranteed entrance.";
 
   return (
     <div className="w-full bg-white pt-10 sm:pt-14 pb-16 sm:pb-20">
       <Container>
-        {/* Category Filters Ribbon */}
-        {showCategoryFilters && categories.length > 0 && (
-          <div id="categories" className="mb-10 scroll-mt-28">
-            <CategoryFilterPills categories={categories} activeCategorySlug={activeCategorySlug} />
-          </div>
-        )}
-
         {/* Section Title & Sort Controls */}
         <div className="mb-8 flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-4 border-b border-[#ece6dc]">
           <div className="max-w-2xl">
@@ -157,36 +136,10 @@ export function ExperienceListing({
               <h2 className="font-display text-2xl sm:text-3xl lg:text-[34px] font-normal text-neutral-900 leading-tight">
                 {sectionTitle}
               </h2>
-              {activeCategory?.badgeText ? (
-                <span className="rounded-full bg-[#9e0ca0] px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-white">
-                  {activeCategory.badgeText}
-                </span>
-              ) : null}
             </div>
             <p className="mt-1.5 text-xs sm:text-sm text-[#5f6b61] max-w-xl leading-relaxed">
               {sectionSubtitle}
             </p>
-            {activeCategory && activeCategory.highlights.length > 0 ? (
-              <ul className="mt-2.5 flex flex-wrap gap-x-4 gap-y-1.5">
-                {activeCategory.highlights.map((h) => (
-                  <li key={h} className="flex items-center gap-1.5 text-xs font-medium text-[#3d4a41]">
-                    <svg viewBox="0 0 20 20" className="h-3 w-3 shrink-0 fill-none stroke-emerald-600 stroke-[2.5]">
-                      <path d="M4 10l4 4 8-8" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                    {h}
-                  </li>
-                ))}
-              </ul>
-            ) : null}
-            {activeCategory?.ctaLabel && activeCategory?.ctaHref ? (
-              <a
-                href={activeCategory.ctaHref}
-                className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-[#9e0ca0] px-5 py-2.5 text-xs font-bold text-white shadow-sm transition hover:bg-[#850b9e]"
-              >
-                {activeCategory.ctaLabel}
-                <span>&rarr;</span>
-              </a>
-            ) : null}
           </div>
 
           {/* Sort Selector */}
@@ -221,7 +174,7 @@ export function ExperienceListing({
         {items.length === 0 ? (
           <EmptyState
             title="No experiences match your search"
-            description="Try a different date, a broader search term, or browse all categories instead."
+            description="Try a different date or a broader search term."
             actionLabel="Browse all experiences"
             actionHref="/experiences"
           />

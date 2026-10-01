@@ -118,6 +118,39 @@ const BADGE_META: Partial<Record<string, { label: string; icon: React.ReactNode;
       </svg>
     ),
   },
+  "guided-tour": {
+    label: "Guided tour",
+    tone: "dark",
+    icon: (
+      <svg className="h-2.5 w-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+        <circle cx="9" cy="7" r="4" />
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
+      </svg>
+    ),
+  },
+  "private-tour": {
+    label: "Private tour",
+    tone: "light",
+    icon: (
+      <svg className="h-2.5 w-2.5" viewBox="0 0 24 24" fill="currentColor">
+        <circle cx="12" cy="8" r="4" />
+        <path d="M4 20c0-4.4 3.6-8 8-8s8 3.6 8 8" />
+      </svg>
+    ),
+  },
+  combo: {
+    label: "Combo experience",
+    tone: "dark",
+    icon: (
+      <svg className="h-2.5 w-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+        <rect x="3" y="3" width="8" height="8" rx="1" />
+        <rect x="13" y="13" width="8" height="8" rx="1" />
+        <rect x="13" y="3" width="8" height="8" rx="1" />
+        <rect x="3" y="13" width="8" height="8" rx="1" />
+      </svg>
+    ),
+  },
   "top-rated": {
     label: "Top rated",
     tone: "light",
@@ -394,29 +427,69 @@ function renderTransportIcon(icon?: string, mode?: string) {
 function parseGettingThereOption(
   option: { mode: string; description?: string; image?: string; imageUrl?: string; tag?: string; icon?: string },
   index: number,
-  productImages: { src: string; alt: string }[],
+  productContext?: { slug?: string; title?: string; categorySlug?: string | null; images?: { src: string; alt: string }[] },
 ) {
   const modeLower = (option.mode || "").toLowerCase();
-  let defaultImage = "/images/experiences/getting-there-foot.jpg";
+  const slug = (productContext?.slug || "").toLowerCase();
+  const category = (productContext?.categorySlug || "").toLowerCase();
+  const productImages = productContext?.images || [];
+
+  const isDuomo = slug.includes("duomo");
+  const isUffizi = slug.includes("uffizi");
+  const isAccademia = slug.includes("accademia");
+  const isCooking = slug.includes("cooking") || category.includes("food") || category.includes("wine");
+  const isDayTrip = slug.includes("day-trip") || slug.includes("chianti") || category.includes("day-trip");
+  const isBike = slug.includes("bike") || category.includes("outdoor");
+
+  let defaultImage = "/images/experiences/duomo-getting-there-foot.jpg";
   let defaultTag = "";
 
-  if (modeLower.includes("bus")) {
-    defaultImage = "/images/experiences/getting-there-bus.jpg";
-    defaultTag = "Line 14 / 14 stops";
-  } else if (modeLower.includes("taxi") || modeLower.includes("car")) {
-    defaultImage = "/images/hero2-guided-tour.jpg";
-    defaultTag = "5–10 minutes";
-  } else if (modeLower.includes("pickup") || modeLower.includes("van") || modeLower.includes("coach") || modeLower.includes("tour")) {
-    defaultImage = "/images/hero2-guided-tour.jpg";
-    defaultTag = "Included pickup";
-  } else if (modeLower.includes("bike")) {
+  if (isUffizi) {
+    if (modeLower.includes("bus") || modeLower.includes("transit")) {
+      defaultImage = "/images/experiences/uffizi-masterpieces-hall.jpg";
+      defaultTag = "Lines C1 / C2";
+    } else if (modeLower.includes("taxi") || modeLower.includes("car")) {
+      defaultImage = "/images/experiences/walking-tour-piazza-signoria.jpg";
+      defaultTag = "5–10 minutes";
+    } else {
+      defaultImage = "/images/experiences/uffizi-courtyard-piazza.jpg";
+      defaultTag = "5 minutes";
+    }
+  } else if (isAccademia) {
+    if (modeLower.includes("bus")) {
+      defaultImage = "/images/experiences/accademia-plaster-hall.jpg";
+      defaultTag = "Lines 1, 6, 17";
+    } else {
+      defaultImage = "/images/experiences/accademia-david-tribune.jpg";
+      defaultTag = "5–10 minutes";
+    }
+  } else if (isCooking) {
+    if (modeLower.includes("market") || modeLower.includes("foot")) {
+      defaultImage = "/images/experiences/santambrogio-market-stall.jpg";
+      defaultTag = "5–10 minutes";
+    } else {
+      defaultImage = "/images/experiences/tuscan-kitchen-prep.jpg";
+      defaultTag = "Central Florence";
+    }
+  } else if (isDayTrip) {
+    defaultImage = "/images/experiences/chianti-cypress-road.jpg";
+    defaultTag = "Coach / Van";
+  } else if (isBike) {
     defaultImage = "/images/experiences/bike-tour-lungarno.jpg";
     defaultTag = "5–10 minutes";
-  } else if (modeLower.includes("foot") || modeLower.includes("walk")) {
-    defaultImage = "/images/experiences/getting-there-foot.jpg";
-    defaultTag = "10–15 minutes";
+  } else if (isDuomo) {
+    if (modeLower.includes("bus")) {
+      defaultImage = "/images/experiences/duomo-getting-there-bus.jpg";
+      defaultTag = "Line 14 / 14 stops";
+    } else if (modeLower.includes("taxi") || modeLower.includes("car")) {
+      defaultImage = "/images/hero2-guided-tour.jpg";
+      defaultTag = "5–10 minutes";
+    } else {
+      defaultImage = "/images/experiences/duomo-getting-there-foot.jpg";
+      defaultTag = "10–15 minutes";
+    }
   } else {
-    defaultImage = productImages[index % productImages.length]?.src || "/images/florence-hero.jpg";
+    defaultImage = productImages[index % productImages.length]?.src || "/images/experiences/walking-tour-piazza-signoria.jpg";
   }
 
   // Extract explicit or sensible tag
@@ -436,7 +509,12 @@ function parseGettingThereOption(
     tag = defaultTag;
   }
 
-  const rawImage = option.imageUrl || option.image || "";
+  let rawImage = option.imageUrl || option.image || "";
+  if (rawImage.includes("getting-there-foot.jpg")) {
+    rawImage = isUffizi ? "/images/experiences/uffizi-courtyard-piazza.jpg" : isDuomo ? "/images/experiences/duomo-getting-there-foot.jpg" : defaultImage;
+  } else if (rawImage.includes("getting-there-bus.jpg")) {
+    rawImage = isUffizi ? "/images/experiences/uffizi-masterpieces-hall.jpg" : isDuomo ? "/images/experiences/duomo-getting-there-bus.jpg" : defaultImage;
+  }
 
   return {
     mode: option.mode || "Getting There",
@@ -512,16 +590,60 @@ function renderSeasonIcon(icon?: string, season?: string) {
 function parseSeasonTip(
   rawTip: string | { season?: string; months?: string; title?: string; description: string; image?: string; icon?: string },
   index: number,
-  productImages: { src: string; alt: string }[],
+  productContext?: { slug?: string; title?: string; categorySlug?: string | null; images?: { src: string; alt: string }[] },
 ) {
+  const slug = (productContext?.slug || "").toLowerCase();
+  const category = (productContext?.categorySlug || "").toLowerCase();
+  const productImages = productContext?.images || [];
+
+  const isDuomo = slug.includes("duomo");
+  const isUffizi = slug.includes("uffizi");
+  const isAccademia = slug.includes("accademia");
+  const isCooking = slug.includes("cooking") || category.includes("food") || category.includes("wine");
+  const isDayTrip = slug.includes("day-trip") || slug.includes("chianti") || category.includes("day-trip");
+
+  const getSeasonalImage = (seasonIdx: number, seasonName: string) => {
+    const isSummer = seasonIdx === 1 || seasonName.toLowerCase().includes("summer");
+    const isAutumnWinter = seasonIdx >= 2 || seasonName.toLowerCase().includes("autumn") || seasonName.toLowerCase().includes("winter");
+
+    if (isUffizi) {
+      if (isSummer) return "/images/experiences/uffizi-tribuna.jpg";
+      if (isAutumnWinter) return "/images/experiences/uffizi-corridor-grand.jpg";
+      return "/images/experiences/uffizi-venus.jpg";
+    }
+    if (isDuomo) {
+      if (isSummer) return "/images/experiences/duomo-season-summer.jpg";
+      if (isAutumnWinter) return "/images/experiences/duomo-season-autumn-winter.jpg";
+      return "/images/experiences/duomo-season-spring.jpg";
+    }
+    if (isAccademia) {
+      if (isSummer) return "/images/experiences/accademia-hall-of-slaves.jpg";
+      if (isAutumnWinter) return "/images/experiences/accademia-plaster-hall.jpg";
+      return "/images/experiences/accademia-david-tribune.jpg";
+    }
+    if (isCooking) {
+      if (isSummer) return "/images/experiences/florence-terrace-dinner.jpg";
+      if (isAutumnWinter) return "/images/experiences/cooking-class-dish.jpg";
+      return "/images/experiences/fresh-handmade-pasta.jpg";
+    }
+    if (isDayTrip) {
+      if (isSummer) return "/images/experiences/chianti-tasting.jpg";
+      if (isAutumnWinter) return "/images/experiences/chianti-cellar.jpg";
+      return "/images/experiences/chianti-vineyards.jpg";
+    }
+    return productImages[seasonIdx % productImages.length]?.src || "/images/experiences/walking-tour-piazza-signoria.jpg";
+  };
+
   if (typeof rawTip === "object" && rawTip !== null) {
     const season = rawTip.season || (index === 0 ? "Spring" : index === 1 ? "Summer" : "Autumn & Winter");
     const months = rawTip.months || rawTip.title || (index === 0 ? "March – May" : index === 1 ? "June – August" : "September – February");
-    let defaultImg = "/images/experiences/season-spring.jpg";
-    if (index === 1 || season.toLowerCase().includes("summer")) defaultImg = "/images/experiences/season-summer.jpg";
-    else if (index >= 2 || season.toLowerCase().includes("autumn") || season.toLowerCase().includes("winter")) defaultImg = "/images/experiences/season-autumn-winter.jpg";
+    const defaultImg = getSeasonalImage(index, season);
 
-    const rawImage = (rawTip as any).imageUrl || rawTip.image || "";
+    let rawImage = (rawTip as any).imageUrl || rawTip.image || "";
+    if (rawImage.includes("season-spring.jpg") || rawImage.includes("season-summer.jpg") || rawImage.includes("season-autumn-winter.jpg")) {
+      rawImage = defaultImg;
+    }
+
     return {
       season,
       months,
@@ -536,7 +658,7 @@ function parseSeasonTip(
   let months = index === 0 ? "March – May" : index === 1 ? "June – August" : "September – February";
   let description = str;
   let icon = index === 0 ? "flower" : index === 1 ? "sun" : "leaf";
-  let defaultImg = index === 0 ? "/images/experiences/season-spring.jpg" : index === 1 ? "/images/experiences/season-summer.jpg" : "/images/experiences/season-autumn-winter.jpg";
+  const defaultImg = getSeasonalImage(index, season);
 
   if (str.includes(" — ")) {
     const parts = str.split(" — ");
@@ -1105,13 +1227,7 @@ export default async function ProductDetailPage({
     "@type": "BreadcrumbList",
     itemListElement: [
       { "@type": "ListItem", position: 1, name: "Experiences", item: "/experiences" },
-      {
-        "@type": "ListItem",
-        position: 2,
-        name: product.categoryName,
-        item: `/experiences/category/${product.categorySlug}`,
-      },
-      { "@type": "ListItem", position: 3, name: product.title, item: `/experiences/${product.slug}` },
+      { "@type": "ListItem", position: 2, name: product.title, item: `/experiences/${product.slug}` },
     ],
   };
 
@@ -1204,7 +1320,7 @@ export default async function ProductDetailPage({
             <div className="max-w-2xl text-white">
               <div className="mb-6">
                 <Link
-                  href={`/experiences/category/${product.categorySlug}`}
+                  href="/experiences"
                   className="inline-flex items-center gap-2 rounded-full bg-[#FAF6EE]/90 hover:bg-[#FAF6EE] text-neutral-800 px-4 py-1.5 text-xs font-semibold shadow-md transition-all hover:scale-105 border border-neutral-200/60"
                 >
                   <span className="text-xs leading-none">&larr;</span>
@@ -2133,7 +2249,7 @@ export default async function ProductDetailPage({
               {/* Right Column: Cards Grid */}
               <div className="lg:col-span-8 grid grid-cols-1 sm:grid-cols-2 gap-5">
                 {product.gettingThereOptions.map((rawOption, index) => {
-                  const option = parseGettingThereOption(rawOption, index, product.images);
+                  const option = parseGettingThereOption(rawOption, index, product);
                   return (
                     <div
                       key={index}
@@ -2225,7 +2341,7 @@ export default async function ProductDetailPage({
                 {product.bestTimeToVisitTips.length > 0 ? (
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                     {product.bestTimeToVisitTips.map((rawTip, index) => {
-                      const seasonCard = parseSeasonTip(rawTip, index, product.images);
+                      const seasonCard = parseSeasonTip(rawTip, index, product);
                       return (
                         <div
                           key={index}

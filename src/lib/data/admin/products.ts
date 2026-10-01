@@ -1,7 +1,7 @@
-import { and, asc, desc, eq, gte, ilike, inArray, lt, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gte, ilike, inArray, isNull, lt, lte, or, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { getPgErrorCode } from "@/lib/db/errors";
-import { products, categories, suppliers, productImages, productOptions, availability } from "@/lib/db/schema";
+import { products, categories, suppliers, attractions, productImages, productOptions, availability, blogPosts } from "@/lib/db/schema";
 import { ensureProductsSchemaUpToDate, getProductAvailability } from "@/lib/data/products";
 import { pctChange } from "@/lib/data/admin/dashboard";
 import type { ProductFormData } from "@/lib/validation/products";
@@ -118,6 +118,8 @@ export interface AdminProductListItem {
   featured: boolean;
   categoryId: string;
   categoryName: string;
+  attractionId: string | null;
+  attractionName: string | null;
   supplierId: string;
   supplierName: string;
   durationLabel: string;
@@ -135,6 +137,12 @@ export interface ListAdminProductsParams {
   q?: string;
   status?: ProductStatus | "all";
   categoryId?: string | "all";
+  // "all" = no filter, "unassigned" = products.attractionId IS NULL, else a
+  // specific attractions.id — backs the Experiences list's "Attraction"
+  // filter, which exists so staff can find experiences that will never
+  // appear on the new attraction-first /experiences flow because nobody
+  // assigned them to a landmark yet.
+  attractionId?: string | "all" | "unassigned";
   featured?: FeaturedFilter;
   page?: number;
   pageSize?: number;
@@ -159,6 +167,11 @@ export async function listAdminProducts(params: ListAdminProductsParams = {}): P
   }
   if (params.categoryId && params.categoryId !== "all") {
     conditions.push(eq(products.categoryId, params.categoryId));
+  }
+  if (params.attractionId === "unassigned") {
+    conditions.push(isNull(products.attractionId));
+  } else if (params.attractionId && params.attractionId !== "all") {
+    conditions.push(eq(products.attractionId, params.attractionId));
   }
   if (params.featured === "featured") {
     conditions.push(eq(products.featured, true));
@@ -185,6 +198,7 @@ export async function listAdminProducts(params: ListAdminProductsParams = {}): P
       status: products.status,
       featured: products.featured,
       categoryId: products.categoryId,
+      attractionId: products.attractionId,
       durationLabel: products.durationLabel,
       priceFromAmount: products.priceFromAmount,
       priceFromCurrency: products.priceFromCurrency,
@@ -192,12 +206,14 @@ export async function listAdminProducts(params: ListAdminProductsParams = {}): P
       createdAt: products.createdAt,
       updatedAt: products.updatedAt,
       categoryName: categories.name,
+      attractionName: attractions.name,
       supplierId: suppliers.id,
       supplierName: suppliers.name,
     })
     .from(products)
     .innerJoin(categories, eq(products.categoryId, categories.id))
     .innerJoin(suppliers, eq(products.supplierId, suppliers.id))
+    .leftJoin(attractions, eq(products.attractionId, attractions.id))
     .where(where ?? sql`true`)
     .orderBy(desc(products.updatedAt))
     .limit(pageSize)
@@ -226,6 +242,8 @@ export async function listAdminProducts(params: ListAdminProductsParams = {}): P
     featured: r.featured,
     categoryId: r.categoryId,
     categoryName: r.categoryName,
+    attractionId: r.attractionId,
+    attractionName: r.attractionName,
     supplierId: r.supplierId,
     supplierName: r.supplierName,
     durationLabel: r.durationLabel,
@@ -278,6 +296,7 @@ export interface AdminProductDetail {
   meetingCountry: string | null;
   cancellationPolicy: string;
   categoryId: string;
+  attractionId: string | null;
   supplierId: string;
   status: ProductStatus;
   // Supplier-panel approval flow fields (see schema.ts) — null for
@@ -359,6 +378,7 @@ export async function getAdminProductById(id: string): Promise<AdminProductDetai
     meetingCountry: row.meetingCountry,
     cancellationPolicy: row.cancellationPolicy,
     categoryId: row.categoryId,
+    attractionId: row.attractionId,
     supplierId: row.supplierId,
     status: row.status as ProductStatus,
     submittedAt: row.submittedAt,
@@ -403,6 +423,21 @@ export async function getSupplierOptions(): Promise<{ id: string; name: string }
   return db.select({ id: suppliers.id, name: suppliers.name }).from(suppliers).orderBy(asc(suppliers.name));
 }
 
+export async function getAttractionOptions(): Promise<{ id: string; name: string }[]> {
+  return db.select({ id: attractions.id, name: attractions.name }).from(attractions).orderBy(asc(attractions.name));
+}
+
+// Published blog posts only — an admin/supplier should never be able to
+// pick a draft that getBlogPostsBySlugs() (src/lib/data/blog.ts) would
+// just silently filter back out at render time.
+export async function getBlogPostOptions(): Promise<{ slug: string; title: string }[]> {
+  return db
+    .select({ slug: blogPosts.slug, title: blogPosts.title })
+    .from(blogPosts)
+    .where(and(sql`${blogPosts.publishedAt} IS NOT NULL`, lte(blogPosts.publishedAt, new Date())))
+    .orderBy(asc(blogPosts.title));
+}
+
 // ---------------------------------------------------------------------------
 // Create / update / delete
 // ---------------------------------------------------------------------------
@@ -444,6 +479,7 @@ function baseProductValues(input: ProductFormData) {
     meetingCountry: input.meetingCountry || null,
     cancellationPolicy: input.cancellationPolicy,
     categoryId: input.categoryId,
+    attractionId: input.attractionId || null,
     supplierId: input.supplierId,
     status: input.status,
     featured: input.featured,

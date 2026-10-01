@@ -30,7 +30,7 @@ export function ConversionVipBanner({ content }: ConversionVipBannerProps) {
   const buttonText = content?.ctaButtonText || "Check Live Availability";
   const buttonLink = content?.ctaButtonLink || "/experiences";
   const secondaryText = content?.ctaSecondaryButtonText;
-  const secondaryLink = content?.ctaSecondaryButtonLink || "/experiences/category/day-trips";
+  const secondaryLink = content?.ctaSecondaryButtonLink || "/experiences";
   const backgroundImage = content?.ctaBackgroundImage;
   const promoCode = content?.ctaPromoCode || "FLORENCE10";
 

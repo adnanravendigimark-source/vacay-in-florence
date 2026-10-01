@@ -351,19 +351,6 @@ export default async function AdminDashboardPage() {
                   ),
                 },
                 {
-                  href: "/admin/categories",
-                  title: "Add Category",
-                  subtitle: "Add a new category",
-                  icon: (
-                    <>
-                      <rect x="3" y="3" width="7" height="7" />
-                      <rect x="14" y="3" width="7" height="7" />
-                      <rect x="14" y="14" width="7" height="7" />
-                      <rect x="3" y="14" width="7" height="7" />
-                    </>
-                  ),
-                },
-                {
                   href: "/admin/bookings",
                   title: "Manage Bookings",
                   subtitle: "View and manage bookings",

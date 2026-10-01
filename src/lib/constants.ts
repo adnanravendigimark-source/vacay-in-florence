@@ -32,6 +32,9 @@ export const PRODUCT_BADGE_OPTIONS: { value: string; label: string }[] = [
   { value: "instant-confirmation", label: "Instant confirmation" },
   { value: "small-group", label: "Small group" },
   { value: "food-wine", label: "Food & Wine" },
+  { value: "guided-tour", label: "Guided tour" },
+  { value: "private-tour", label: "Private tour" },
+  { value: "combo", label: "Combo experience" },
 ];
 
 /**
