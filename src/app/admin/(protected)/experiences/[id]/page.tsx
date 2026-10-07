@@ -155,6 +155,7 @@ export default async function EditExperiencePage({ params }: { params: Promise<P
       attractions={attractions}
       suppliers={suppliers}
       blogPosts={blogPosts}
+      listPath="/admin/experiences/tickets"
     />
   );
 }

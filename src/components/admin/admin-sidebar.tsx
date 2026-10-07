@@ -59,15 +59,6 @@ function IconExperiences({ active }: { active: boolean }) {
   );
 }
 
-function IconAttractions({ active }: { active: boolean }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className={`w-4.5 h-4.5 shrink-0 ${active ? "text-emerald-300" : "text-neutral-400 group-hover:text-neutral-700"}`}>
-      <path d="M3 21h18" />
-      <path d="M5 21V10l7-6 7 6v11" />
-      <path d="M9 21v-6h6v6" />
-    </svg>
-  );
-}
 
 function IconApprovals({ active }: { active: boolean }) {
   return (
@@ -185,12 +176,6 @@ const NAV_GROUPS: NavGroup[] = [
         label: "Experiences",
         anyOf: ["catalog.view", "catalog.manage"],
         icon: (active) => <IconExperiences active={active} />,
-      },
-      {
-        href: "/admin/attractions",
-        label: "Attractions",
-        anyOf: ["catalog.view", "catalog.manage"],
-        icon: (active) => <IconAttractions active={active} />,
       },
       {
         href: "/admin/experiences/approvals",

@@ -33,6 +33,7 @@ import {
 function revalidateExperienceRoutes(slug?: string, previousSlug?: string) {
   revalidatePath("/experiences");
   revalidatePath("/admin/experiences");
+  revalidatePath("/admin/experiences/tickets");
   revalidatePath("/");
   if (slug) revalidatePath(`/experiences/${slug}`);
   if (previousSlug && previousSlug !== slug) revalidatePath(`/experiences/${previousSlug}`);
@@ -123,6 +124,7 @@ export interface BulkTarget {
 function revalidateBulk(targets: BulkTarget[]) {
   revalidatePath("/experiences");
   revalidatePath("/admin/experiences");
+  revalidatePath("/admin/experiences/tickets");
   revalidatePath("/");
   for (const t of targets) revalidatePath(`/experiences/${t.slug}`);
 }

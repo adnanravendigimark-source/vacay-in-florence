@@ -13,6 +13,7 @@ import {
   moveAttraction,
   type MutationResult,
 } from "@/lib/data/admin/attractions";
+import { setProductAttraction, moveProductInAttraction } from "@/lib/data/admin/products";
 import type { AttractionStatus } from "@/lib/types";
 
 /**
@@ -25,14 +26,14 @@ import type { AttractionStatus } from "@/lib/types";
  */
 function revalidateAttractionRoutes(slug?: string, previousSlug?: string) {
   revalidatePath("/experiences");
-  revalidatePath("/admin/attractions");
+  revalidatePath("/admin/experiences");
   revalidatePath("/");
   if (slug) revalidatePath(`/experiences/attraction/${slug}`);
   if (previousSlug && previousSlug !== slug) revalidatePath(`/experiences/attraction/${previousSlug}`);
 }
 
 export async function createAttractionAction(input: AttractionFormInput): Promise<MutationResult> {
-  const staff = await requirePermission("catalog.manage", "/admin/attractions");
+  const staff = await requirePermission("catalog.manage", "/admin/experiences");
   const parsed = attractionFormSchema.safeParse(input);
   if (!parsed.success) {
     return { success: false, error: parsed.error.issues[0]?.message ?? "Please check the form for errors." };
@@ -56,7 +57,7 @@ export async function updateAttractionAction(
   input: AttractionFormInput,
   previousSlug?: string,
 ): Promise<MutationResult> {
-  const staff = await requirePermission("catalog.manage", "/admin/attractions");
+  const staff = await requirePermission("catalog.manage", "/admin/experiences");
   const parsed = attractionFormSchema.safeParse(input);
   if (!parsed.success) {
     return { success: false, error: parsed.error.issues[0]?.message ?? "Please check the form for errors." };
@@ -76,7 +77,7 @@ export async function updateAttractionAction(
 }
 
 export async function deleteAttractionAction(id: string, slug?: string): Promise<MutationResult> {
-  const staff = await requirePermission("catalog.manage", "/admin/attractions");
+  const staff = await requirePermission("catalog.manage", "/admin/experiences");
   const result = await deleteAttraction(id);
   if (result.success) {
     revalidateAttractionRoutes(slug);
@@ -96,7 +97,7 @@ export async function setAttractionStatusAction(
   status: AttractionStatus,
   slug?: string,
 ): Promise<MutationResult> {
-  const staff = await requirePermission("catalog.manage", "/admin/attractions");
+  const staff = await requirePermission("catalog.manage", "/admin/experiences");
   const result = await setAttractionStatus(id, status);
   if (result.success) {
     revalidateAttractionRoutes(slug);
@@ -116,7 +117,7 @@ export async function setAttractionFeaturedAction(
   featured: boolean,
   slug?: string,
 ): Promise<MutationResult> {
-  const staff = await requirePermission("catalog.manage", "/admin/attractions");
+  const staff = await requirePermission("catalog.manage", "/admin/experiences");
   const result = await setAttractionFeatured(id, featured);
   if (result.success) {
     revalidateAttractionRoutes(slug);
@@ -132,7 +133,7 @@ export async function setAttractionFeaturedAction(
 }
 
 export async function moveAttractionAction(id: string, direction: "up" | "down"): Promise<MutationResult> {
-  const staff = await requirePermission("catalog.manage", "/admin/attractions");
+  const staff = await requirePermission("catalog.manage", "/admin/experiences");
   const result = await moveAttraction(id, direction);
   if (result.success) {
     revalidateAttractionRoutes();
@@ -141,6 +142,87 @@ export async function moveAttractionAction(id: string, direction: "up" | "down")
       action: "attraction.reorder",
       entityType: "attraction",
       entityId: id,
+      after: { direction },
+    });
+  }
+  return result;
+}
+
+// ---------------------------------------------------------------------------
+// Tickets & Experiences panel (inside the Attraction Editor) — assigning,
+// removing and reordering which products belong to this attraction.
+// Revalidates both sides of the relationship: the attraction's own public
+// page (ticket list changes) and the product's public page (its
+// "belongs to this attraction" breadcrumb/related-tickets changes), plus
+// both admin screens.
+// ---------------------------------------------------------------------------
+
+function revalidateAssignmentRoutes(attractionId: string, attractionSlug?: string, productSlug?: string) {
+  revalidatePath("/experiences");
+  revalidatePath("/admin/experiences");
+  revalidatePath("/admin/experiences/tickets");
+  revalidatePath(`/admin/experiences/attractions/${attractionId}`);
+  if (attractionSlug) revalidatePath(`/experiences/attraction/${attractionSlug}`);
+  if (productSlug) revalidatePath(`/experiences/${productSlug}`);
+}
+
+export async function assignProductToAttractionAction(
+  productId: string,
+  attractionId: string,
+  attractionSlug: string,
+  productSlug: string,
+): Promise<MutationResult> {
+  const staff = await requirePermission("catalog.manage", "/admin/experiences");
+  const result = await setProductAttraction(productId, attractionId);
+  if (result.success) {
+    revalidateAssignmentRoutes(attractionId, attractionSlug, productSlug);
+    await logAudit({
+      actorUserId: staff.userId,
+      action: "product.attraction_assign",
+      entityType: "product",
+      entityId: productId,
+      after: { attractionId },
+    });
+  }
+  return result;
+}
+
+export async function removeProductFromAttractionAction(
+  productId: string,
+  attractionId: string,
+  attractionSlug: string,
+  productSlug: string,
+): Promise<MutationResult> {
+  const staff = await requirePermission("catalog.manage", "/admin/experiences");
+  const result = await setProductAttraction(productId, null);
+  if (result.success) {
+    revalidateAssignmentRoutes(attractionId, attractionSlug, productSlug);
+    await logAudit({
+      actorUserId: staff.userId,
+      action: "product.attraction_remove",
+      entityType: "product",
+      entityId: productId,
+      before: { attractionId },
+    });
+  }
+  return result;
+}
+
+export async function moveProductInAttractionAction(
+  productId: string,
+  direction: "up" | "down",
+  attractionId: string,
+  attractionSlug: string,
+): Promise<MutationResult> {
+  const staff = await requirePermission("catalog.manage", "/admin/experiences");
+  const result = await moveProductInAttraction(productId, direction);
+  if (result.success) {
+    revalidateAssignmentRoutes(attractionId, attractionSlug);
+    await logAudit({
+      actorUserId: staff.userId,
+      action: "product.attraction_reorder",
+      entityType: "product",
+      entityId: productId,
       after: { direction },
     });
   }

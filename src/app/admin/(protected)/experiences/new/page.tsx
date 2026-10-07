@@ -61,8 +61,13 @@ const EMPTY_VALUES: ProductFormData = {
   noFollow: false,
 };
 
-export default async function NewExperiencePage() {
-  const [categories, suppliers, blogPosts, attractions] = await Promise.all([
+export default async function NewExperiencePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ attractionId?: string }>;
+}) {
+  const [{ attractionId }, categories, suppliers, blogPosts, attractions] = await Promise.all([
+    searchParams,
     getCategoryOptions(),
     getSupplierOptions(),
     getBlogPostOptions(),
@@ -76,11 +81,16 @@ export default async function NewExperiencePage() {
         ...EMPTY_VALUES,
         categoryId: categories[0]?.id ?? "",
         supplierId: suppliers[0]?.id ?? "",
+        // Pre-fills the Attraction field when arriving from an Attraction
+        // editor's "Create new ticket" button, so admin doesn't have to
+        // re-pick the attraction they just came from.
+        attractionId: attractionId && attractions.some((a) => a.id === attractionId) ? attractionId : "",
       }}
       categories={categories}
       attractions={attractions}
       suppliers={suppliers}
       blogPosts={blogPosts}
+      listPath="/admin/experiences/tickets"
     />
   );
 }

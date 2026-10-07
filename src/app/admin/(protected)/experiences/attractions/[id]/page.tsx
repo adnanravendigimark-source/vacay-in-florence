@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getAdminAttractionById } from "@/lib/data/admin/attractions";
+import { listAttractionProducts, listAdminProducts } from "@/lib/data/admin/products";
 import { AttractionEditor } from "@/components/admin/attraction-editor";
 import type { AttractionFormData } from "@/lib/validation/attractions";
 
@@ -13,7 +14,11 @@ type Params = { id: string };
 
 export default async function EditAttractionPage({ params }: { params: Promise<Params> }) {
   const { id } = await params;
-  const attraction = await getAdminAttractionById(id);
+  const [attraction, assignedProducts, unassignedResult] = await Promise.all([
+    getAdminAttractionById(id),
+    listAttractionProducts(id),
+    listAdminProducts({ attractionId: "unassigned", pageSize: 100, status: "all" }),
+  ]);
   if (!attraction) notFound();
 
   const initialValues: AttractionFormData = {
@@ -46,6 +51,8 @@ export default async function EditAttractionPage({ params }: { params: Promise<P
       attractionId={id}
       initialValues={initialValues}
       productCount={attraction.productCount}
+      assignedProducts={assignedProducts}
+      unassignedProducts={unassignedResult.items}
     />
   );
 }

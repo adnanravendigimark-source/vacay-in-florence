@@ -146,6 +146,11 @@ export interface ListAdminProductsParams {
   featured?: FeaturedFilter;
   page?: number;
   pageSize?: number;
+  // "updated" (default) = most-recently-updated first, as the main list
+  // uses; "attractionOrder" = products.attractionSortOrder ascending, as
+  // the Attraction Editor's Tickets & Experiences panel uses so it
+  // matches the public attraction page's own ticket order.
+  sort?: "updated" | "attractionOrder";
 }
 
 export interface ListAdminProductsResult {
@@ -215,7 +220,7 @@ export async function listAdminProducts(params: ListAdminProductsParams = {}): P
     .innerJoin(suppliers, eq(products.supplierId, suppliers.id))
     .leftJoin(attractions, eq(products.attractionId, attractions.id))
     .where(where ?? sql`true`)
-    .orderBy(desc(products.updatedAt))
+    .orderBy(params.sort === "attractionOrder" ? asc(products.attractionSortOrder) : desc(products.updatedAt))
     .limit(pageSize)
     .offset((page - 1) * pageSize);
 
@@ -663,6 +668,86 @@ export async function setProductFeatured(id: string, featured: boolean): Promise
   } catch (err) {
     console.error("[admin/products] setProductFeatured failed:", err);
     return { success: false, error: "Could not update featured status." };
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Attraction assignment — backs the Attraction Editor's "Tickets &
+// Experiences" panel (the single place admin manages which tickets
+// belong to an attraction, per the admin-experience restructure).
+// ---------------------------------------------------------------------------
+
+/**
+ * All products assigned to one attraction, ordered the same way the
+ * public attraction page orders them (products.attractionSortOrder) so
+ * what admin sees in the editor matches the public page 1:1.
+ */
+export async function listAttractionProducts(attractionId: string): Promise<AdminProductListItem[]> {
+  const { items } = await listAdminProducts({ attractionId, pageSize: 100, sort: "attractionOrder" });
+  return items;
+}
+
+/**
+ * Assigns (or unassigns, when attractionId is null) a product to an
+ * attraction. A newly-assigned product is appended to the end of that
+ * attraction's display order; unassigning leaves attractionSortOrder as
+ * it was (irrelevant once attractionId is null).
+ */
+export async function setProductAttraction(id: string, attractionId: string | null): Promise<MutationResult> {
+  try {
+    if (attractionId === null) {
+      await db.update(products).set({ attractionId: null, updatedAt: new Date() }).where(eq(products.id, id));
+      return { success: true };
+    }
+    const [{ maxOrder } = { maxOrder: -1 }] = await db
+      .select({ maxOrder: sql<number>`coalesce(max(${products.attractionSortOrder}), -1)::int` })
+      .from(products)
+      .where(eq(products.attractionId, attractionId));
+    await db
+      .update(products)
+      .set({ attractionId, attractionSortOrder: maxOrder + 1, updatedAt: new Date() })
+      .where(eq(products.id, id));
+    return { success: true };
+  } catch (err) {
+    console.error("[admin/products] setProductAttraction failed:", err);
+    return { success: false, error: "Could not update this experience's attraction." };
+  }
+}
+
+/**
+ * Moves a product one position earlier/later within its own attraction's
+ * display order, then rewrites that attraction's whole sequence as a
+ * fresh 0..n-1 run matching the new order — same self-correcting
+ * whole-sequence-rewrite pattern as moveAttraction() in
+ * src/lib/data/admin/attractions.ts.
+ */
+export async function moveProductInAttraction(id: string, direction: "up" | "down"): Promise<MutationResult> {
+  try {
+    const [target] = await db.select({ attractionId: products.attractionId }).from(products).where(eq(products.id, id));
+    if (!target?.attractionId) return { success: false, error: "This experience isn't assigned to an attraction." };
+
+    const rows = await db
+      .select({ id: products.id })
+      .from(products)
+      .where(eq(products.attractionId, target.attractionId))
+      .orderBy(asc(products.attractionSortOrder), asc(products.createdAt));
+    const index = rows.findIndex((r) => r.id === id);
+    if (index === -1) return { success: false, error: "Experience not found." };
+    const neighborIndex = direction === "up" ? index - 1 : index + 1;
+    if (neighborIndex < 0 || neighborIndex >= rows.length) return { success: true };
+
+    const reordered = [...rows];
+    [reordered[index], reordered[neighborIndex]] = [reordered[neighborIndex], reordered[index]];
+
+    await Promise.all(
+      reordered.map((row, i) =>
+        db.update(products).set({ attractionSortOrder: i, updatedAt: new Date() }).where(eq(products.id, row.id)),
+      ),
+    );
+    return { success: true };
+  } catch (err) {
+    console.error("[admin/products] moveProductInAttraction failed:", err);
+    return { success: false, error: "Could not reorder this attraction's tickets." };
   }
 }
 

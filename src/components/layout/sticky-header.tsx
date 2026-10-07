@@ -8,7 +8,7 @@ export function StickyHeader({
   renderContent,
 }: {
   children?: ReactNode;
-  renderContent?: (scrolled: boolean, isHome: boolean) => ReactNode;
+  renderContent?: (scrolled: boolean, isHome: boolean, isTransparent: boolean) => ReactNode;
 }) {
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
@@ -24,6 +24,8 @@ export function StickyHeader({
     pathname === "/blog" ||
     pathname.startsWith("/blog/category");
 
+  const isTransparent = isHeroPage && !scrolled;
+
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 30);
@@ -36,14 +38,12 @@ export function StickyHeader({
   return (
     <header
       className={`sticky top-0 z-50 w-full transition-all duration-300 ${
-        isHeroPage
-          ? scrolled
-            ? "bg-white/95 backdrop-blur-md shadow-sm border-b border-neutral-200/80 py-0"
-            : "bg-transparent -mb-20 border-0 py-1"
+        isTransparent
+          ? "bg-gradient-to-b from-black/55 via-black/20 to-transparent -mb-20 border-0 py-1"
           : "bg-white/95 backdrop-blur-md shadow-sm border-b border-neutral-200/80 py-0"
       }`}
     >
-      {renderContent ? renderContent(scrolled, isHome) : children}
+      {renderContent ? renderContent(scrolled, isHome, isTransparent) : children}
     </header>
   );
 }

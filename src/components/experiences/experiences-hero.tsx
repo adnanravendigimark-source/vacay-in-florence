@@ -358,9 +358,8 @@ export function ExperiencesHero() {
                 </div>
                 <svg
                   viewBox="0 0 20 20"
-                  className={`h-4 w-4 text-neutral-400 shrink-0 transition-transform duration-150 ${
-                    openDropdown === "destination" ? "rotate-180 text-neutral-900" : ""
-                  }`}
+                  className={`h-4 w-4 text-neutral-400 shrink-0 transition-transform duration-150 ${openDropdown === "destination" ? "rotate-180 text-neutral-900" : ""
+                    }`}
                   fill="currentColor"
                 >
                   <path
@@ -397,9 +396,8 @@ export function ExperiencesHero() {
                           setDestinationFilter("");
                           setOpenDropdown(null);
                         }}
-                        className={`flex w-full flex-col rounded-xl px-3 py-2 text-left text-xs transition-colors hover:bg-neutral-100 cursor-pointer ${
-                          destination === dest.name ? "bg-neutral-100 font-semibold" : ""
-                        }`}
+                        className={`flex w-full flex-col rounded-xl px-3 py-2 text-left text-xs transition-colors hover:bg-neutral-100 cursor-pointer ${destination === dest.name ? "bg-neutral-100 font-semibold" : ""
+                          }`}
                       >
                         <span className="font-semibold text-neutral-900 text-[13px]">{dest.name}</span>
                         <span className="text-[11px] text-neutral-500">{dest.sub}</span>
@@ -434,18 +432,16 @@ export function ExperiencesHero() {
                     Date
                   </span>
                   <span
-                    className={`text-[13.5px] truncate mt-0.5 ${
-                      dateDisplay === "Select date" ? "font-normal text-neutral-400" : "font-semibold text-neutral-900"
-                    }`}
+                    className={`text-[13.5px] truncate mt-0.5 ${dateDisplay === "Select date" ? "font-normal text-neutral-400" : "font-semibold text-neutral-900"
+                      }`}
                   >
                     {dateDisplay}
                   </span>
                 </div>
                 <svg
                   viewBox="0 0 20 20"
-                  className={`h-4 w-4 text-neutral-400 shrink-0 transition-transform duration-150 ${
-                    openDropdown === "date" ? "rotate-180 text-neutral-900" : ""
-                  }`}
+                  className={`h-4 w-4 text-neutral-400 shrink-0 transition-transform duration-150 ${openDropdown === "date" ? "rotate-180 text-neutral-900" : ""
+                    }`}
                   fill="currentColor"
                 >
                   <path
@@ -558,9 +554,8 @@ export function ExperiencesHero() {
                                 aria-selected={activeIndex === index}
                                 onClick={() => goToSuggestion(row)}
                                 onMouseEnter={() => setActiveIndex(index)}
-                                className={`flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-left text-xs transition-colors cursor-pointer ${
-                                  activeIndex === index ? "bg-neutral-100" : "hover:bg-neutral-100"
-                                }`}
+                                className={`flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-left text-xs transition-colors cursor-pointer ${activeIndex === index ? "bg-neutral-100" : "hover:bg-neutral-100"
+                                  }`}
                               >
                                 <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 text-[#9e0ca0] shrink-0 fill-none stroke-current stroke-2">
                                   <circle cx="11" cy="11" r="7.5" />

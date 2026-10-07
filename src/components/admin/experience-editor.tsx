@@ -146,6 +146,12 @@ export interface ExperienceEditorProps {
   /** Where the "Experiences" breadcrumb points and where create/delete
    * redirect back to. Defaults to the admin module's own list. */
   basePath?: string;
+  /** Where the breadcrumb link and the post-delete redirect go, when it
+   * should differ from basePath (which `${basePath}/${id}` must still
+   * resolve to the real edit URL for create-redirect to work). Admin
+   * passes the "All Tickets" list here since basePath itself is now the
+   * Attractions hub. Defaults to basePath. */
+  listPath?: string;
   /** Overrides the 6 mutating Server Actions this editor calls — used by
    * the supplier panel (src/app/supplier/(protected)/experiences) to route
    * every mutation through ownership-checked, status-neutering wrappers
@@ -179,6 +185,7 @@ export function ExperienceEditor({
   suppliers,
   blogPosts = [],
   basePath = "/admin/experiences",
+  listPath = basePath,
   actions,
   publishLabel = "Publish",
   publishStatus = "live",
@@ -439,9 +446,14 @@ export function ExperienceEditor({
         return;
       }
       showToast("Experience deleted.", "success");
-      router.push(basePath);
+      router.push(listPath);
     });
   }
+
+  // Real attraction this ticket belongs to, resolved from the same
+  // `attractions` prop the Basic Info tab's picker already uses — no
+  // extra fetch, no duplicated attraction data stored on the ticket.
+  const attractionOf = attractions.find((a) => a.id === form.attractionId) ?? null;
 
   return (
     <div className="pb-16 space-y-6">
@@ -450,7 +462,7 @@ export function ExperienceEditor({
       {/* ================================================================= */}
       <div className="sticky top-0 z-20 -mx-4 border-b border-stone bg-cream/95 px-4 py-4 backdrop-blur sm:-mx-6 sm:px-6">
         <p className="text-[11px] font-medium text-ink-faint">
-          <Link href={basePath} className="hover:text-cypress">
+          <Link href={listPath} className="hover:text-cypress">
             Experiences
           </Link>{" "}
           / {mode === "create" ? "New Experience" : "Edit Experience"}
@@ -460,6 +472,14 @@ export function ExperienceEditor({
             <h1 className="font-display text-2xl font-medium text-ink sm:text-3xl">
               {mode === "create" ? "New Experience" : "Edit Experience"}
             </h1>
+            {attractionOf ? (
+              <Link
+                href={`/admin/experiences/attractions/${attractionOf.id}`}
+                className="mt-1 inline-flex items-center gap-1 text-xs font-semibold text-cypress hover:underline"
+              >
+                Attraction: {attractionOf.name} →
+              </Link>
+            ) : null}
             <p className="mt-1 text-xs text-ink-faint sm:text-[13px]">
               {mode === "create"
                 ? "Fill in the details to create a new experience."

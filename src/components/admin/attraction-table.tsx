@@ -7,7 +7,7 @@ import {
   deleteAttractionAction,
   setAttractionStatusAction,
   moveAttractionAction,
-} from "@/app/admin/(protected)/attractions/actions";
+} from "@/app/admin/(protected)/experiences/attractions/actions";
 import type { AdminAttractionListItem } from "@/lib/data/admin/attractions";
 import type { AttractionStatus } from "@/lib/types";
 import { Table, THead, TBody, TR, TH, TD, Badge, Button, Modal, useToast } from "@/components/admin/ui";
@@ -132,9 +132,17 @@ export function AttractionTable({ items }: { items: AdminAttractionListItem[] })
               <TD className="text-center text-ink-faint">{item.productCount}</TD>
               <TD>
                 <div className="flex items-center justify-end gap-2">
-                  <Button href={`/admin/attractions/${item.id}`} variant="secondary" size="sm">
+                  <Button href={`/admin/experiences/attractions/${item.id}`} variant="secondary" size="sm">
                     Edit
                   </Button>
+                  <a
+                    href={`/experiences/attraction/${item.slug}?preview=1`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center rounded-xl border border-stone bg-white px-3 py-1.5 text-xs font-semibold text-ink-soft shadow-sm transition hover:bg-cream"
+                  >
+                    Preview
+                  </a>
                   <Button variant="ghost" size="sm" onClick={() => setDeleteTarget(item)}>
                     Delete
                   </Button>

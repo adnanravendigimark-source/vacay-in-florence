@@ -18,7 +18,7 @@ const STATUS_STYLE: Record<ProductStatus, { bg: string; text: string; label: str
 
 const dateFormatter = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric" });
 
-function formatPrice(amount: number, currency: string) {
+export function formatPrice(amount: number, currency: string) {
   try {
     return new Intl.NumberFormat("en-IE", { style: "currency", currency, maximumFractionDigits: 0 }).format(amount);
   } catch {
@@ -29,7 +29,7 @@ function formatPrice(amount: number, currency: string) {
   }
 }
 
-function StatusBadge({ status }: { status: ProductStatus }) {
+export function StatusBadge({ status }: { status: ProductStatus }) {
   const s = STATUS_STYLE[status];
   return (
     <span

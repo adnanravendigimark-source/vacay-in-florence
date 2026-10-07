@@ -55,7 +55,7 @@ export function SiteHeader() {
 
   return (
     <StickyHeader
-      renderContent={() => {
+      renderContent={(scrolled, isHome, isTransparent) => {
         const navLinks = [
           {
             name: "Experiences",
@@ -83,7 +83,7 @@ export function SiteHeader() {
 
         return (
           <Container className="flex h-20 items-center justify-between gap-4 transition-all duration-300">
-            {/* Brand Logo (Consistent dark logo across all pages) */}
+            {/* Brand Logo (Consistent original brand logo across all states) */}
             <div className="flex items-center">
               <VacayLogo variant="dark" />
             </div>
@@ -95,14 +95,18 @@ export function SiteHeader() {
                   key={link.name}
                   href={link.href}
                   className={`text-[14px] transition-colors py-1 ${
-                    link.active
-                      ? "relative font-semibold text-neutral-900"
-                      : "font-normal text-neutral-600 hover:text-neutral-950"
+                    isTransparent
+                      ? link.active
+                        ? "relative font-semibold text-white drop-shadow-[0_1px_4px_rgba(0,0,0,0.7)]"
+                        : "font-normal text-white/90 hover:text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.6)]"
+                      : link.active
+                        ? "relative font-semibold text-neutral-900"
+                        : "font-normal text-neutral-600 hover:text-neutral-950"
                   }`}
                 >
                   {link.name}
                   {link.active && (
-                    <span className="absolute -bottom-1 left-0 right-0 h-[2px] rounded-full bg-[#9e0ca0] transition-colors" />
+                    <span className="absolute -bottom-1 left-0 right-0 h-[2px] rounded-full bg-[#9e0ca0] transition-colors shadow-xs" />
                   )}
                 </Link>
               ))}
@@ -117,7 +121,11 @@ export function SiteHeader() {
                   <Link
                     href="/account/bookings"
                     aria-label="My bookings"
-                    className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 transition-colors"
+                    className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
+                      isTransparent
+                        ? "text-white/90 hover:text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.6)]"
+                        : "text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100"
+                    }`}
                   >
                     <svg viewBox="0 0 24 24" className="h-4 w-4 fill-none stroke-current stroke-[1.85]">
                       <path d="M4 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6z" />
@@ -130,7 +138,11 @@ export function SiteHeader() {
                   <Link
                     href="/account"
                     aria-label={`Account (${userFirstName})`}
-                    className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 rounded-full text-xs font-semibold text-neutral-800 hover:text-neutral-950 hover:bg-neutral-100 border border-neutral-200 transition-all"
+                    className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
+                      isTransparent
+                        ? "text-white hover:text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.6)]"
+                        : "text-neutral-800 hover:text-neutral-950 hover:bg-neutral-100 border border-neutral-200"
+                    }`}
                   >
                     <svg viewBox="0 0 24 24" className="h-4 w-4 fill-none stroke-current stroke-[2] shrink-0">
                       <circle cx="12" cy="8" r="4" />
@@ -144,7 +156,11 @@ export function SiteHeader() {
                   type="button"
                   onClick={() => openAuthModal({ view: "email" })}
                   aria-label="Sign in or register"
-                  className="p-1.5 rounded-full text-neutral-700 hover:text-neutral-950 hover:bg-neutral-100 transition-colors cursor-pointer"
+                  className={`p-1.5 rounded-full transition-colors cursor-pointer ${
+                    isTransparent
+                      ? "text-white/90 hover:text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.6)]"
+                      : "text-neutral-700 hover:text-neutral-950 hover:bg-neutral-100"
+                  }`}
                 >
                   <svg viewBox="0 0 24 24" className="h-5 w-5 fill-none stroke-current stroke-[1.85]">
                     <circle cx="12" cy="8" r="4" />
@@ -157,7 +173,11 @@ export function SiteHeader() {
               <Link
                 href="/cart"
                 aria-label={`Shopping cart ${hasCartItems ? "(has items)" : "(empty)"}`}
-                className="relative p-1.5 rounded-full text-neutral-700 hover:text-neutral-950 hover:bg-neutral-100 transition-colors"
+                className={`relative p-1.5 rounded-full transition-colors ${
+                  isTransparent
+                    ? "text-white/90 hover:text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.6)]"
+                    : "text-neutral-700 hover:text-neutral-950 hover:bg-neutral-100"
+                }`}
               >
                 <svg viewBox="0 0 24 24" className="h-5 w-5 fill-none stroke-current stroke-[1.85]">
                   <path d="M5 6L7 20H19L21 6H5Z" strokeLinejoin="round" />
@@ -172,7 +192,11 @@ export function SiteHeader() {
               <input type="checkbox" id="mobile-nav-toggle" className="peer sr-only" />
               <label
                 htmlFor="mobile-nav-toggle"
-                className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full lg:hidden text-neutral-800 hover:bg-neutral-100 transition-colors"
+                className={`flex h-9 w-9 cursor-pointer items-center justify-center rounded-full lg:hidden transition-colors ${
+                  isTransparent
+                    ? "text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.6)]"
+                    : "text-neutral-800 hover:bg-neutral-100"
+                }`}
               >
                 <span className="sr-only">Open menu</span>
                 <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5 fill-none stroke-current stroke-2">

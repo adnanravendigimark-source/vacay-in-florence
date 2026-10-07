@@ -3,13 +3,20 @@
 import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import {
   createAttractionAction,
   updateAttractionAction,
   deleteAttractionAction,
-} from "@/app/admin/(protected)/attractions/actions";
+  assignProductToAttractionAction,
+  removeProductFromAttractionAction,
+  moveProductInAttractionAction,
+} from "@/app/admin/(protected)/experiences/attractions/actions";
+import { setProductStatusAction } from "@/app/admin/(protected)/experiences/actions";
+import { StatusBadge, formatPrice } from "@/components/admin/experience-table";
 import type { AttractionFormData } from "@/lib/validation/attractions";
 import type { CategoryIcon } from "@/lib/types";
+import type { AdminProductListItem } from "@/lib/data/admin/products";
 import { Field, Input, Select, Textarea, Button, Tabs, ImageField, Modal, useToast } from "@/components/admin/ui";
 
 const ICON_LABEL: Record<CategoryIcon, string> = {
@@ -45,15 +52,82 @@ export interface AttractionEditorProps {
   attractionId?: string;
   initialValues: AttractionFormData;
   productCount?: number;
+  assignedProducts?: AdminProductListItem[];
+  unassignedProducts?: AdminProductListItem[];
 }
 
-export function AttractionEditor({ mode, attractionId, initialValues, productCount = 0 }: AttractionEditorProps) {
+export function AttractionEditor({
+  mode,
+  attractionId,
+  initialValues,
+  productCount = 0,
+  assignedProducts = [],
+  unassignedProducts = [],
+}: AttractionEditorProps) {
   const [form, setForm] = useState<AttractionFormData>(initialValues);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const lastSavedSlug = useRef(initialValues.slug);
   const { showToast } = useToast();
   const router = useRouter();
+
+  // Tickets & Experiences panel — separate pending state so a reorder/
+  // assign/remove click never disables the main Save/Publish buttons.
+  const [ticketsPending, startTicketsTransition] = useTransition();
+  const [toAssign, setToAssign] = useState(unassignedProducts[0]?.id ?? "");
+
+  function handleAssignTicket() {
+    if (!attractionId || !toAssign) return;
+    const product = unassignedProducts.find((p) => p.id === toAssign);
+    if (!product) return;
+    startTicketsTransition(async () => {
+      const result = await assignProductToAttractionAction(product.id, attractionId, form.slug, product.slug);
+      if (result.success) {
+        showToast(`“${product.title}” assigned to this attraction.`, "success");
+        router.refresh();
+      } else {
+        showToast(result.error ?? "Could not assign this ticket.", "error");
+      }
+    });
+  }
+
+  function handleRemoveTicket(product: AdminProductListItem) {
+    if (!attractionId) return;
+    startTicketsTransition(async () => {
+      const result = await removeProductFromAttractionAction(product.id, attractionId, form.slug, product.slug);
+      if (result.success) {
+        showToast(`Removed “${product.title}” from this attraction.`, "success");
+        router.refresh();
+      } else {
+        showToast(result.error ?? "Could not remove this ticket.", "error");
+      }
+    });
+  }
+
+  function handleMoveTicket(product: AdminProductListItem, direction: "up" | "down") {
+    if (!attractionId) return;
+    startTicketsTransition(async () => {
+      const result = await moveProductInAttractionAction(product.id, direction, attractionId, form.slug);
+      if (result.success) {
+        router.refresh();
+      } else {
+        showToast(result.error ?? "Could not reorder tickets.", "error");
+      }
+    });
+  }
+
+  function handleToggleTicketStatus(product: AdminProductListItem) {
+    const next = product.status === "live" ? "paused" : "live";
+    startTicketsTransition(async () => {
+      const result = await setProductStatusAction(product.id, next, product.slug);
+      if (result.success) {
+        showToast(next === "live" ? "Ticket published." : "Ticket paused.", "success");
+        router.refresh();
+      } else {
+        showToast(result.error ?? "Could not update status.", "error");
+      }
+    });
+  }
 
   function update<K extends keyof AttractionFormData>(key: K, value: AttractionFormData[K]) {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -84,7 +158,7 @@ export function AttractionEditor({ mode, attractionId, initialValues, productCou
           statusOverride === "published" ? "Attraction created and published." : "Attraction created.",
           "success",
         );
-        router.push(`/admin/attractions/${result.id}`);
+        router.push(`/admin/experiences/attractions/${result.id}`);
         return;
       }
       setForm(submission);
@@ -102,7 +176,7 @@ export function AttractionEditor({ mode, attractionId, initialValues, productCou
         return;
       }
       showToast("Attraction deleted.", "success");
-      router.push("/admin/attractions");
+      router.push("/admin/experiences");
     });
   }
 
@@ -113,8 +187,8 @@ export function AttractionEditor({ mode, attractionId, initialValues, productCou
       {/* ================================================================= */}
       <div className="sticky top-0 z-20 -mx-4 border-b border-stone bg-cream/95 px-4 py-4 backdrop-blur sm:-mx-6 sm:px-6">
         <p className="text-[11px] font-medium text-ink-faint">
-          <Link href="/admin/attractions" className="hover:text-cypress">
-            Attractions
+          <Link href="/admin/experiences" className="hover:text-cypress">
+            Experiences
           </Link>{" "}
           / {mode === "create" ? "New Attraction" : "Edit Attraction"}
         </p>
@@ -161,11 +235,11 @@ export function AttractionEditor({ mode, attractionId, initialValues, productCou
       {/* BODY */}
       {/* ================================================================= */}
       <Tabs
-        defaultTab="basic"
+        defaultTab="hero"
         tabs={[
           {
-            key: "basic",
-            label: "Basics",
+            key: "hero",
+            label: "Hero Section",
             content: (
               <div className="space-y-5">
                 <div className="rounded-2xl border border-stone bg-white p-5">
@@ -221,36 +295,22 @@ export function AttractionEditor({ mode, attractionId, initialValues, productCou
                   </Field>
                 </div>
 
-                {mode === "edit" ? (
-                  <p className="text-xs text-ink-faint">
-                    {productCount} experience{productCount === 1 ? "" : "s"} currently assigned to this attraction —
-                    assign a ticket to it from the experience&apos;s own Basic Info tab. Display order is managed from
-                    the{" "}
-                    <Link href="/admin/attractions" className="font-semibold text-cypress hover:underline">
-                      Attractions list
-                    </Link>
-                    . An attraction only shows on the public /experiences page once it&apos;s published and has at
-                    least one live experience assigned.
+                <div className="rounded-2xl border border-stone bg-white p-5">
+                  <h3 className="mb-4 text-sm font-semibold text-ink">Hero Image</h3>
+                  <p className="mb-4 text-xs text-ink-faint">
+                    Used on this attraction&apos;s own listing page (<code className="text-[11px]">/experiences/attraction/{form.slug}</code>). Falls back to the card image (set under the Card Image tab) when left blank.
                   </p>
-                ) : null}
-              </div>
-            ),
-          },
-          {
-            key: "content",
-            label: "Content",
-            content: (
-              <div className="rounded-2xl border border-stone bg-white p-5">
-                <h3 className="mb-4 text-sm font-semibold text-ink">Highlights, Badge & CTA</h3>
-                <div className="space-y-4">
-                  <Field label="Highlights" hint="One per line, up to 6 — shown as bullet points on the attraction card">
-                    <Textarea
-                      rows={5}
-                      value={linesToText(form.highlights)}
-                      onChange={(e) => update("highlights", textToLines(e.target.value))}
-                      placeholder={"Botticelli's Birth of Venus\nSkip-the-line timed entry\nExpert-led gallery walkthroughs"}
-                    />
-                  </Field>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <ImageField label="Hero image" value={form.heroImageUrl ?? ""} onChange={(url) => update("heroImageUrl", url || null)} />
+                    <Field label="Hero image alt text">
+                      <Input value={form.heroImageAlt ?? ""} onChange={(e) => update("heroImageAlt", e.target.value || null)} />
+                    </Field>
+                  </div>
+                </div>
+
+                <div className="rounded-2xl border border-stone bg-white p-5">
+                  <h3 className="mb-4 text-sm font-semibold text-ink">Badge &amp; CTA</h3>
+                  <p className="mb-4 text-xs text-ink-faint">Shown alongside the hero content on the attraction&apos;s own page.</p>
                   <div className="grid gap-4 sm:grid-cols-2">
                     <Field label="Badge text" hint="Small pill shown on the card, e.g. “Most Popular”">
                       <Input value={form.badgeText ?? ""} onChange={(e) => update("badgeText", e.target.value || null)} />
@@ -273,34 +333,165 @@ export function AttractionEditor({ mode, attractionId, initialValues, productCou
             ),
           },
           {
-            key: "media",
-            label: "Media",
+            key: "about",
+            label: "About Attraction",
             content: (
-              <div className="space-y-5">
-                <div className="rounded-2xl border border-stone bg-white p-5">
-                  <h3 className="mb-4 text-sm font-semibold text-ink">Card Image</h3>
-                  <p className="mb-4 text-xs text-ink-faint">Shown on the /experiences attraction grid.</p>
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <ImageField label="Card image" required value={form.imageUrl} onChange={(url) => update("imageUrl", url)} />
-                    <Field label="Card image alt text" required>
-                      <Input value={form.imageAlt} onChange={(e) => update("imageAlt", e.target.value)} />
-                    </Field>
-                  </div>
-                </div>
-                <div className="rounded-2xl border border-stone bg-white p-5">
-                  <h3 className="mb-4 text-sm font-semibold text-ink">Hero Image</h3>
-                  <p className="mb-4 text-xs text-ink-faint">
-                    Used on the attraction&apos;s own listing page. Falls back to the card image when left blank.
-                  </p>
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <ImageField label="Hero image" value={form.heroImageUrl ?? ""} onChange={(url) => update("heroImageUrl", url || null)} />
-                    <Field label="Hero image alt text">
-                      <Input value={form.heroImageAlt ?? ""} onChange={(e) => update("heroImageAlt", e.target.value || null)} />
-                    </Field>
-                  </div>
+              <div className="rounded-2xl border border-stone bg-white p-5">
+                <h3 className="mb-4 text-sm font-semibold text-ink">Highlights</h3>
+                <Field label="Highlights" hint="One per line, up to 6 — shown as bullet points on the attraction card and on the About section of its own page">
+                  <Textarea
+                    rows={5}
+                    value={linesToText(form.highlights)}
+                    onChange={(e) => update("highlights", textToLines(e.target.value))}
+                    placeholder={"Botticelli's Birth of Venus\nSkip-the-line timed entry\nExpert-led gallery walkthroughs"}
+                  />
+                </Field>
+              </div>
+            ),
+          },
+          {
+            key: "card",
+            label: "Card Image",
+            content: (
+              <div className="rounded-2xl border border-stone bg-white p-5">
+                <h3 className="mb-4 text-sm font-semibold text-ink">Card Image</h3>
+                <p className="mb-4 text-xs text-ink-faint">Shown on the /experiences attraction grid — not on this attraction&apos;s own page.</p>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <ImageField label="Card image" required value={form.imageUrl} onChange={(url) => update("imageUrl", url)} />
+                  <Field label="Card image alt text" required>
+                    <Input value={form.imageAlt} onChange={(e) => update("imageAlt", e.target.value)} />
+                  </Field>
                 </div>
               </div>
             ),
+          },
+          {
+            key: "tickets",
+            label: "Tickets & Experiences",
+            content:
+              mode === "create" || !attractionId ? (
+                <div className="rounded-2xl border border-stone bg-white p-5 text-sm text-ink-faint">
+                  Save this attraction first — then come back here to assign tickets to it.
+                </div>
+              ) : (
+                <div className="space-y-5">
+                  <div className="rounded-2xl border border-stone bg-white p-5">
+                    <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                      <div>
+                        <h3 className="text-sm font-semibold text-ink">Tickets & Experiences</h3>
+                        <p className="mt-0.5 text-xs text-ink-faint">
+                          Every ticket below belongs ONLY to this attraction and appears on{" "}
+                          <code className="text-[11px]">/experiences/attraction/{form.slug}</code> in this order.
+                        </p>
+                      </div>
+                      <Button
+                        href={`/admin/experiences/new?attractionId=${attractionId}`}
+                        size="sm"
+                      >
+                        + Create new ticket
+                      </Button>
+                    </div>
+
+                    {assignedProducts.length === 0 ? (
+                      <p className="rounded-xl border border-dashed border-stone bg-cream px-4 py-6 text-center text-xs text-ink-faint">
+                        No tickets assigned yet. Create one, or assign an existing unassigned ticket below.
+                      </p>
+                    ) : (
+                      <div className="divide-y divide-stone overflow-hidden rounded-xl border border-stone">
+                        {assignedProducts.map((p, index) => (
+                          <div key={p.id} className="flex items-center gap-3 bg-white px-3 py-2.5">
+                            <div className="flex shrink-0 flex-col">
+                              <button
+                                type="button"
+                                disabled={ticketsPending || index === 0}
+                                onClick={() => handleMoveTicket(p, "up")}
+                                title="Move up"
+                                className="rounded px-1 text-ink-faint hover:bg-stone hover:text-ink disabled:opacity-30"
+                              >
+                                ↑
+                              </button>
+                              <button
+                                type="button"
+                                disabled={ticketsPending || index === assignedProducts.length - 1}
+                                onClick={() => handleMoveTicket(p, "down")}
+                                title="Move down"
+                                className="rounded px-1 text-ink-faint hover:bg-stone hover:text-ink disabled:opacity-30"
+                              >
+                                ↓
+                              </button>
+                            </div>
+                            <div className="relative h-11 w-14 shrink-0 overflow-hidden rounded-lg bg-cream-deep">
+                              {p.image ? (
+                                <Image src={p.image.src} alt={p.image.alt} fill sizes="56px" className="object-cover" />
+                              ) : null}
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <p className="truncate text-sm font-medium text-ink">{p.title}</p>
+                              <p className="truncate text-xs text-ink-faint">
+                                {formatPrice(p.priceFromAmount, p.priceFromCurrency)} · {p.durationLabel}
+                              </p>
+                            </div>
+                            <StatusBadge status={p.status} />
+                            <div className="flex shrink-0 items-center gap-1.5">
+                              <Button href={`/admin/experiences/${p.id}`} variant="secondary" size="sm">
+                                Edit
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                disabled={ticketsPending || (p.status !== "live" && p.status !== "paused")}
+                                onClick={() => handleToggleTicketStatus(p)}
+                              >
+                                {p.status === "live" ? "Pause" : "Publish"}
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                disabled={ticketsPending}
+                                onClick={() => handleRemoveTicket(p)}
+                              >
+                                Remove
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    <p className="mt-4 text-xs text-ink-faint">
+                      {productCount} experience{productCount === 1 ? "" : "s"} currently assigned to this attraction.
+                      An attraction only shows on the public /experiences page once it&apos;s published and has at
+                      least one live experience assigned.
+                    </p>
+                  </div>
+
+                  <div className="rounded-2xl border border-stone bg-white p-5">
+                    <h3 className="mb-3 text-sm font-semibold text-ink">Assign an existing ticket</h3>
+                    {unassignedProducts.length === 0 ? (
+                      <p className="text-xs text-ink-faint">
+                        No unassigned tickets available — every existing ticket already belongs to an attraction.
+                      </p>
+                    ) : (
+                      <div className="flex flex-wrap items-end gap-3">
+                        <div className="min-w-[260px] flex-1">
+                          <Field label="Ticket">
+                            <Select value={toAssign} onChange={(e) => setToAssign(e.target.value)}>
+                              {unassignedProducts.map((p) => (
+                                <option key={p.id} value={p.id}>
+                                  {p.title}
+                                </option>
+                              ))}
+                            </Select>
+                          </Field>
+                        </div>
+                        <Button size="sm" disabled={ticketsPending || !toAssign} onClick={handleAssignTicket}>
+                          {ticketsPending ? "Assigning…" : "Assign to this attraction"}
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ),
           },
           {
             key: "seo",

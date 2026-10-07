@@ -936,7 +936,7 @@ export function SuppliersView({ initialSuppliers, pendingApplications = [], stat
                                 View / Edit Profile
                               </Link>
                               <Link
-                                href={`/admin/experiences?supplier=${s.id}`}
+                                href={`/admin/experiences/tickets?supplier=${s.id}`}
                                 className="block px-3.5 py-1.5 text-xs font-medium text-neutral-700 hover:bg-neutral-50 hover:text-[#1b3b36]"
                               >
                                 Linked Tours ({s.experiencesCount})
