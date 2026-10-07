@@ -558,24 +558,20 @@ export function ExperienceEditor({
                             ))}
                           </Select>
                         </Field>
-                        <Field label="Attraction" hint="Which landmark/experience-group this ticket appears under on /experiences">
+                        <Field label="Attraction" required hint="Which landmark/experience-group this ticket appears under on /experiences">
                           <Select
-                            value={form.attractionId ?? ""}
-                            onChange={(e) => update("attractionId", e.target.value || null)}
+                            value={form.attractionId}
+                            onChange={(e) => update("attractionId", e.target.value)}
                           >
-                            <option value="">No attraction (not grouped)</option>
+                            <option value="" disabled>
+                              Select an attraction
+                            </option>
                             {attractions.map((a) => (
                               <option key={a.id} value={a.id}>
                                 {a.name}
                               </option>
                             ))}
                           </Select>
-                          {!form.attractionId ? (
-                            <p className="mt-1.5 text-[11px] font-medium text-amber-700">
-                              Without an attraction, this experience won&apos;t be reachable from /experiences — the
-                              public site now routes customers through an attraction page first.
-                            </p>
-                          ) : null}
                         </Field>
                         <Field label="Duration" required hint='e.g. "3 hours"'>
                           <Input value={form.durationLabel} onChange={(e) => update("durationLabel", e.target.value)} />

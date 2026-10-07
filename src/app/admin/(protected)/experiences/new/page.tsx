@@ -15,7 +15,7 @@ const EMPTY_VALUES: ProductFormData = {
   shortDescription: "",
   description: "",
   categoryId: "",
-  attractionId: null,
+  attractionId: "",
   supplierId: "",
   durationLabel: "",
   badges: [],

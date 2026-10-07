@@ -41,7 +41,7 @@ export default async function EditExperiencePage({ params }: { params: Promise<P
     shortDescription: product.shortDescription,
     description: product.description,
     categoryId: product.categoryId,
-    attractionId: product.attractionId,
+    attractionId: product.attractionId ?? "",
     supplierId: product.supplierId,
     durationLabel: product.durationLabel,
     badges: product.badges,
