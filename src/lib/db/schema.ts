@@ -131,6 +131,13 @@ export const attractions = pgTable(
     badgeText: text("badge_text"),
     ctaLabel: text("cta_label"),
     ctaHref: text("cta_href"),
+    // "Why Choose Our {Attraction} Experiences?" banner on the attraction's
+    // own page — up to 4 {icon, title, description} value-point cards. Null
+    // means "use the site's default 4 points" (see
+    // DEFAULT_ATTRACTION_WHY_CHOOSE_ITEMS in src/lib/attraction-defaults.ts),
+    // so existing attractions keep rendering exactly what they show today
+    // until an admin explicitly customizes them.
+    whyChooseItems: jsonb("why_choose_items").$type<{ icon: string; title: string; description: string }[]>(),
     metaTitle: text("meta_title"),
     metaDescription: text("meta_description"),
     canonicalUrl: text("canonical_url"),

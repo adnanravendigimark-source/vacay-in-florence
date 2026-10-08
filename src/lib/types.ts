@@ -70,6 +70,9 @@ export interface AttractionSummary {
   badgeText: string | null;
   ctaLabel: string | null;
   ctaHref: string | null;
+  /** Null means "use the site's default 4 points" — see
+   * DEFAULT_ATTRACTION_WHY_CHOOSE_ITEMS in src/lib/attraction-defaults.ts. */
+  whyChooseItems: { icon: string; title: string; description: string }[] | null;
   metaTitle: string | null;
   metaDescription: string | null;
   canonicalUrl: string | null;

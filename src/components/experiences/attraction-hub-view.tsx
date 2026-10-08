@@ -4,6 +4,7 @@ import Image from "next/image";
 import type { AttractionSummary, ProductCardSummary } from "@/lib/types";
 import { AttractionTicketExplorer } from "@/components/experiences/attraction-ticket-explorer";
 import { FlorenceCtaBanner } from "@/components/experiences/florence-cta-banner";
+import { DEFAULT_ATTRACTION_WHY_CHOOSE_ITEMS } from "@/lib/attraction-defaults";
 
 interface AttractionHubViewProps {
   attraction: AttractionSummary;
@@ -46,6 +47,14 @@ export function AttractionHubView({
   // "About" highlight chips sourced from this attraction's real
   // `highlights` field (set in Admin), not a hardcoded Duomo-specific list.
   const aboutPoints = attraction.highlights.slice(0, 4).map((title) => ({ title, icon: highlightIcon }));
+
+  // "Why Choose" value points — admin-editable per attraction (Page
+  // Sections tab); falls back to the site's long-standing default 4
+  // points when not customized.
+  const whyChooseItems =
+    attraction.whyChooseItems && attraction.whyChooseItems.length > 0
+      ? attraction.whyChooseItems
+      : DEFAULT_ATTRACTION_WHY_CHOOSE_ITEMS;
 
   return (
     <div className="w-full bg-white text-neutral-900">
@@ -405,49 +414,20 @@ export function AttractionHubView({
                 </h3>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
-                  {/* Point 1 */}
-                  <div className="flex items-start gap-3.5 p-3.5 rounded-2xl bg-white border border-[#ece6dc] shadow-xs">
-                    <div className="h-10 w-10 rounded-xl bg-[#fdf2fe] border border-[#9e0ca0]/20 flex items-center justify-center shrink-0 text-[#9e0ca0] font-bold shadow-xs">
-                      ⚡
+                  {whyChooseItems.map((point, i) => (
+                    <div
+                      key={i}
+                      className="flex items-start gap-3.5 p-3.5 rounded-2xl bg-white border border-[#ece6dc] shadow-xs"
+                    >
+                      <div className="h-10 w-10 rounded-xl bg-[#fdf2fe] border border-[#9e0ca0]/20 flex items-center justify-center shrink-0 text-[#9e0ca0] font-bold shadow-xs">
+                        {point.icon}
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-bold text-neutral-900">{point.title}</h4>
+                        <p className="text-xs text-[#59655d] mt-0.5">{point.description}</p>
+                      </div>
                     </div>
-                    <div>
-                      <h4 className="text-sm font-bold text-neutral-900">Skip the lines</h4>
-                      <p className="text-xs text-[#59655d] mt-0.5">Save time and avoid the 2-hour queues</p>
-                    </div>
-                  </div>
-
-                  {/* Point 2 */}
-                  <div className="flex items-start gap-3.5 p-3.5 rounded-2xl bg-white border border-[#ece6dc] shadow-xs">
-                    <div className="h-10 w-10 rounded-xl bg-[#fdf2fe] border border-[#9e0ca0]/20 flex items-center justify-center shrink-0 text-[#9e0ca0] font-bold shadow-xs">
-                      👤
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-bold text-neutral-900">Expert guides</h4>
-                      <p className="text-xs text-[#59655d] mt-0.5">Learn art and history from certified locals</p>
-                    </div>
-                  </div>
-
-                  {/* Point 3 */}
-                  <div className="flex items-start gap-3.5 p-3.5 rounded-2xl bg-white border border-[#ece6dc] shadow-xs">
-                    <div className="h-10 w-10 rounded-xl bg-[#fdf2fe] border border-[#9e0ca0]/20 flex items-center justify-center shrink-0 text-[#9e0ca0] font-bold shadow-xs">
-                      🏷️
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-bold text-neutral-900">Best prices</h4>
-                      <p className="text-xs text-[#59655d] mt-0.5">Compare options and book with confidence</p>
-                    </div>
-                  </div>
-
-                  {/* Point 4 */}
-                  <div className="flex items-start gap-3.5 p-3.5 rounded-2xl bg-white border border-[#ece6dc] shadow-xs">
-                    <div className="h-10 w-10 rounded-xl bg-[#fdf2fe] border border-[#9e0ca0]/20 flex items-center justify-center shrink-0 text-[#9e0ca0] font-bold shadow-xs">
-                      🔄
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-bold text-neutral-900">Flexible booking</h4>
-                      <p className="text-xs text-[#59655d] mt-0.5">Free 24h cancellation on most experiences</p>
-                    </div>
-                  </div>
+                  ))}
                 </div>
               </div>
             </div>
@@ -469,8 +449,8 @@ export function AttractionHubView({
       {/* ================================================================= */}
       <div className="pb-16 sm:pb-20">
         <FlorenceCtaBanner
-          primaryLabel="Browse All Experiences"
-          primaryHref="/experiences"
+          primaryLabel={attraction.ctaLabel || "Browse All Experiences"}
+          primaryHref={attraction.ctaHref || "/experiences"}
         />
       </div>
     </div>

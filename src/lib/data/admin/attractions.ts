@@ -6,6 +6,7 @@ import { attractions, products } from "@/lib/db/schema";
 import { ensureAttractionsSchemaUpToDate } from "@/lib/data/attractions";
 import type { AttractionFormData } from "@/lib/validation/attractions";
 import type { CategoryIcon, AttractionStatus } from "@/lib/types";
+import type { WhyChooseItem } from "@/lib/attraction-defaults";
 
 /**
  * Admin-scoped repository over `attractions` — unlike
@@ -48,6 +49,7 @@ export interface AdminAttractionDetail {
   badgeText: string | null;
   ctaLabel: string | null;
   ctaHref: string | null;
+  whyChooseItems: WhyChooseItem[] | null;
   imageUrl: string;
   imageAlt: string;
   heroImageUrl: string | null;
@@ -80,6 +82,7 @@ const withProductCount = () =>
       badgeText: attractions.badgeText,
       ctaLabel: attractions.ctaLabel,
       ctaHref: attractions.ctaHref,
+      whyChooseItems: attractions.whyChooseItems,
       metaTitle: attractions.metaTitle,
       metaDescription: attractions.metaDescription,
       canonicalUrl: attractions.canonicalUrl,
@@ -126,6 +129,7 @@ export async function getAdminAttractionById(id: string): Promise<AdminAttractio
     badgeText: row.badgeText,
     ctaLabel: row.ctaLabel,
     ctaHref: row.ctaHref,
+    whyChooseItems: row.whyChooseItems && row.whyChooseItems.length > 0 ? row.whyChooseItems : null,
     imageUrl: row.imageUrl,
     imageAlt: row.imageAlt,
     heroImageUrl: row.heroImageUrl,
@@ -158,6 +162,7 @@ function baseAttractionValues(input: AttractionFormData) {
     badgeText: input.badgeText || null,
     ctaLabel: input.ctaLabel || null,
     ctaHref: input.ctaHref || null,
+    whyChooseItems: input.whyChooseItems && input.whyChooseItems.length > 0 ? input.whyChooseItems : null,
     imageUrl: input.imageUrl,
     imageAlt: input.imageAlt,
     heroImageUrl: input.heroImageUrl || null,

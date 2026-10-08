@@ -30,8 +30,23 @@ export const attractionFormSchema = z.object({
   // Content — highlights capped at 6, matching the card's display limit
   highlights: z.array(z.string().trim().min(1)).max(6).default([]),
   badgeText: z.string().trim().max(40).nullable().optional(),
+  // Powers the "Browse All Experiences" bottom banner's button on this
+  // attraction's page — null falls back to the site default button.
   ctaLabel: z.string().trim().max(40).nullable().optional(),
   ctaHref: z.string().trim().nullable().optional(),
+  // "Why Choose Our {Attraction} Experiences?" section — up to 4 value-point
+  // cards. Null/empty falls back to the site's default 4 points.
+  whyChooseItems: z
+    .array(
+      z.object({
+        icon: z.string().trim().min(1, "Icon is required.").max(4),
+        title: z.string().trim().min(1, "Title is required.").max(40),
+        description: z.string().trim().min(1, "Description is required.").max(120),
+      }),
+    )
+    .max(4)
+    .nullable()
+    .optional(),
 
   // Media
   imageUrl: nonEmpty("Card image URL"),

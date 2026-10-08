@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { AttractionEditor } from "@/components/admin/attraction-editor";
 import type { AttractionFormData } from "@/lib/validation/attractions";
+import { DEFAULT_ATTRACTION_WHY_CHOOSE_ITEMS } from "@/lib/attraction-defaults";
 
 export const metadata: Metadata = {
   title: "New Attraction | Admin | VACAY Florence",
@@ -19,6 +20,7 @@ const EMPTY_VALUES: AttractionFormData = {
   badgeText: null,
   ctaLabel: null,
   ctaHref: null,
+  whyChooseItems: DEFAULT_ATTRACTION_WHY_CHOOSE_ITEMS,
   imageUrl: "",
   imageAlt: "",
   heroImageUrl: null,

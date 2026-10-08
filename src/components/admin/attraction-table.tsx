@@ -6,7 +6,6 @@ import Image from "next/image";
 import {
   deleteAttractionAction,
   setAttractionStatusAction,
-  moveAttractionAction,
 } from "@/app/admin/(protected)/experiences/attractions/actions";
 import type { AdminAttractionListItem } from "@/lib/data/admin/attractions";
 import type { AttractionStatus } from "@/lib/types";
@@ -32,20 +31,6 @@ export function AttractionTable({ items }: { items: AdminAttractionListItem[] })
         router.refresh();
       } else {
         showToast(result.error ?? "Could not update status.", "error");
-      }
-    });
-  }
-
-  // Drives the "Top Attractions" grid order on /experiences and the
-  // attraction-card order inside the public hub — moveAttractionAction
-  // already existed server-side, this is its only UI entry point.
-  function handleMove(item: AdminAttractionListItem, direction: "up" | "down") {
-    startTransition(async () => {
-      const result = await moveAttractionAction(item.id, direction);
-      if (result.success) {
-        router.refresh();
-      } else {
-        showToast(result.error ?? "Could not reorder attractions.", "error");
       }
     });
   }
@@ -82,14 +67,13 @@ export function AttractionTable({ items }: { items: AdminAttractionListItem[] })
         <THead>
           <TR>
             <TH>Attraction</TH>
-            <TH className="w-24 text-center">Order</TH>
             <TH>Status</TH>
             <TH className="w-28 text-center">Tickets</TH>
             <TH className="w-40 text-right">Actions</TH>
           </TR>
         </THead>
         <TBody>
-          {items.map((item, index) => (
+          {items.map((item) => (
             <TR key={item.id}>
               <TD>
                 <div className="flex items-center gap-3">
@@ -100,28 +84,6 @@ export function AttractionTable({ items }: { items: AdminAttractionListItem[] })
                     <p className="truncate font-medium text-ink">{item.name}</p>
                     <p className="truncate text-xs text-ink-faint">/{item.slug}</p>
                   </div>
-                </div>
-              </TD>
-              <TD>
-                <div className="flex items-center justify-center gap-1">
-                  <button
-                    type="button"
-                    disabled={isPending || index === 0}
-                    onClick={() => handleMove(item, "up")}
-                    title="Move up"
-                    className="rounded p-1 text-ink-faint hover:bg-stone hover:text-ink disabled:opacity-30"
-                  >
-                    ↑
-                  </button>
-                  <button
-                    type="button"
-                    disabled={isPending || index === items.length - 1}
-                    onClick={() => handleMove(item, "down")}
-                    title="Move down"
-                    className="rounded p-1 text-ink-faint hover:bg-stone hover:text-ink disabled:opacity-30"
-                  >
-                    ↓
-                  </button>
                 </div>
               </TD>
               <TD>

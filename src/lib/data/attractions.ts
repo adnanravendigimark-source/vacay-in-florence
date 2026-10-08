@@ -1,8 +1,10 @@
 import "server-only";
-import { eq, and, sql } from "drizzle-orm";
+import { eq, and, sql, SQL } from "drizzle-orm";
 import { db } from "@/lib/db";
+import { getPgErrorCode } from "@/lib/db/errors";
 import { attractions, products } from "@/lib/db/schema";
 import type { CategoryIcon, AttractionStatus, AttractionSummary } from "@/lib/types";
+import type { WhyChooseItem } from "@/lib/attraction-defaults";
 
 /**
  * Public repository over `attractions` — the new top level of the public
@@ -21,6 +23,20 @@ let attractionsSchemaEnsured = false;
  * ensureProductsSchemaUpToDate(), since this environment cannot run
  * `drizzle-kit push` directly against the live Neon DB.
  */
+/**
+ * Runs one ADD COLUMN statement, treating a duplicate_column error
+ * (Postgres code 42701) as success — same race-safe pattern as
+ * alterProductsColumn() in src/lib/data/products.ts.
+ */
+async function alterAttractionsColumn(statement: SQL) {
+  try {
+    await db.execute(statement);
+  } catch (err) {
+    const code = getPgErrorCode(err);
+    if (code !== "42701") throw err;
+  }
+}
+
 export async function ensureAttractionsSchemaUpToDate() {
   if (attractionsSchemaEnsured) return;
   try {
@@ -56,6 +72,11 @@ export async function ensureAttractionsSchemaUpToDate() {
     await db.execute(
       sql`CREATE INDEX IF NOT EXISTS "attractions_featured_sort_idx" ON "attractions" ("featured", "sort_order");`,
     );
+    // Additive column — see the comment on attractions.whyChooseItems in
+    // src/lib/db/schema.ts.
+    await alterAttractionsColumn(
+      sql`ALTER TABLE "attractions" ADD COLUMN IF NOT EXISTS "why_choose_items" jsonb;`,
+    );
     // products.attraction_id is added by ensureProductsSchemaUpToDate()
     // (src/lib/data/products.ts), which calls this function first so the
     // table it references already exists.
@@ -82,6 +103,7 @@ type AttractionRow = {
   badgeText: string | null;
   ctaLabel: string | null;
   ctaHref: string | null;
+  whyChooseItems: WhyChooseItem[] | null;
   metaTitle: string | null;
   metaDescription: string | null;
   canonicalUrl: string | null;
@@ -108,6 +130,7 @@ function toSummary(row: AttractionRow): AttractionSummary {
     badgeText: row.badgeText,
     ctaLabel: row.ctaLabel,
     ctaHref: row.ctaHref,
+    whyChooseItems: row.whyChooseItems && row.whyChooseItems.length > 0 ? row.whyChooseItems : null,
     metaTitle: row.metaTitle,
     metaDescription: row.metaDescription,
     canonicalUrl: row.canonicalUrl,
@@ -139,6 +162,7 @@ const withProductCount = () =>
       badgeText: attractions.badgeText,
       ctaLabel: attractions.ctaLabel,
       ctaHref: attractions.ctaHref,
+      whyChooseItems: attractions.whyChooseItems,
       metaTitle: attractions.metaTitle,
       metaDescription: attractions.metaDescription,
       canonicalUrl: attractions.canonicalUrl,

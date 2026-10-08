@@ -16,6 +16,7 @@ import { setProductStatusAction } from "@/app/admin/(protected)/experiences/acti
 import { StatusBadge, formatPrice } from "@/components/admin/experience-table";
 import type { AttractionFormData } from "@/lib/validation/attractions";
 import type { CategoryIcon } from "@/lib/types";
+import { DEFAULT_ATTRACTION_WHY_CHOOSE_ITEMS } from "@/lib/attraction-defaults";
 import type { AdminProductListItem } from "@/lib/data/admin/products";
 import { Field, Input, Select, Textarea, Button, Tabs, ImageField, Modal, useToast } from "@/components/admin/ui";
 
@@ -133,10 +134,23 @@ export function AttractionEditor({
     setForm((prev) => ({ ...prev, [key]: value }));
   }
 
+  function updateWhyChooseItem(index: number, field: "icon" | "title" | "description", value: string) {
+    setForm((prev) => {
+      const items = [...(prev.whyChooseItems ?? DEFAULT_ATTRACTION_WHY_CHOOSE_ITEMS)];
+      items[index] = { ...items[index], [field]: value };
+      return { ...prev, whyChooseItems: items };
+    });
+  }
+
   function buildSubmission(): AttractionFormData {
     return {
       ...form,
       highlights: cleanLines(form.highlights).slice(0, 6),
+      whyChooseItems: (form.whyChooseItems ?? DEFAULT_ATTRACTION_WHY_CHOOSE_ITEMS).map((item) => ({
+        icon: item.icon.trim(),
+        title: item.title.trim(),
+        description: item.description.trim(),
+      })),
     };
   }
 
@@ -246,7 +260,7 @@ export function AttractionEditor({
                   <h3 className="mb-4 text-sm font-semibold text-ink">Basic Information</h3>
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div className="sm:col-span-2">
-                      <Field label="Attraction Name" required hint='e.g. "Uffizi Gallery", "Day Trips"'>
+                      <Field label="Attraction Name" required hint='Shown as the H1 headline on this attraction’s page, e.g. "Uffizi Gallery"'>
                         <Input value={form.name} onChange={(e) => update("name", e.target.value)} />
                       </Field>
                     </div>
@@ -286,6 +300,16 @@ export function AttractionEditor({
                 </div>
 
                 <div className="rounded-2xl border border-stone bg-white p-5">
+                  <h3 className="mb-3 text-sm font-semibold text-ink">Eyebrow Badge</h3>
+                  <p className="mb-4 text-xs text-ink-faint">
+                    Shown as the small pill above the headline on this attraction&apos;s page, and as the badge on its card on the /experiences grid.
+                  </p>
+                  <Field label="Badge text" hint='e.g. "Most Popular" — leave blank to show the default "ICONIC ATTRACTIONS" pill'>
+                    <Input value={form.badgeText ?? ""} onChange={(e) => update("badgeText", e.target.value || null)} />
+                  </Field>
+                </div>
+
+                <div className="rounded-2xl border border-stone bg-white p-5">
                   <Field label="Short description" required hint={`${form.shortDescription.length}/300`}>
                     <Textarea
                       rows={3}
@@ -293,12 +317,26 @@ export function AttractionEditor({
                       onChange={(e) => update("shortDescription", e.target.value)}
                     />
                   </Field>
+                  <p className="mt-2 text-xs text-ink-faint">
+                    Used as the hero paragraph on this page, and reused in the About &amp; Gallery section below.
+                  </p>
+                </div>
+
+                <div className="rounded-2xl border border-stone bg-cream px-5 py-4 text-xs text-ink-faint">
+                  The italic subtitle shown under the headline (
+                  <span className="font-medium text-ink">
+                    {form.highlights[0] ? `“${form.highlights[0]}”` : "— none set —"}
+                  </span>
+                  ) is automatically the first line of <strong className="font-semibold text-ink">Highlights</strong>,
+                  edited in the <strong className="font-semibold text-ink">About &amp; Gallery</strong> tab. The three
+                  feature badges and the Location / Tickets / Rating info bar below the headline are generated
+                  automatically and aren&apos;t editable here.
                 </div>
 
                 <div className="rounded-2xl border border-stone bg-white p-5">
                   <h3 className="mb-4 text-sm font-semibold text-ink">Hero Image</h3>
                   <p className="mb-4 text-xs text-ink-faint">
-                    Used on this attraction&apos;s own listing page (<code className="text-[11px]">/experiences/attraction/{form.slug}</code>). Falls back to the card image (set under the Card Image tab) when left blank.
+                    Used as the background photo on this attraction&apos;s own page (<code className="text-[11px]">/experiences/attraction/{form.slug}</code>). Falls back to the Card Image (its own tab) when left blank.
                   </p>
                   <div className="grid gap-4 sm:grid-cols-2">
                     <ImageField label="Hero image" value={form.heroImageUrl ?? ""} onChange={(url) => update("heroImageUrl", url || null)} />
@@ -307,60 +345,45 @@ export function AttractionEditor({
                     </Field>
                   </div>
                 </div>
-
-                <div className="rounded-2xl border border-stone bg-white p-5">
-                  <h3 className="mb-4 text-sm font-semibold text-ink">Badge &amp; CTA</h3>
-                  <p className="mb-4 text-xs text-ink-faint">Shown alongside the hero content on the attraction&apos;s own page.</p>
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <Field label="Badge text" hint="Small pill shown on the card, e.g. “Most Popular”">
-                      <Input value={form.badgeText ?? ""} onChange={(e) => update("badgeText", e.target.value || null)} />
-                    </Field>
-                    <Field label="CTA label" hint='e.g. "Explore tickets"'>
-                      <Input value={form.ctaLabel ?? ""} onChange={(e) => update("ctaLabel", e.target.value || null)} />
-                    </Field>
-                    <div className="sm:col-span-2">
-                      <Field label="CTA link" hint="Relative or absolute URL the CTA button points to">
-                        <Input
-                          value={form.ctaHref ?? ""}
-                          onChange={(e) => update("ctaHref", e.target.value || null)}
-                          placeholder={`/experiences/attraction/${form.slug || "..."}`}
-                        />
-                      </Field>
-                    </div>
-                  </div>
-                </div>
               </div>
             ),
           },
           {
             key: "about",
-            label: "About Attraction",
+            label: "About & Gallery",
             content: (
-              <div className="rounded-2xl border border-stone bg-white p-5">
-                <h3 className="mb-4 text-sm font-semibold text-ink">Highlights</h3>
-                <Field label="Highlights" hint="One per line, up to 6 — shown as bullet points on the attraction card and on the About section of its own page">
-                  <Textarea
-                    rows={5}
-                    value={linesToText(form.highlights)}
-                    onChange={(e) => update("highlights", textToLines(e.target.value))}
-                    placeholder={"Botticelli's Birth of Venus\nSkip-the-line timed entry\nExpert-led gallery walkthroughs"}
-                  />
-                </Field>
-              </div>
-            ),
-          },
-          {
-            key: "card",
-            label: "Card Image",
-            content: (
-              <div className="rounded-2xl border border-stone bg-white p-5">
-                <h3 className="mb-4 text-sm font-semibold text-ink">Card Image</h3>
-                <p className="mb-4 text-xs text-ink-faint">Shown on the /experiences attraction grid — not on this attraction&apos;s own page.</p>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <ImageField label="Card image" required value={form.imageUrl} onChange={(url) => update("imageUrl", url)} />
-                  <Field label="Card image alt text" required>
-                    <Input value={form.imageAlt} onChange={(e) => update("imageAlt", e.target.value)} />
+              <div className="space-y-5">
+                <div className="rounded-2xl border border-stone bg-cream px-5 py-4 text-xs text-ink-faint">
+                  This is the &quot;Discover {form.name || "this attraction"}&quot; section on the page. Its heading and
+                  paragraph are generated automatically from the Short description (Hero Section tab) plus the
+                  Highlights below — there&apos;s no separate paragraph to write here.
+                </div>
+
+                <div className="rounded-2xl border border-stone bg-white p-5">
+                  <h3 className="mb-1 text-sm font-semibold text-ink">Highlights</h3>
+                  <p className="mb-4 text-xs text-ink-faint">
+                    One per line, up to 6. The <strong className="font-semibold text-ink">first line</strong> becomes
+                    the hero subtitle; all of them are woven into the &quot;Don&apos;t miss&quot; sentence and shown
+                    as up to 4 highlight chips in this section. Also shown as bullet points on the attraction&apos;s
+                    card on the /experiences grid.
+                  </p>
+                  <Field label="Highlights">
+                    <Textarea
+                      rows={5}
+                      value={linesToText(form.highlights)}
+                      onChange={(e) => update("highlights", textToLines(e.target.value))}
+                      placeholder={"Botticelli's Birth of Venus\nSkip-the-line timed entry\nExpert-led gallery walkthroughs"}
+                    />
                   </Field>
+                </div>
+
+                <div className="rounded-2xl border border-dashed border-stone bg-cream px-5 py-4 text-xs text-ink-faint">
+                  <h3 className="mb-1 text-sm font-semibold text-ink">Gallery</h3>
+                  The 3-photo collage next to this text is pulled automatically from this attraction&apos;s first 3
+                  published tickets&apos; photos (falling back to the Hero Image if there are fewer than 3 tickets).
+                  There&apos;s no separate gallery to manage — add, reorder, or swap the photos on tickets in the{" "}
+                  <strong className="font-semibold text-ink">Tickets &amp; Experiences</strong> tab to change what
+                  shows up here.
                 </div>
               </div>
             ),
@@ -492,6 +515,97 @@ export function AttractionEditor({
                   </div>
                 </div>
               ),
+          },
+          {
+            key: "sections",
+            label: "Page Sections",
+            content: (
+              <div className="space-y-5">
+                <div className="rounded-2xl border border-stone bg-white p-5">
+                  <h3 className="text-sm font-semibold text-ink">
+                    &quot;Why Choose Our {form.name || "This Attraction"} Experiences?&quot; banner
+                  </h3>
+                  <p className="mt-1 mb-4 text-xs text-ink-faint">
+                    Only the heading inserts this attraction&apos;s name automatically — the photo is this
+                    attraction&apos;s Hero Image. The four value-point cards below are editable per attraction; leave
+                    them as-is to keep showing the site&apos;s default points.
+                  </p>
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    {(form.whyChooseItems ?? DEFAULT_ATTRACTION_WHY_CHOOSE_ITEMS).map((item, index) => (
+                      <div key={index} className="space-y-2 rounded-xl border border-stone bg-cream p-3">
+                        <div className="flex gap-2">
+                          <div className="w-16 shrink-0">
+                            <Field label="Icon">
+                              <Input
+                                value={item.icon}
+                                onChange={(e) => updateWhyChooseItem(index, "icon", e.target.value)}
+                                maxLength={4}
+                                className="text-center"
+                              />
+                            </Field>
+                          </div>
+                          <div className="flex-1">
+                            <Field label="Title">
+                              <Input
+                                value={item.title}
+                                onChange={(e) => updateWhyChooseItem(index, "title", e.target.value)}
+                                maxLength={40}
+                              />
+                            </Field>
+                          </div>
+                        </div>
+                        <Field label="Description">
+                          <Input
+                            value={item.description}
+                            onChange={(e) => updateWhyChooseItem(index, "description", e.target.value)}
+                            maxLength={120}
+                          />
+                        </Field>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="rounded-2xl border border-stone bg-white p-5">
+                  <h3 className="mb-1 text-sm font-semibold text-ink">
+                    Bottom &quot;Need help planning your Florence visit?&quot; banner
+                  </h3>
+                  <p className="mb-4 text-xs text-ink-faint">
+                    The same sitewide concierge banner shown at the bottom of every attraction page and the main
+                    /experiences page — its heading and paragraph aren&apos;t attraction-specific. Only its button is
+                    editable here; leave blank to show the site default.
+                  </p>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <Field label="Button label" hint='e.g. "Browse All Experiences" (default when blank)'>
+                      <Input value={form.ctaLabel ?? ""} onChange={(e) => update("ctaLabel", e.target.value || null)} />
+                    </Field>
+                    <Field label="Button link" hint="/experiences (default when blank)">
+                      <Input value={form.ctaHref ?? ""} onChange={(e) => update("ctaHref", e.target.value || null)} />
+                    </Field>
+                  </div>
+                </div>
+              </div>
+            ),
+          },
+          {
+            key: "card",
+            label: "Card Image",
+            content: (
+              <div className="rounded-2xl border border-stone bg-white p-5">
+                <h3 className="mb-4 text-sm font-semibold text-ink">Card Image</h3>
+                <p className="mb-4 text-xs text-ink-faint">
+                  Not shown on this attraction&apos;s own page — this photo appears on its card on the{" "}
+                  <code className="text-[11px]">/experiences</code> grid (the attraction list people browse before
+                  clicking in), and is used as a fallback Hero Image when no Hero Image is set in the Hero Section tab.
+                </p>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <ImageField label="Card image" required value={form.imageUrl} onChange={(url) => update("imageUrl", url)} />
+                  <Field label="Card image alt text" required>
+                    <Input value={form.imageAlt} onChange={(e) => update("imageAlt", e.target.value)} />
+                  </Field>
+                </div>
+              </div>
+            ),
           },
           {
             key: "seo",

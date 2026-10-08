@@ -4,6 +4,7 @@ import { getAdminAttractionById } from "@/lib/data/admin/attractions";
 import { listAttractionProducts, listAdminProducts } from "@/lib/data/admin/products";
 import { AttractionEditor } from "@/components/admin/attraction-editor";
 import type { AttractionFormData } from "@/lib/validation/attractions";
+import { DEFAULT_ATTRACTION_WHY_CHOOSE_ITEMS } from "@/lib/attraction-defaults";
 
 export const metadata: Metadata = {
   title: "Edit Attraction | Admin | VACAY Florence",
@@ -33,6 +34,7 @@ export default async function EditAttractionPage({ params }: { params: Promise<P
     badgeText: attraction.badgeText,
     ctaLabel: attraction.ctaLabel,
     ctaHref: attraction.ctaHref,
+    whyChooseItems: attraction.whyChooseItems ?? DEFAULT_ATTRACTION_WHY_CHOOSE_ITEMS,
     imageUrl: attraction.imageUrl,
     imageAlt: attraction.imageAlt,
     heroImageUrl: attraction.heroImageUrl,
