@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { AuthSessionProvider } from "@/components/auth/session-provider";
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.vacayinflorence.com";
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://vacay-in-florence-eight.vercel.app";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),

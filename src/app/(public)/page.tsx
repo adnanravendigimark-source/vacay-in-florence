@@ -40,7 +40,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function HomePage() {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.vacayinflorence.com";
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://vacay-in-florence-eight.vercel.app";
 
   const content = await getHomepageContent();
   const homepageExperiences = await getHomepageFeaturedExperiences(content?.featuredExperienceIds);

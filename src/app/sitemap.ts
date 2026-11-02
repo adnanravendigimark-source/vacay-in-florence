@@ -3,7 +3,7 @@ import { getLatestBlogPosts } from "@/lib/data/blog";
 import { searchProducts } from "@/lib/data/products";
 import { getAllAttractions } from "@/lib/data/attractions";
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.vacayinflorence.com";
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://vacay-in-florence-eight.vercel.app";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [attractions, posts, productPage] = await Promise.all([

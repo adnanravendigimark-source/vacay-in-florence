@@ -9,7 +9,7 @@
  */
 
 export function getSiteUrl(): string {
-  return process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.vacayinflorence.com";
+  return process.env.NEXT_PUBLIC_SITE_URL ?? "https://vacay-in-florence-eight.vercel.app";
 }
 
 export function resolveRobots(
